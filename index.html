@@ -7,7 +7,6 @@
   <style>
     :root {
       --bg: #07111c;
-      --bg2: #0c1d2f;
       --card: rgba(13, 24, 39, 0.78);
       --line: rgba(111, 213, 255, 0.18);
       --text: #eefbff;
@@ -23,12 +22,9 @@
       padding: 0;
       font-family: Inter, Arial, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at top, #173250 0%, #0b1827 46%, #06101a 100%);
+      background: radial-gradient(circle at top, #173250 0%, #0b1827 46%, #06101a 100%);
     }
-    body {
-      min-height: 100vh;
-    }
+    body { min-height: 100vh; }
     .wrap {
       width: min(1180px, calc(100vw - 24px));
       margin: 0 auto;
@@ -134,10 +130,12 @@
       font-weight: 800;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      background: rgba(255,255,255,0.08);
+      color: #e6f8ff;
     }
-    .badge.done { background: rgba(140,255,154,0.14); color: var(--good); }
-    .badge.proto { background: rgba(255,215,123,0.14); color: var(--warn); }
     .badge.mobile { background: rgba(143,182,255,0.14); color: var(--soft); }
+    .badge.game { background: rgba(140,255,154,0.14); color: var(--good); }
+    .badge.test { background: rgba(255,215,123,0.14); color: var(--warn); }
     .card h3 {
       margin: 0;
       font-size: 24px;
@@ -181,11 +179,6 @@
       font-weight: 800;
       min-width: 146px;
     }
-    a.btn.secondary {
-      background: rgba(255,255,255,0.06);
-      color: #ecfbff;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
     .footer {
       margin-top: 24px;
       padding: 18px 22px;
@@ -212,7 +205,7 @@
       <h1>Lesha Games</h1>
       <p>
         Коллекция HTML-игр, которые можно запускать прямо по ссылке — в том числе на iPhone через Safari.
-        Здесь собраны готовые и экспериментальные вайбкодинг-проекты: выживание, idle-игры, башни, добыча ресурсов и локальные браузерные прототипы.
+        Здесь лежат текущие браузерные версии игр без статусных префиксов в названиях и путях.
       </p>
       <div class="chips">
         <div class="chip">📱 iPhone / Safari friendly</div>
@@ -220,9 +213,9 @@
         <div class="chip">🌐 GitHub Pages</div>
       </div>
       <div class="stats">
-        <div class="stat"><b>5</b>HTML-игр уже опубликовано</div>
-        <div class="stat"><b>1</b>готовая версия</div>
-        <div class="stat"><b>4</b>прототипа для тестов и доработки</div>
+        <div class="stat"><b>5</b>HTML-игр опубликовано</div>
+        <div class="stat"><b>1</b>главная страница-каталог</div>
+        <div class="stat"><b>∞</b>старые версии можно убирать в archive</div>
       </div>
     </section>
 
@@ -230,7 +223,7 @@
     <section class="grid">
       <article class="card">
         <div class="topline">
-          <span class="badge done">done</span>
+          <span class="badge game">action</span>
           <span class="badge mobile">mobile</span>
         </div>
         <h3>OMON Goose File</h3>
@@ -247,11 +240,11 @@
 
       <article class="card">
         <div class="topline">
-          <span class="badge proto">prototype</span>
+          <span class="badge game">survival</span>
           <span class="badge mobile">mobile</span>
         </div>
         <h3>Zombie Survival Big Map</h3>
-        <p>Большая карта, зомби, стрельба, миникарта, постройки и мобильное управление. Экспериментальный survival-прототип для браузера.</p>
+        <p>Большая карта, зомби, стрельба, миникарта, постройки и мобильное управление. Survival-прототип для браузера.</p>
         <div class="meta">
           <span>HTML</span>
           <span>Survival</span>
@@ -264,7 +257,7 @@
 
       <article class="card">
         <div class="topline">
-          <span class="badge proto">prototype</span>
+          <span class="badge game">idle</span>
           <span class="badge mobile">mobile</span>
         </div>
         <h3>Miner Oil Town</h3>
@@ -281,7 +274,7 @@
 
       <article class="card">
         <div class="topline">
-          <span class="badge proto">prototype</span>
+          <span class="badge game">idle</span>
           <span class="badge mobile">mobile</span>
         </div>
         <h3>Airport Cracks Idle</h3>
@@ -298,7 +291,7 @@
 
       <article class="card">
         <div class="topline">
-          <span class="badge proto">prototype</span>
+          <span class="badge test">tower</span>
           <span class="badge mobile">mobile</span>
         </div>
         <h3>Кристалл Стёр — Башня 50 этажей</h3>
@@ -315,7 +308,7 @@
     </section>
 
     <div class="footer">
-      <b>Совет для iPhone:</b> открывай игры через <b>Safari</b>. Если игра поддерживает мобильный режим, она откроется прямо по ссылке без скачивания отдельных файлов.
+      <b>Архитектура:</b> текущая версия игры лежит по чистому имени проекта, а старые сборки и предыдущие версии лучше складывать в archive. Для iPhone открывай игры через <b>Safari</b>.
     </div>
   </div>
 </body>
