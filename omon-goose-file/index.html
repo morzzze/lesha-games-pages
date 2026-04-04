@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>OMON Goose File Edition</title>
+<style>
+  :root {
+    --bg: #07111d;
+    --panel: rgba(8, 15, 28, 0.88);
+    --panel-2: rgba(15, 28, 48, 0.9);
+    --line: #4acbff;
+    --good: #62ff9a;
+    --bad: #ff6f88;
+    --text: #f4fbff;
+    --muted: #b8d5ea;
+    --vh: 1vh;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    min-height: calc(var(--vh) * 100);
+    overflow: hidden;
+    background: radial-gradient(circle at top, #0f1f34 0%, #07111d 55%, #03080e 100%);
+    color: var(--text);
+    font-family: Inter, Arial, sans-serif;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-text-size-adjust: 100%;
+    touch-action: none;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+  }
+  body.mobile-game .info-strip {
+    display: none;
+  }
+  #wrap {
+    position: relative;
+    width: 100vw;
+    height: calc(var(--vh) * 100);
+    overflow: hidden;
+    touch-action: none;
+  }
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: #0b1c31;
+    image-rendering: auto;
+    touch-action: none;
+  }
+  .hud {
+    position: absolute;
+    left: max(12px, env(safe-area-inset-left));
+    top: max(12px, env(safe-area-inset-top));
+    z-index: 30;
+    min-width: min(430px, calc(100vw - 24px));
+    max-width: min(560px, calc(100vw - 24px));
+    padding: 12px 14px;
+    border: 1px solid rgba(74, 203, 255, 0.35);
+    border-radius: 16px;
+    background: rgba(5, 12, 20, 0.62);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 18px rgba(0,0,0,0.25);
+    font-size: 15px;
+    line-height: 1.35;
+    white-space: pre-line;
+  }
+  .panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(520px, calc(100vw - 28px));
+    padding: 22px;
+    border-radius: 20px;
+    background: var(--panel);
+    border: 1px solid rgba(74, 203, 255, 0.35);
+    z-index: 50;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    text-align: center;
+  }
+  .panel.hidden { display: none; }
+  h1, h2, p { margin: 0; }
+  .title {
+    font-size: clamp(30px, 5vw, 48px);
+    margin-bottom: 10px;
+    color: #f6fdff;
+    text-shadow: 0 0 18px rgba(74, 203, 255, 0.28);
+  }
+  .subtitle {
+    margin-bottom: 18px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .accent {
+    color: var(--line);
+    font-weight: 700;
+  }
+  .good { color: var(--good); }
+  .bad { color: var(--bad); }
+  .btn,
+  .map-btn {
+    width: 100%;
+    border: none;
+    color: #05121f;
+    font-weight: 800;
+    font-size: 18px;
+    border-radius: 14px;
+    padding: 14px 18px;
+    background: linear-gradient(180deg, #74ecff 0%, #34c8ff 100%);
+    cursor: pointer;
+    margin-top: 12px;
+    box-shadow: 0 8px 24px rgba(52, 200, 255, 0.25);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn.secondary,
+  .map-btn.secondary {
+    background: linear-gradient(180deg, #bfc8d2 0%, #8ea3b6 100%);
+  }
+  .btn.warn {
+    background: linear-gradient(180deg, #ff9cab 0%, #ff6b82 100%);
+    color: #230812;
+  }
+  .maps {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .info-strip {
+    position: absolute;
+    left: 50%;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 35;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(5, 12, 20, 0.7);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #d4ecff;
+    font-size: 14px;
+    text-align: center;
+    width: min(820px, calc(100vw - 24px));
+  }
+  #toast {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 60;
+    min-width: min(320px, calc(100vw - 40px));
+    max-width: min(500px, calc(100vw - 40px));
+    text-align: center;
+    background: rgba(3, 9, 18, 0.88);
+    color: #fff;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(116, 236, 255, 0.25);
+    display: none;
+    pointer-events: none;
+    white-space: pre-line;
+  }
+  #touchControls {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 45;
+    pointer-events: none;
+    touch-action: none;
+  }
+  #dpad {
+    position: absolute;
+    left: max(18px, env(safe-area-inset-left));
+    bottom: calc(max(18px, env(safe-area-inset-bottom)) + 10px);
+    width: 156px;
+    height: 156px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+    pointer-events: auto;
+  }
+  .dpad-btn {
+    border: none;
+    border-radius: 16px;
+    background: rgba(116, 236, 255, 0.18);
+    color: #eafcff;
+    font-size: 26px;
+    font-weight: 900;
+    border: 2px solid rgba(116, 236, 255, 0.45);
+    box-shadow: 0 0 18px rgba(53, 185, 255, 0.14);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  .dpad-btn:active,
+  .dpad-btn.pressed {
+    background: rgba(116, 236, 255, 0.38);
+    transform: scale(0.97);
+  }
+  #btnUp { grid-column: 2; grid-row: 1; }
+  #btnLeft { grid-column: 1; grid-row: 2; }
+  #btnRight { grid-column: 3; grid-row: 2; }
+  #btnDown { grid-column: 2; grid-row: 3; }
+  #actionBtn {
+    position: absolute;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: calc(max(18px, env(safe-area-inset-bottom)) + 14px);
+    z-index: 45;
+    width: 96px;
+    height: 96px;
+    border: none;
+    border-radius: 50%;
+    font-size: 17px;
+    font-weight: 800;
+    color: #27050d;
+    background: linear-gradient(180deg, #ffb0be 0%, #ff5f7d 100%);
+    box-shadow: 0 0 24px rgba(255, 95, 125, 0.32);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    pointer-events: auto;
+  }
+  #pauseBtn {
+    position: absolute;
+    right: max(14px, env(safe-area-inset-right));
+    top: max(14px, env(safe-area-inset-top));
+    z-index: 55;
+    width: 52px;
+    height: 52px;
+    border: 1px solid rgba(116, 236, 255, 0.35);
+    border-radius: 14px;
+    background: rgba(5, 12, 20, 0.72);
+    color: #eefcff;
+    font-size: 22px;
+    font-weight: 800;
+    display: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    pointer-events: auto;
+  }
+  #rotateHint {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 65;
+    display: none;
+    width: min(320px, calc(100vw - 40px));
+    padding: 16px 18px;
+    border-radius: 18px;
+    text-align: center;
+    background: rgba(4, 10, 18, 0.88);
+    border: 1px solid rgba(116, 236, 255, 0.28);
+    color: #effbff;
+    white-space: pre-line;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+    pointer-events: none;
+  }
+  #pauseOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 58;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(2, 7, 13, 0.55);
+  }
+  #pauseOverlayCard {
+    width: min(320px, calc(100vw - 40px));
+    padding: 18px;
+    border-radius: 18px;
+    text-align: center;
+    background: rgba(4, 10, 18, 0.92);
+    border: 1px solid rgba(116, 236, 255, 0.28);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+  }
+  #pauseOverlayCard h3 {
+    margin: 0 0 10px;
+    font-size: 24px;
+  }
+  #pauseOverlayCard p {
+    margin: 0 0 14px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  #actionBtn.crew {
+    background: linear-gradient(180deg, #8edcff 0%, #57a8ff 100%);
+    color: #07162b;
+    box-shadow: 0 0 24px rgba(87, 168, 255, 0.3);
+  }
+  @media (hover: none) and (pointer: coarse) {
+    #touchControls { display: block; }
+    .info-strip { padding-bottom: 14px; }
+  }
+  @media (max-width: 720px) {
+    .hud {
+      font-size: 13px;
+      min-width: auto;
+      max-width: calc(100vw - 24px);
+    }
+    .info-strip {
+      font-size: 13px;
+      bottom: calc(max(18px, env(safe-area-inset-bottom)) + 118px);
+    }
+    .hud {
+      font-size: 12px;
+      padding: 10px 12px;
+      width: calc(100vw - 24px);
+      max-width: none;
+    }
+    #dpad {
+      width: 138px;
+      height: 138px;
+      gap: 7px;
+    }
+    .dpad-btn {
+      border-radius: 14px;
+      font-size: 22px;
+    }
+    #actionBtn {
+      width: 92px;
+      height: 92px;
+      font-size: 16px;
+    }
+    #pauseBtn {
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+    }
+    #rotateHint {
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="1000" height="600"></canvas>
+
+  <div id="hud" class="hud"></div>
+
+  <div id="menuPanel" class="panel">
+    <h1 class="title">OMON Goose<br>File Edition</h1>
+    <p class="subtitle">Одиночная browser-адаптация твоего <span class="accent">Pygame</span>-кода.<br>Открывается прямо как <span class="accent">локальный HTML-файл</span> без Python-сервера.</p>
+    <button id="playBtn" class="btn">PLAY</button>
+  </div>
+
+  <div id="mapPanel" class="panel hidden">
+    <h2 class="title" style="font-size:clamp(24px,4vw,36px)">Выбери карту</h2>
+    <p class="subtitle">Сохранены карты из исходного кода. После выбора стартует локальный матч с ботами.</p>
+    <div id="mapButtons" class="maps"></div>
+    <button id="backBtn" class="btn secondary">Назад</button>
+  </div>
+
+  <div id="endPanel" class="panel hidden">
+    <h2 id="endTitle" class="title" style="font-size:clamp(26px,4vw,40px)">Раунд окончен</h2>
+    <p id="endText" class="subtitle"></p>
+    <button id="restartBtn" class="btn">Играть ещё раз</button>
+    <button id="mapBtn" class="btn secondary">Сменить карту</button>
+  </div>
+
+  <div id="toast"></div>
+
+  <button id="pauseBtn" aria-label="Пауза">Ⅱ</button>
+
+  <div id="pauseOverlay">
+    <div id="pauseOverlayCard">
+      <h3>Пауза</h3>
+      <p>Игра остановлена. Нажми <b>Продолжить</b>, чтобы вернуться в матч.</p>
+      <button id="resumeBtn" class="btn">Продолжить</button>
+    </div>
+  </div>
+
+  <div id="rotateHint">Для iPhone удобнее играть в горизонтальном режиме.
+Поверни телефон набок.</div>
+
+  <div id="touchControls">
+    <div id="dpad">
+      <button id="btnUp" class="dpad-btn" aria-label="Вверх">▲</button>
+      <button id="btnLeft" class="dpad-btn" aria-label="Влево">◀</button>
+      <button id="btnRight" class="dpad-btn" aria-label="Вправо">▶</button>
+      <button id="btnDown" class="dpad-btn" aria-label="Вниз">▼</button>
+    </div>
+    <button id="actionBtn">SPACE<br>ACT</button>
+  </div>
+
+  <div class="info-strip">Управление: <b>WASD / стрелки</b> — движение, <b>Space</b> — действие, <b>P</b> — пауза. Импостер атакует рядом, мирный делает рывок.</div>
+</div>
+
+<script>
+(() => {
+  const WIDTH = 1000;
+  const HEIGHT = 600;
+  const PLAYER_RADIUS = 20;
+  const PLAYER_SIZE = 40;
+  const PLAYER_SPEED = 270;
+  const BOT_SPEED = 170;
+  const KILL_DISTANCE = 72;
+  const KILL_COOLDOWN = 1.2;
+  const CREW_DASH_TIME = 0.32;
+  const CREW_DASH_COOLDOWN = 2.2;
+  const CREW_DASH_MULT = 1.9;
+  const ROUND_TIME = 75;
+  const FOG_ALPHA = 0.9;
+  const maps = {
+    "Ocean Lab": [[200, 200, 300, 40], [600, 300, 40, 200]],
+    "Dark Reef": [[400, 150, 500, 40], [300, 400, 40, 200]],
+    "Sunken Base": [[250, 250, 600, 40], [800, 100, 40, 400]]
+  };
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const wrap = document.getElementById('wrap');
+  const hud = document.getElementById('hud');
+  const toast = document.getElementById('toast');
+  const infoStrip = document.querySelector('.info-strip');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const pauseOverlay = document.getElementById('pauseOverlay');
+  const resumeBtn = document.getElementById('resumeBtn');
+  const rotateHint = document.getElementById('rotateHint');
+  const menuPanel = document.getElementById('menuPanel');
+  const mapPanel = document.getElementById('mapPanel');
+  const endPanel = document.getElementById('endPanel');
+  const endTitle = document.getElementById('endTitle');
+  const endText = document.getElementById('endText');
+  const mapButtons = document.getElementById('mapButtons');
+  const playBtn = document.getElementById('playBtn');
+  const backBtn = document.getElementById('backBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const mapBtn = document.getElementById('mapBtn');
+  const actionBtn = document.getElementById('actionBtn');
+  const touchControls = document.getElementById('touchControls');
+  const btnUp = document.getElementById('btnUp');
+  const btnDown = document.getElementById('btnDown');
+  const btnLeft = document.getElementById('btnLeft');
+  const btnRight = document.getElementById('btnRight');
+
+  const STATES = { MENU: 'menu', MAP: 'map', GAME: 'game', END: 'end' };
+  const keys = { up: false, down: false, left: false, right: false };
+  const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+  let state = STATES.MENU;
+  let currentMapName = '';
+  let walls = [];
+  let bots = [];
+  let toastTimer = 0;
+  let actionQueued = false;
+  let lastTime = performance.now();
+  let timeLeft = ROUND_TIME;
+  let endReason = '';
+  let cameraPulse = 0;
+  let paused = false;
+
+  let player = makePlayer();
+
+  function setViewportUnits() {
+    const hh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vh', `${Math.max(1, hh) * 0.01}px`);
+  }
+
+  function makePlayer() {
+    return {
+      x: 400,
+      y: 300,
+      speed: PLAYER_SPEED,
+      vision: 165,
+      alive: true,
+      impostor: false,
+      name: 'Player',
+      killCooldown: 0,
+      dashCooldown: 0,
+      dashTimer: 0,
+      facingX: 1,
+      facingY: 0,
+      color: '#7de2ff'
+    };
+  }
+
+  function makeBot(index, x, y, impostor = false) {
+    return {
+      id: index,
+      x,
+      y,
+      speed: BOT_SPEED + Math.random() * 18,
+      alive: true,
+      impostor,
+      name: `Goose ${index + 1}`,
+      dirX: Math.random() < 0.5 ? -1 : 1,
+      dirY: Math.random() < 0.5 ? -1 : 1,
+      decisionTimer: 0.2 + Math.random() * 1.1,
+      killCooldown: impostor ? 1.0 : 0,
+      panicTimer: 0,
+      targetX: x,
+      targetY: y
+    };
+  }
+
+  function resizeCanvasDisplay() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scale = Math.min(vw / WIDTH, vh / HEIGHT);
+    const drawW = Math.floor(WIDTH * scale);
+    const drawH = Math.floor(HEIGHT * scale);
+    canvas.style.width = drawW + 'px';
+    canvas.style.height = drawH + 'px';
+  }
+
+  function updateViewport() {
+    setViewportUnits();
+    resizeCanvasDisplay();
+    updateRotateHint();
+  }
+
+  function updateRotateHint() {
+    const shouldShow = isTouchDevice && state === STATES.GAME && window.innerHeight > window.innerWidth;
+    rotateHint.style.display = shouldShow ? 'block' : 'none';
+  }
+
+  function updatePauseUI() {
+    const show = paused && state === STATES.GAME;
+    pauseOverlay.style.display = show ? 'flex' : 'none';
+    pauseBtn.textContent = show ? '▶' : 'Ⅱ';
+  }
+
+  function togglePause(force = null) {
+    if (state !== STATES.GAME) return;
+    paused = force === null ? !paused : !!force;
+    clearMoveKeys();
+    updatePauseUI();
+  }
+
+  function showPanel(which) {
+    menuPanel.classList.add('hidden');
+    mapPanel.classList.add('hidden');
+    endPanel.classList.add('hidden');
+    if (which === STATES.MENU) menuPanel.classList.remove('hidden');
+    if (which === STATES.MAP) mapPanel.classList.remove('hidden');
+    if (which === STATES.END) endPanel.classList.remove('hidden');
+  }
+
+  function setState(next) {
+    state = next;
+    if (next === STATES.MENU) showPanel(STATES.MENU);
+    if (next === STATES.MAP) showPanel(STATES.MAP);
+    if (next === STATES.GAME) showPanel(null);
+    if (next === STATES.END) showPanel(STATES.END);
+
+    if (next === STATES.GAME) {
+      document.body.classList.add('mobile-game');
+      pauseBtn.style.display = 'block';
+      if (isTouchDevice) {
+        touchControls.style.display = 'block';
+      }
+    } else {
+      document.body.classList.remove('mobile-game');
+      pauseBtn.style.display = 'none';
+      touchControls.style.display = 'none';
+      clearMoveKeys();
+      paused = false;
+    }
+
+    infoStrip.style.display = next === STATES.GAME && isTouchDevice ? 'none' : '';
+    updateRotateHint();
+    updatePauseUI();
+  }
+
+  function rectIntersect(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function circleRectCollide(cx, cy, radius, rect) {
+    const nx = Math.max(rect[0], Math.min(cx, rect[0] + rect[2]));
+    const ny = Math.max(rect[1], Math.min(cy, rect[1] + rect[3]));
+    const dx = cx - nx;
+    const dy = cy - ny;
+    return dx * dx + dy * dy < radius * radius;
+  }
+
+  function canStandAt(x, y) {
+    if (x < PLAYER_RADIUS + 12 || x > WIDTH - PLAYER_RADIUS - 12) return false;
+    if (y < PLAYER_RADIUS + 12 || y > HEIGHT - PLAYER_RADIUS - 12) return false;
+    return !walls.some(w => circleRectCollide(x, y, PLAYER_RADIUS, w));
+  }
+
+  function findSpawn(preferredX = 110, preferredY = 110) {
+    const tries = [{ x: preferredX, y: preferredY }];
+    for (let i = 0; i < 160; i++) {
+      tries.push({
+        x: 70 + Math.random() * (WIDTH - 140),
+        y: 70 + Math.random() * (HEIGHT - 140)
+      });
+    }
+    for (const t of tries) {
+      if (canStandAt(t.x, t.y)) return t;
+    }
+    return { x: 100, y: 100 };
+  }
+
+  function dist(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function nearestAliveCrewBot(from) {
+    let best = null;
+    let bestDist = Infinity;
+    for (const bot of bots) {
+      if (!bot.alive || bot.impostor) continue;
+      const d = Math.hypot(bot.x - from.x, bot.y - from.y);
+      if (d < bestDist) {
+        bestDist = d;
+        best = bot;
+      }
+    }
+    return { bot: best, distance: bestDist };
+  }
+
+  function nearestThreatTo(bot) {
+    let threat = null;
+    let bestDist = Infinity;
+    const candidates = [];
+    if (player.alive && player.impostor) candidates.push(player);
+    for (const other of bots) {
+      if (other === bot || !other.alive || !other.impostor) continue;
+      candidates.push(other);
+    }
+    for (const c of candidates) {
+      const d = Math.hypot(c.x - bot.x, c.y - bot.y);
+      if (d < bestDist) {
+        bestDist = d;
+        threat = c;
+      }
+    }
+    return { threat, distance: bestDist };
+  }
+
+  function walkEntity(entity, vx, vy, dt) {
+    const nextX = entity.x + vx * dt;
+    const nextY = entity.y + vy * dt;
+    if (canStandAt(nextX, entity.y)) entity.x = nextX;
+    if (canStandAt(entity.x, nextY)) entity.y = nextY;
+  }
+
+  function spawnRound(mapName) {
+    currentMapName = mapName;
+    walls = maps[mapName].map(w => [...w]);
+    player = makePlayer();
+    timeLeft = ROUND_TIME;
+    endReason = '';
+    actionQueued = false;
+    cameraPulse = 0;
+    paused = false;
+    bots = [];
+
+    const playerSpawn = findSpawn(120, 120);
+    player.x = playerSpawn.x;
+    player.y = playerSpawn.y;
+
+    const totalBots = 5;
+    const playerIsImpostor = Math.random() < 0.34;
+    player.impostor = playerIsImpostor;
+
+    for (let i = 0; i < totalBots; i++) {
+      const s = findSpawn(240 + i * 55, 140 + (i % 2) * 120);
+      bots.push(makeBot(i, s.x, s.y, false));
+    }
+
+    if (!playerIsImpostor) {
+      const impostorIndex = Math.floor(Math.random() * bots.length);
+      bots[impostorIndex].impostor = true;
+      bots[impostorIndex].killCooldown = 1.1;
+    }
+
+    setState(STATES.GAME);
+    showToast(player.impostor
+      ? 'Роль: ИМПОСТЕР\nУстрани всех других гусей рядом клавишей Space или кнопкой ACT.'
+      : 'Роль: МИРНЫЙ\nВыживи до конца таймера и держись подальше от импостера.');
+    updateActionButton();
+    updateHud();
+  }
+
+  function showToast(text, duration = 2.4) {
+    toast.textContent = text;
+    toast.style.display = 'block';
+    toastTimer = duration;
+  }
+
+  function hideToast() {
+    toast.style.display = 'none';
+    toastTimer = 0;
+  }
+
+  function updateActionButton() {
+    if (player.impostor) {
+      actionBtn.classList.remove('crew');
+      actionBtn.innerHTML = 'SPACE<br>KILL';
+    } else {
+      actionBtn.classList.add('crew');
+      actionBtn.innerHTML = 'SPACE<br>DASH';
+    }
+  }
+
+  function updateHud() {
+    const aliveBots = bots.filter(b => b.alive).length;
+    const aliveCrew = bots.filter(b => b.alive && !b.impostor).length + (player.alive && !player.impostor ? 1 : 0);
+    const aliveImpostors = bots.filter(b => b.alive && b.impostor).length + (player.alive && player.impostor ? 1 : 0);
+    const roleText = player.impostor ? 'ИМПОСТЕР' : 'МИРНЫЙ';
+    const objective = player.impostor
+      ? 'Цель: устранить всех остальных.'
+      : 'Цель: дожить до конца таймера и использовать рывок для уворота.';
+    const dashText = !player.impostor
+      ? `\nРывок: ${player.dashCooldown > 0 ? player.dashCooldown.toFixed(1) + 'с' : 'готов'}`
+      : `\nАтака: ${player.killCooldown > 0 ? player.killCooldown.toFixed(1) + 'с' : 'готова'}`;
+    if (isTouchDevice && window.innerWidth < 820) {
+      hud.textContent = `Карта: ${currentMapName || '—'}   Роль: ${roleText}\nТаймер: ${Math.max(0, Math.ceil(timeLeft))} сек\nБоты: ${aliveBots}   Мирные: ${aliveCrew}   Импостеры: ${aliveImpostors}${dashText}`;
+    } else {
+      hud.textContent = `Карта: ${currentMapName || '—'}\nРоль: ${roleText}\nТаймер: ${Math.max(0, Math.ceil(timeLeft))} сек\nЖивых ботов: ${aliveBots}   Мирных: ${aliveCrew}   Импостеров: ${aliveImpostors}${dashText}\n${objective}`;
+    }
+  }
+
+  function queueAction() {
+    if (state !== STATES.GAME || !player.alive || paused) return;
+    actionQueued = true;
+  }
+
+  function performPlayerAction() {
+    if (!actionQueued) return;
+    actionQueued = false;
+
+    if (!player.impostor) {
+      if (player.dashCooldown > 0) {
+        showToast('Рывок ещё не перезарядился.', 0.9);
+        return;
+      }
+
+      const moveX = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+      const moveY = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+      let dashX = moveX;
+      let dashY = moveY;
+
+      if (dashX === 0 && dashY === 0) {
+        dashX = player.facingX;
+        dashY = player.facingY;
+      }
+
+      const len = Math.hypot(dashX, dashY);
+      if (!len) {
+        showToast('Задай направление и нажми ACT для рывка.', 1.0);
+        return;
+      }
+
+      player.facingX = dashX / len;
+      player.facingY = dashY / len;
+      player.dashTimer = CREW_DASH_TIME;
+      player.dashCooldown = CREW_DASH_COOLDOWN;
+      cameraPulse = 0.08;
+      showToast('Рывок!', 0.45);
+      return;
+    }
+    if (player.killCooldown > 0) {
+      showToast('Перезарядка атаки...', 0.8);
+      return;
+    }
+
+    let target = null;
+    let bestDist = KILL_DISTANCE;
+    for (const bot of bots) {
+      if (!bot.alive) continue;
+      const d = dist(player, bot);
+      if (d < bestDist) {
+        bestDist = d;
+        target = bot;
+      }
+    }
+
+    if (!target) {
+      showToast('Подойди ближе к цели.', 0.8);
+      return;
+    }
+
+    target.alive = false;
+    player.killCooldown = KILL_COOLDOWN;
+    cameraPulse = 0.18;
+    showToast(`Устранён: ${target.name}`, 0.9);
+    checkRoundEnd();
+  }
+
+  function updatePlayer(dt) {
+    if (!player.alive) return;
+    let vx = 0;
+    let vy = 0;
+
+    if (keys.left) vx -= 1;
+    if (keys.right) vx += 1;
+    if (keys.up) vy -= 1;
+    if (keys.down) vy += 1;
+
+    const len = Math.hypot(vx, vy) || 1;
+    if (vx !== 0 || vy !== 0) {
+      player.facingX = vx / len;
+      player.facingY = vy / len;
+      let speed = player.speed;
+      if (!player.impostor && player.dashTimer > 0) speed *= CREW_DASH_MULT;
+      vx = player.facingX * speed;
+      vy = player.facingY * speed;
+      walkEntity(player, vx, vy, dt);
+    }
+
+    if (player.killCooldown > 0) player.killCooldown -= dt;
+    if (player.dashCooldown > 0) player.dashCooldown -= dt;
+    if (player.dashTimer > 0) player.dashTimer -= dt;
+  }
+
+  function chooseBotWander(bot) {
+    bot.decisionTimer = 0.8 + Math.random() * 1.5;
+    bot.targetX = Math.max(60, Math.min(WIDTH - 60, bot.x + (Math.random() * 240 - 120)));
+    bot.targetY = Math.max(60, Math.min(HEIGHT - 60, bot.y + (Math.random() * 240 - 120)));
+    bot.dirX = Math.sign(bot.targetX - bot.x) || (Math.random() < 0.5 ? -1 : 1);
+    bot.dirY = Math.sign(bot.targetY - bot.y) || (Math.random() < 0.5 ? -1 : 1);
+  }
+
+  function updateBots(dt) {
+    for (const bot of bots) {
+      if (!bot.alive) continue;
+      bot.decisionTimer -= dt;
+      if (bot.killCooldown > 0) bot.killCooldown -= dt;
+      if (bot.panicTimer > 0) bot.panicTimer -= dt;
+
+      let moveX = 0;
+      let moveY = 0;
+
+      if (bot.impostor) {
+        const crewTargets = [];
+        if (player.alive && !player.impostor) crewTargets.push(player);
+        for (const other of bots) {
+          if (!other.alive || other.impostor) continue;
+          crewTargets.push(other);
+        }
+
+        let nearest = null;
+        let bestDist = Infinity;
+        for (const target of crewTargets) {
+          const d = Math.hypot(target.x - bot.x, target.y - bot.y);
+          if (d < bestDist) {
+            bestDist = d;
+            nearest = target;
+          }
+        }
+
+        if (nearest && bestDist < 220) {
+          const dx = nearest.x - bot.x;
+          const dy = nearest.y - bot.y;
+          const len = Math.hypot(dx, dy) || 1;
+          moveX = (dx / len) * bot.speed;
+          moveY = (dy / len) * bot.speed;
+
+          if (bestDist < KILL_DISTANCE && bot.killCooldown <= 0) {
+            if (nearest === player) {
+              player.alive = false;
+              endRound(false, 'Тебя поймал импостер.');
+              return;
+            } else {
+              nearest.alive = false;
+              bot.killCooldown = KILL_COOLDOWN + 0.4;
+              showToast(`${nearest.name} устранён импостером`, 0.9);
+              cameraPulse = 0.12;
+            }
+          }
+        } else {
+          if (bot.decisionTimer <= 0) chooseBotWander(bot);
+          const dx = bot.targetX - bot.x;
+          const dy = bot.targetY - bot.y;
+          const len = Math.hypot(dx, dy) || 1;
+          moveX = (dx / len) * bot.speed * 0.75;
+          moveY = (dy / len) * bot.speed * 0.75;
+        }
+      } else {
+        const { threat, distance } = nearestThreatTo(bot);
+        if (threat && distance < 180) {
+          const dx = bot.x - threat.x;
+          const dy = bot.y - threat.y;
+          const len = Math.hypot(dx, dy) || 1;
+          moveX = (dx / len) * bot.speed * 1.15;
+          moveY = (dy / len) * bot.speed * 1.15;
+          bot.panicTimer = 0.5;
+        } else {
+          if (bot.decisionTimer <= 0) chooseBotWander(bot);
+          const dx = bot.targetX - bot.x;
+          const dy = bot.targetY - bot.y;
+          const len = Math.hypot(dx, dy) || 1;
+          moveX = (dx / len) * bot.speed * 0.68;
+          moveY = (dy / len) * bot.speed * 0.68;
+        }
+      }
+
+      walkEntity(bot, moveX, moveY, dt);
+    }
+  }
+
+  function endRound(win, reason) {
+    endReason = reason;
+    paused = false;
+    endTitle.textContent = win ? 'Победа' : 'Поражение';
+    endText.textContent = reason + '\n\nМожно перезапустить раунд или выбрать другую карту.';
+    setState(STATES.END);
+  }
+
+  function checkRoundEnd() {
+    if (state !== STATES.GAME) return;
+
+    const aliveOthers = bots.filter(b => b.alive).length;
+    const aliveImpostors = bots.filter(b => b.alive && b.impostor).length + (player.alive && player.impostor ? 1 : 0);
+    const aliveCrew = bots.filter(b => b.alive && !b.impostor).length + (player.alive && !player.impostor ? 1 : 0);
+
+    if (!player.alive) {
+      endRound(false, 'Ты выбыл из матча.');
+      return;
+    }
+
+    if (player.impostor && aliveOthers === 0) {
+      endRound(true, 'Все остальные устранены. Импостер победил.');
+      return;
+    }
+
+    if (!player.impostor && timeLeft <= 0) {
+      endRound(true, 'Ты продержался до конца таймера. Мирные победили.');
+      return;
+    }
+
+    if (!player.impostor && aliveCrew <= 0) {
+      endRound(false, 'Все мирные выбыли. Импостер победил.');
+      return;
+    }
+
+    if (aliveImpostors <= 0 && !player.impostor) {
+      endRound(true, 'Импостер выбыл, ты выжил. Мирные победили.');
+    }
+  }
+
+  function update(dt) {
+    if (state !== STATES.GAME) return;
+    if (paused) {
+      if (toastTimer > 0) {
+        toastTimer -= dt;
+        if (toastTimer <= 0) hideToast();
+      }
+      updateHud();
+      return;
+    }
+
+    timeLeft -= dt;
+    if (toastTimer > 0) {
+      toastTimer -= dt;
+      if (toastTimer <= 0) hideToast();
+    }
+    if (cameraPulse > 0) cameraPulse = Math.max(0, cameraPulse - dt);
+
+    updatePlayer(dt);
+    performPlayerAction();
+    updateBots(dt);
+    checkRoundEnd();
+    updateHud();
+  }
+
+  function drawBackground() {
+    const bg = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    bg.addColorStop(0, '#0f2743');
+    bg.addColorStop(1, '#07111d');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    for (let i = 0; i < 60; i++) {
+      const x = (i * 173) % WIDTH;
+      const y = (i * 97) % HEIGHT;
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.beginPath();
+      ctx.arc(x, y, 1 + (i % 3), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawWalls() {
+    for (const wall of walls) {
+      const g = ctx.createLinearGradient(wall[0], wall[1], wall[0] + wall[2], wall[1] + wall[3]);
+      g.addColorStop(0, '#506b81');
+      g.addColorStop(1, '#2d465b');
+      ctx.fillStyle = g;
+      ctx.fillRect(wall[0], wall[1], wall[2], wall[3]);
+      ctx.strokeStyle = '#98dfff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(wall[0], wall[1], wall[2], wall[3]);
+    }
+  }
+
+  function drawEntity(entity, isPlayer = false) {
+    if (!entity.alive) return;
+    const bodyColor = entity.impostor ? '#ff6f88' : '#7ed7ff';
+    const outline = entity.impostor ? '#ffd4dc' : '#ecfbff';
+
+    ctx.save();
+    ctx.translate(entity.x, entity.y);
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 24, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = outline;
+    ctx.beginPath();
+    ctx.arc(-7, -2, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffb45c';
+    ctx.beginPath();
+    ctx.moveTo(20, 0);
+    ctx.lineTo(30, 4);
+    ctx.lineTo(20, 8);
+    ctx.closePath();
+    ctx.fill();
+
+    if (entity.impostor) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-10, -12);
+      ctx.lineTo(10, 12);
+      ctx.moveTo(10, -12);
+      ctx.lineTo(-10, 12);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.fillStyle = '#f7fcff';
+    ctx.font = isPlayer ? 'bold 16px Arial' : '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(isPlayer ? 'Ты' : entity.name, entity.x, entity.y - 26);
+  }
+
+  function drawFog() {
+    if (!player.alive) return;
+    const vision = player.vision + (player.impostor ? 18 : 0);
+    ctx.save();
+    ctx.fillStyle = `rgba(0, 0, 0, ${FOG_ALPHA})`;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.globalCompositeOperation = 'destination-out';
+
+    const gradient = ctx.createRadialGradient(player.x, player.y, vision * 0.2, player.x, player.y, vision);
+    gradient.addColorStop(0, 'rgba(0,0,0,1)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, vision, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawScanner() {
+    if (state !== STATES.GAME) return;
+    ctx.save();
+    ctx.globalAlpha = 0.16 + cameraPulse * 1.8;
+    ctx.fillStyle = player.impostor ? '#ff6f88' : '#60ccff';
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.vision * 0.92, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawScene() {
+    drawBackground();
+    drawWalls();
+    drawScanner();
+
+    for (const bot of bots) drawEntity(bot, false);
+    drawEntity(player, true);
+    drawFog();
+
+    if (state === STATES.GAME && !player.alive) {
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    }
+  }
+
+  function renderPanelsBackdrop() {
+    if (state !== STATES.GAME) {
+      drawBackground();
+      drawWalls();
+      for (const bot of bots) drawEntity(bot, false);
+      if (player) drawEntity(player, true);
+    }
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.033, (now - lastTime) / 1000);
+    lastTime = now;
+
+    update(dt);
+    renderPanelsBackdrop();
+    if (state === STATES.GAME) drawScene();
+
+    requestAnimationFrame(loop);
+  }
+
+  function onKeyChange(event, down) {
+    const key = event.key.toLowerCase();
+    if (["arrowleft", "arrowright", "arrowup", "arrowdown", "w", "a", "s", "d", " ", "p", "escape"].includes(key)) {
+      event.preventDefault();
+    }
+    if (down && (key === 'p' || key === 'escape')) {
+      togglePause();
+      return;
+    }
+    if (key === 'arrowleft' || key === 'a') keys.left = down;
+    if (key === 'arrowright' || key === 'd') keys.right = down;
+    if (key === 'arrowup' || key === 'w') keys.up = down;
+    if (key === 'arrowdown' || key === 's') keys.down = down;
+    if (down && key === ' ') queueAction();
+  }
+
+  function clearMoveKeys() {
+    keys.up = false;
+    keys.down = false;
+    keys.left = false;
+    keys.right = false;
+    btnUp.classList.remove('pressed');
+    btnDown.classList.remove('pressed');
+    btnLeft.classList.remove('pressed');
+    btnRight.classList.remove('pressed');
+  }
+
+  function bindHoldButton(element, keyName) {
+    const press = (e) => {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      keys[keyName] = true;
+      element.classList.add('pressed');
+      if (window.PointerEvent && e && e.pointerId !== undefined && element.setPointerCapture) {
+        try { element.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    };
+
+    const release = (e) => {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      keys[keyName] = false;
+      element.classList.remove('pressed');
+      if (window.PointerEvent && e && e.pointerId !== undefined && element.releasePointerCapture) {
+        try { element.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+    };
+
+    if (window.PointerEvent) {
+      element.addEventListener('pointerdown', press);
+      element.addEventListener('pointerup', release);
+      element.addEventListener('pointercancel', release);
+      element.addEventListener('lostpointercapture', release);
+    } else {
+      element.addEventListener('touchstart', press, { passive: false });
+      element.addEventListener('touchend', release, { passive: false });
+      element.addEventListener('touchcancel', release, { passive: false });
+      element.addEventListener('mousedown', press);
+      element.addEventListener('mouseup', release);
+      element.addEventListener('mouseleave', release);
+    }
+  }
+
+  function bindActionButton(element) {
+    const press = (e) => {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      queueAction();
+      if (window.PointerEvent && e && e.pointerId !== undefined && element.setPointerCapture) {
+        try { element.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    };
+
+    const release = (e) => {
+      if (!e) return;
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      if (window.PointerEvent && e.pointerId !== undefined && element.releasePointerCapture) {
+        try { element.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+    };
+
+    if (window.PointerEvent) {
+      element.addEventListener('pointerdown', press);
+      element.addEventListener('pointerup', release);
+      element.addEventListener('pointercancel', release);
+    } else {
+      element.addEventListener('touchstart', press, { passive: false });
+      element.addEventListener('touchend', release, { passive: false });
+      element.addEventListener('touchcancel', release, { passive: false });
+      element.addEventListener('mousedown', press);
+      element.addEventListener('mouseup', release);
+    }
+  }
+
+  function bindUI() {
+    playBtn.addEventListener('click', () => setState(STATES.MAP));
+    backBtn.addEventListener('click', () => setState(STATES.MENU));
+    restartBtn.addEventListener('click', () => spawnRound(currentMapName || Object.keys(maps)[0]));
+    mapBtn.addEventListener('click', () => setState(STATES.MAP));
+    pauseBtn.addEventListener('click', () => togglePause());
+    resumeBtn.addEventListener('click', () => togglePause(false));
+    bindHoldButton(btnUp, 'up');
+    bindHoldButton(btnDown, 'down');
+    bindHoldButton(btnLeft, 'left');
+    bindHoldButton(btnRight, 'right');
+    bindActionButton(actionBtn);
+
+    document.addEventListener('keydown', e => onKeyChange(e, true));
+    document.addEventListener('keyup', e => onKeyChange(e, false));
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    window.addEventListener('resize', updateViewport);
+    window.addEventListener('orientationchange', updateViewport);
+    window.addEventListener('blur', clearMoveKeys);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearMoveKeys();
+        if (state === STATES.GAME) togglePause(true);
+      }
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateViewport, { passive: true });
+      window.visualViewport.addEventListener('scroll', updateViewport, { passive: true });
+    }
+  }
+
+  function buildMapButtons() {
+    mapButtons.innerHTML = '';
+    Object.keys(maps).forEach(name => {
+      const btn = document.createElement('button');
+      btn.className = 'map-btn';
+      btn.textContent = name;
+      btn.addEventListener('click', () => spawnRound(name));
+      mapButtons.appendChild(btn);
+    });
+  }
+
+  function init() {
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    updateViewport();
+    buildMapButtons();
+    bindUI();
+    updateActionButton();
+    updateHud();
+    setState(STATES.MENU);
+    showToast('Это локальная HTML-версия по мотивам твоего Python/Pygame-кода.\nОнлайн-сокеты заменены на матч с ботами.', 4.2);
+    requestAnimationFrame(loop);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
