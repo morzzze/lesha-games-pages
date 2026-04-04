@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Зомби Выживание — Большая Карта</title>
+<style>
+  :root {
+    --cyan: #66f7ff;
+    --cyan-soft: rgba(102, 247, 255, 0.2);
+    --bg: #071008;
+    --panel: rgba(4, 12, 18, 0.72);
+    --danger: #ff6b6b;
+    --good: #8cff9b;
+    --warn: #ffd76b;
+    --vh: 1vh;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    min-height: calc(var(--vh) * 100);
+    overflow: hidden;
+    background: #000;
+    font-family: Arial, sans-serif;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-text-size-adjust: 100%;
+    -webkit-touch-callout: none;
+  }
+  body {
+    background: radial-gradient(circle at top, #102617 0%, #071008 55%, #020403 100%);
+    color: #eaffff;
+  }
+  #gameWrap {
+    position: relative;
+    width: 100vw;
+    height: calc(var(--vh) * 100);
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+  #game {
+    width: 100%;
+    height: 100%;
+    background: #0a1a0a;
+    touch-action: none;
+  }
+  .panel {
+    position: absolute;
+    z-index: 20;
+    border: 2px solid rgba(102, 247, 255, 0.28);
+    background: var(--panel);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 22px rgba(0, 0, 0, 0.35);
+  }
+  #hud {
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    padding: 12px 14px;
+    border-radius: 14px;
+    color: var(--cyan);
+    font-size: 17px;
+    line-height: 1.45;
+    text-shadow: 0 0 8px rgba(102, 247, 255, 0.35);
+    min-width: min(420px, calc(100vw - 20px));
+    max-width: min(520px, calc(100vw - 20px));
+    white-space: pre-line;
+  }
+  #minimapWrap {
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    width: 176px;
+    height: 176px;
+    border-radius: 14px;
+    padding: 3px;
+  }
+  #minimap {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: #112;
+  }
+  #message {
+    position: absolute;
+    left: 50%;
+    top: max(18px, env(safe-area-inset-top));
+    transform: translateX(-50%);
+    z-index: 40;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(2, 8, 12, 0.82);
+    border: 1px solid rgba(102, 247, 255, 0.24);
+    color: #e8fdff;
+    text-align: center;
+    display: none;
+    pointer-events: none;
+    width: min(560px, calc(100vw - 24px));
+    white-space: pre-line;
+  }
+  #rotateHint {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 85;
+    display: none;
+    width: min(320px, calc(100vw - 32px));
+    padding: 16px 18px;
+    border-radius: 16px;
+    text-align: center;
+    background: rgba(2, 8, 12, 0.9);
+    border: 1px solid rgba(102, 247, 255, 0.24);
+    color: #f0ffff;
+    white-space: pre-line;
+    pointer-events: none;
+  }
+  #joystick {
+    position: absolute;
+    bottom: calc(max(78px, env(safe-area-inset-bottom)) + 8px);
+    left: max(24px, env(safe-area-inset-left));
+    width: 146px;
+    height: 146px;
+    border-radius: 50%;
+    border: 6px solid var(--cyan);
+    background: rgba(0, 255, 255, 0.14);
+    z-index: 55;
+    display: none;
+    box-shadow: 0 0 24px rgba(102, 247, 255, 0.36);
+    pointer-events: none;
+  }
+  #innerJoy {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--cyan);
+    top: 49px;
+    left: 49px;
+    box-shadow: 0 0 14px rgba(102, 247, 255, 0.9);
+  }
+  #touchButtons {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+  }
+  .roundBtn {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: none;
+    font-size: 15px;
+    font-weight: 800;
+    color: #05252a;
+    background: linear-gradient(180deg, #8efcff 0%, #47d7ff 100%);
+    box-shadow: 0 0 20px rgba(71, 215, 255, 0.35);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    display: none;
+    position: absolute;
+    pointer-events: auto;
+  }
+  .roundBtn.fire {
+    background: linear-gradient(180deg, #ffcf7d 0%, #ff9a3c 100%);
+    color: #2a1200;
+    box-shadow: 0 0 20px rgba(255, 154, 60, 0.35);
+  }
+  #topBuildBar,
+  #bottomBuildBar {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 70;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: min(920px, calc(100vw - 24px));
+  }
+  #topBuildBar {
+    top: calc(max(112px, env(safe-area-inset-top)) + 8px);
+  }
+  #bottomBuildBar {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(320px, calc(100vw - 220px));
+  }
+  .buildBtn, .menuBtn {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #062012;
+    background: linear-gradient(180deg, #92ff9f 0%, #41d863 100%);
+    box-shadow: 0 0 18px rgba(65, 216, 99, 0.26);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  .buildBtn.secondary { background: linear-gradient(180deg, #b8fff7 0%, #64ddd1 100%); }
+  .buildBtn.warn { background: linear-gradient(180deg, #ffd289 0%, #ffae47 100%); color: #2e1700; }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.58);
+    padding: 20px;
+  }
+  #overlayCard {
+    width: min(520px, calc(100vw - 24px));
+    border-radius: 18px;
+    padding: 22px;
+    text-align: center;
+    background: rgba(3, 10, 14, 0.92);
+    border: 2px solid rgba(102, 247, 255, 0.28);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+  }
+  #overlayTitle {
+    margin: 0 0 10px;
+    font-size: clamp(30px, 5vw, 44px);
+    color: #ecffff;
+  }
+  #overlayText {
+    margin: 0 0 18px;
+    line-height: 1.5;
+    color: #cfeef0;
+    white-space: pre-line;
+  }
+  #pauseBtn {
+    position: absolute;
+    top: calc(max(194px, env(safe-area-inset-top)));
+    right: max(16px, env(safe-area-inset-right));
+    z-index: 65;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    border: 1px solid rgba(102, 247, 255, 0.28);
+    background: rgba(5, 12, 18, 0.72);
+    color: #efffff;
+    font-size: 22px;
+    font-weight: 900;
+    display: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  #helpStrip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(max(78px, env(safe-area-inset-bottom)) + 4px);
+    transform: translateX(-50%);
+    z-index: 25;
+    width: min(900px, calc(100vw - 24px));
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(5, 12, 18, 0.62);
+    border: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+    color: #ddfcff;
+    font-size: 14px;
+  }
+  @media (hover: none) and (pointer: coarse) {
+    .roundBtn { display: block; }
+    #fireBtn {
+      right: max(16px, env(safe-area-inset-right));
+      bottom: calc(max(88px, env(safe-area-inset-bottom)) + 8px);
+    }
+    #lootBtn {
+      right: max(16px, env(safe-area-inset-right));
+      top: calc(max(190px, env(safe-area-inset-top)) + 4px);
+    }
+  }
+  @media (max-width: 760px) {
+    #hud {
+      font-size: 14px;
+      min-width: auto;
+      max-width: calc(100vw - 134px);
+      width: calc(100vw - 146px);
+      padding: 10px 12px;
+    }
+    #minimapWrap {
+      width: 112px;
+      height: 112px;
+      top: max(10px, env(safe-area-inset-top));
+      bottom: auto;
+      right: max(10px, env(safe-area-inset-right));
+    }
+    #pauseBtn {
+      top: calc(max(130px, env(safe-area-inset-top)) + 4px);
+      bottom: auto;
+      right: max(16px, env(safe-area-inset-right));
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+    }
+    #topBuildBar {
+      width: calc(100vw - 20px);
+      top: calc(max(112px, env(safe-area-inset-top)) + 4px);
+      gap: 6px;
+    }
+    #bottomBuildBar {
+      width: min(220px, calc(100vw - 190px));
+      bottom: calc(max(12px, env(safe-area-inset-bottom)) + 2px);
+      gap: 6px;
+    }
+    .buildBtn, .menuBtn {
+      font-size: 14px;
+      padding: 10px 12px;
+      flex: 1 1 calc(50% - 6px);
+    }
+    #helpStrip {
+      display: none;
+    }
+    #touchButtons {
+      inset: 0;
+    }
+    .roundBtn {
+      width: 82px;
+      height: 82px;
+      font-size: 14px;
+    }
+    #fireBtn {
+      right: max(14px, env(safe-area-inset-right));
+      bottom: calc(max(82px, env(safe-area-inset-bottom)) + 8px);
+    }
+    #lootBtn {
+      right: max(14px, env(safe-area-inset-right));
+      top: calc(max(184px, env(safe-area-inset-top)) + 4px);
+    }
+    #joystick {
+      width: 132px;
+      height: 132px;
+      bottom: calc(max(72px, env(safe-area-inset-bottom)) + 8px);
+    }
+    #innerJoy {
+      width: 44px;
+      height: 44px;
+      top: 44px;
+      left: 44px;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="gameWrap">
+  <canvas id="game" width="1280" height="720"></canvas>
+
+  <div id="hud" class="panel"></div>
+
+  <div id="minimapWrap" class="panel">
+    <canvas id="minimap" width="170" height="170"></canvas>
+  </div>
+
+  <div id="message"></div>
+
+  <div id="rotateHint">На iPhone удобнее играть в горизонтальном режиме.
+Поверни телефон набок.</div>
+
+  <div id="joystick"><div id="innerJoy"></div></div>
+
+  <div id="touchButtons">
+    <button id="fireBtn" class="roundBtn fire">⚔️<br>АТАКА</button>
+    <button id="lootBtn" class="roundBtn">📦<br>ЛУТ</button>
+  </div>
+
+  <button id="pauseBtn">Ⅱ</button>
+
+  <div id="topBuildBar">
+    <button id="workBtn" class="buildBtn secondary">💼 Работа</button>
+    <button id="sleepBtn" class="buildBtn secondary">😴 Спать</button>
+    <button class="buildBtn" data-build="1">🧱 Деревянная стена</button>
+  </div>
+
+  <div id="bottomBuildBar">
+    <button class="buildBtn secondary" data-build="2">🛠 Железная стена</button>
+    <button class="buildBtn warn" data-build="3">🌱 Огород</button>
+  </div>
+
+  <div id="helpStrip">ПК: WASD / стрелки — движение, клик — атака, 1/2/3 — стройка, E — лут, F — работа, R — сон, P — пауза. Телефон: джойстик слева снизу, атака справа снизу, работать и спать — верхние кнопки.</div>
+
+  <div id="overlay">
+    <div id="overlayCard">
+      <h1 id="overlayTitle">Зомби Выживание</h1>
+      <p id="overlayText">Открывается прямо как локальный HTML-файл.</p>
+      <button id="startBtn" class="menuBtn">Начать игру</button>
+      <button id="restartBtn" class="menuBtn" style="display:none; margin-left:8px;">Играть ещё раз</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const VIEW_W = 1280;
+  const VIEW_H = 720;
+  const WORLD_W = 3200;
+  const WORLD_H = 3200;
+  const PLAYER_SPEED = 270;
+  const PLAYER_RADIUS = 18;
+  const BULLET_SPEED = 780;
+  const BULLET_LIFE = 1.2;
+  const FIRE_COOLDOWN = 0.22;
+  const LOOT_PICK_DIST = 38;
+  const DAY_LENGTH = 45;
+  const MAX_ENERGY = 100;
+  const INTERACT_DIST = 76;
+  const START_HOUR = 8;
+  const END_HOUR = 22;
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const miniCanvas = document.getElementById('minimap');
+  const miniCtx = miniCanvas.getContext('2d');
+  const hud = document.getElementById('hud');
+  const message = document.getElementById('message');
+  const rotateHint = document.getElementById('rotateHint');
+  const joystick = document.getElementById('joystick');
+  const innerJoy = document.getElementById('innerJoy');
+  const fireBtn = document.getElementById('fireBtn');
+  const lootBtn = document.getElementById('lootBtn');
+  const workBtn = document.getElementById('workBtn');
+  const sleepBtn = document.getElementById('sleepBtn');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayText = document.getElementById('overlayText');
+  const startBtn = document.getElementById('startBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const buildButtons = [...document.querySelectorAll('.buildBtn[data-build]')];
+
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  const keys = { up: false, down: false, left: false, right: false };
+
+  const state = {
+    running: false,
+    paused: false,
+    cameraX: 0,
+    cameraY: 0,
+    lastTime: performance.now(),
+    day: 1,
+    timeInDay: 0,
+    dayEnded: false,
+    sleeping: false,
+    sleepTimer: 0,
+    spawnTimer: 1.8,
+    messageTimer: 0,
+    aimX: 0,
+    aimY: -1
+  };
+
+  const player = {
+    x: WORLD_W / 2,
+    y: WORLD_H / 2,
+    radius: PLAYER_RADIUS,
+    hp: 100,
+    maxHp: 100,
+    energy: MAX_ENERGY,
+    maxEnergy: MAX_ENERGY,
+    money: 120,
+    ammo: 50,
+    wood: 12,
+    metal: 6,
+    speed: PLAYER_SPEED,
+    fireCooldown: 0,
+    facingX: 0,
+    facingY: -1,
+    hitFlash: 0,
+    walkCycle: 0
+  };
+
+  let bullets = [];
+  let zombies = [];
+  let loot = [];
+  let walls = [];
+  let decor = [];
+  let terrainPatches = [];
+  let roadRects = [];
+  let ruins = [];
+  let cityBuildings = [];
+  let parkRects = [];
+  let roadCracks = [];
+  let safehouse = null;
+  let jobOffices = [];
+  let courierPickupSpots = [];
+  let courierDropSpots = [];
+  let currentJob = null;
+  let joyActive = false;
+  let joyPointerId = null;
+  let joyCX = 0;
+  let joyCY = 0;
+  let velX = 0;
+  let velY = 0;
+
+  function setViewportUnits() {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vh', `${Math.max(1, h) * 0.01}px`);
+  }
+
+  function updateRotateHint() {
+    const overlayOpen = overlay.style.display === 'flex';
+    const show = isTouch && shouldForceLandscape() && (state.running || overlayOpen);
+    rotateHint.style.display = show ? 'block' : 'none';
+  }
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function rand(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function shouldForceLandscape() {
+    return isTouch && window.innerHeight > window.innerWidth;
+  }
+
+  function distPoints(ax, ay, bx, by) {
+    return Math.hypot(ax - bx, ay - by);
+  }
+
+  function formatClock() {
+    const ratio = clamp(state.timeInDay / DAY_LENGTH, 0, 1);
+    const totalMinutes = Math.round((START_HOUR * 60) + ratio * ((END_HOUR - START_HOUR) * 60));
+    const hh = Math.floor(totalMinutes / 60);
+    const mm = totalMinutes % 60;
+    return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+  }
+
+  function showMessage(text, duration = 1.4) {
+    message.textContent = text;
+    message.style.display = 'block';
+    state.messageTimer = duration;
+  }
+
+  function hideMessage() {
+    message.style.display = 'none';
+    state.messageTimer = 0;
+  }
+
+  function worldToScreen(x, y) {
+    return {
+      x: x - state.cameraX,
+      y: y - state.cameraY
+    };
+  }
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function circleRectCollide(cx, cy, radius, rect) {
+    const nx = clamp(cx, rect.x, rect.x + rect.w);
+    const ny = clamp(cy, rect.y, rect.y + rect.h);
+    const dx = cx - nx;
+    const dy = cy - ny;
+    return dx * dx + dy * dy < radius * radius;
+  }
+
+  function circleCircle(a, b, ra, rb) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    const rr = ra + rb;
+    return dx * dx + dy * dy < rr * rr;
+  }
+
+  function canMoveTo(x, y, radius, ignoreWall = null) {
+    if (x - radius < 24 || x + radius > WORLD_W - 24) return false;
+    if (y - radius < 24 || y + radius > WORLD_H - 24) return false;
+    for (const building of cityBuildings) {
+      if (circleRectCollide(x, y, radius, building)) return false;
+    }
+    for (const wall of walls) {
+      if (wall === ignoreWall) continue;
+      if (!wall.solid) continue;
+      if (circleRectCollide(x, y, radius, wall)) return false;
+    }
+    return true;
+  }
+
+  function moveCircle(entity, dx, dy, radius) {
+    const nextX = entity.x + dx;
+    const nextY = entity.y + dy;
+    if (canMoveTo(nextX, entity.y, radius)) entity.x = nextX;
+    if (canMoveTo(entity.x, nextY, radius)) entity.y = nextY;
+  }
+
+  function rectHitsCity(rect) {
+    for (const building of cityBuildings) {
+      if (rectsOverlap(rect, building)) return true;
+    }
+    return false;
+  }
+
+  function findWalkablePoint(options = {}) {
+    const margin = options.margin ?? 80;
+    const minDistFromPlayer = options.minDistFromPlayer ?? 0;
+    const tries = options.tries ?? 220;
+    let best = { x: WORLD_W / 2, y: WORLD_H / 2 };
+
+    for (let i = 0; i < tries; i++) {
+      const x = rand(margin, WORLD_W - margin);
+      const y = rand(margin, WORLD_H - margin);
+      if (!canMoveTo(x, y, PLAYER_RADIUS + 6)) continue;
+      if (Math.hypot(x - player.x, y - player.y) < minDistFromPlayer) continue;
+      return { x, y };
+    }
+    return best;
+  }
+
+  function spawnDecor() {
+    decor = [];
+    for (const park of parkRects) {
+      const trees = 8 + Math.floor((park.w * park.h) / 70000);
+      for (let i = 0; i < trees; i++) {
+        decor.push({
+          x: rand(park.x + 20, park.x + park.w - 20),
+          y: rand(park.y + 20, park.y + park.h - 20),
+          kind: 'tree',
+          size: rand(12, 22)
+        });
+      }
+    }
+
+    for (let i = 0; i < 90; i++) {
+      const pos = findWalkablePoint({ margin: 60, minDistFromPlayer: 120, tries: 100 });
+      decor.push({
+        x: pos.x,
+        y: pos.y,
+        kind: Math.random() < 0.5 ? 'crate' : 'stone',
+        size: rand(8, 18)
+      });
+    }
+  }
+
+  function spawnTerrain() {
+    terrainPatches = [];
+    roadRects = [];
+    ruins = [];
+    cityBuildings = [];
+    parkRects = [];
+
+    const avenue = 220;
+    const street = 120;
+    const centerX = WORLD_W / 2;
+    const centerY = WORLD_H / 2;
+    const vRoadCenters = [560, centerX, WORLD_W - 560];
+    const hRoadCenters = [560, centerY, WORLD_H - 560];
+
+    for (const x of vRoadCenters) {
+      roadRects.push({ x: x - (x === centerX ? avenue / 2 : street / 2), y: 0, w: x === centerX ? avenue : street, h: WORLD_H, color: x === centerX ? '#4e5052' : '#57595c' });
+    }
+    for (const y of hRoadCenters) {
+      roadRects.push({ x: 0, y: y - (y === centerY ? avenue / 2 : street / 2), w: WORLD_W, h: y === centerY ? avenue : street, color: y === centerY ? '#4e5052' : '#57595c' });
+    }
+
+    const xZones = [
+      { x: 90, w: 360 },
+      { x: 680, w: 560 },
+      { x: 1740, w: 560 },
+      { x: 2740, w: 360 }
+    ];
+    const yZones = [
+      { y: 90, h: 360 },
+      { y: 680, h: 560 },
+      { y: 1740, h: 560 },
+      { y: 2740, h: 360 }
+    ];
+
+    const parkKeys = new Set(['1:1', '2:2']);
+
+    const addBuilding = (x, y, w, h, tone) => {
+      cityBuildings.push({ x, y, w, h, tone, roof: tone === 0 ? '#a4abb0' : tone === 1 ? '#be9d7b' : '#8f98a6' });
+    };
+
+    xZones.forEach((xz, xi) => {
+      yZones.forEach((yz, yi) => {
+        const key = `${xi}:${yi}`;
+        if (parkKeys.has(key)) {
+          parkRects.push({ x: xz.x + 26, y: yz.y + 26, w: xz.w - 52, h: yz.h - 52 });
+          return;
+        }
+
+        const pad = 18;
+        const gap = 22;
+        const cols = xz.w > 400 ? 2 : 1;
+        const rows = yz.h > 400 ? 2 : 1;
+        const bw = Math.floor((xz.w - pad * 2 - gap * (cols - 1)) / cols);
+        const bh = Math.floor((yz.h - pad * 2 - gap * (rows - 1)) / rows);
+
+        for (let cx = 0; cx < cols; cx++) {
+          for (let cy = 0; cy < rows; cy++) {
+            let x = xz.x + pad + cx * (bw + gap);
+            let y = yz.y + pad + cy * (bh + gap);
+            let w = bw - rand(8, 32);
+            let h = bh - rand(8, 28);
+            if ((cx + cy) % 3 === 0) {
+              w -= 20;
+              h -= 12;
+              x += 10;
+              y += 6;
+            }
+            addBuilding(x, y, Math.max(90, w), Math.max(90, h), (xi + yi + cx + cy) % 3);
+          }
+        }
+      });
+    });
+
+    for (let i = 0; i < 18; i++) {
+      const road = roadRects[Math.floor(Math.random() * roadRects.length)];
+      ruins.push({
+        x: rand(road.x + 30, road.x + road.w - 80),
+        y: rand(road.y + 30, road.y + road.h - 40),
+        w: rand(36, 74),
+        h: rand(18, 30),
+        rot: rand(-0.2, 0.2),
+        kind: Math.random() < 0.55 ? 'car' : 'debris'
+      });
+    }
+
+    for (const park of parkRects) {
+      terrainPatches.push({
+        x: park.x + park.w / 2,
+        y: park.y + park.h / 2,
+        rx: park.w / 2,
+        ry: park.h / 2,
+        color: 'rgba(74, 110, 72, 0.35)'
+      });
+    }
+
+    const homePark = parkRects[0];
+    safehouse = {
+      x: homePark.x + 78,
+      y: homePark.y + 120,
+      w: 120,
+      h: 82,
+      bedX: homePark.x + 54,
+      bedY: homePark.y + 168,
+      label: 'Лагерь'
+    };
+
+    jobOffices = [
+      { type: 'courier', x: centerX - 320, y: centerY - 30, label: 'Курьерка', color: '#ffc96d' },
+      { type: 'repair', x: centerX + 320, y: centerY - 30, label: 'Ремонт дорог', color: '#9fe7ff' }
+    ];
+
+    courierPickupSpots = [
+      { x: 560, y: centerY, label: 'Кафе' },
+      { x: centerX, y: 560, label: 'Пекарня' },
+      { x: WORLD_W - 560, y: centerY, label: 'Маркет' }
+    ];
+
+    courierDropSpots = [
+      { x: 560, y: WORLD_H - 560, label: 'Южный дом' },
+      { x: centerX, y: WORLD_H - 560, label: 'Центральный дом' },
+      { x: WORLD_W - 560, y: 560, label: 'Северный дом' },
+      { x: WORLD_W - 560, y: WORLD_H - 560, label: 'Восточный дом' }
+    ];
+
+    spawnRoadCracks();
+  }
+
+  function spawnRoadCracks() {
+    roadCracks = [];
+    for (let i = 0; i < 7; i++) {
+      const road = roadRects[Math.floor(Math.random() * roadRects.length)];
+      let x = road.x + rand(80, Math.max(82, road.w - 80));
+      let y = road.y + rand(30, Math.max(32, road.h - 30));
+      if (road.w < road.h) x = road.x + road.w / 2 + rand(-18, 18);
+      if (road.h <= road.w) y = road.y + road.h / 2 + rand(-18, 18);
+
+      if (safehouse && distPoints(x, y, safehouse.bedX, safehouse.bedY) < 180) {
+        x += 160;
+        y += 120;
+      }
+
+      roadCracks.push({ x, y, fixed: false, width: rand(22, 38) });
+    }
+  }
+
+  function nearestJobOffice() {
+    let best = null;
+    let bestDist = Infinity;
+    for (const office of jobOffices) {
+      const d = distPoints(player.x, player.y, office.x, office.y);
+      if (d < bestDist) {
+        bestDist = d;
+        best = office;
+      }
+    }
+    return { office: best, distance: bestDist };
+  }
+
+  function startCourierJob() {
+    const pickup = courierPickupSpots[Math.floor(Math.random() * courierPickupSpots.length)];
+    let target = courierDropSpots[Math.floor(Math.random() * courierDropSpots.length)];
+    if (target.label === pickup.label) target = courierDropSpots[(courierDropSpots.indexOf(target) + 1) % courierDropSpots.length];
+    currentJob = {
+      type: 'courier',
+      name: 'Курьер',
+      stage: 'pickup',
+      pickup,
+      target,
+      reward: 55 + Math.floor(Math.random() * 30)
+    };
+    showMessage(`Новая работа: курьер.\nСначала забери заказ в точке «${pickup.label}».`, 2.0);
+  }
+
+  function startRepairJob() {
+    let crack = roadCracks.find(c => !c.fixed && !c.assigned);
+    if (!crack) {
+      spawnRoadCracks();
+      crack = roadCracks.find(c => !c.fixed);
+    }
+    if (!crack) return showMessage('Сейчас нет активных дорожных заказов.', 1.0);
+    crack.assigned = true;
+    currentJob = {
+      type: 'repair',
+      name: 'Ремонт дороги',
+      stage: 'fix',
+      target: crack,
+      reward: 65 + Math.floor(Math.random() * 25)
+    };
+    showMessage('Новая работа: ремонт дороги.\nНайди трещину на дороге и почини её.', 2.0);
+  }
+
+  function handleWorkAction() {
+    if (!state.running || state.paused || state.sleeping) return;
+
+    if (currentJob) {
+      if (currentJob.type === 'courier') {
+        const point = currentJob.stage === 'pickup' ? currentJob.pickup : currentJob.target;
+        if (distPoints(player.x, player.y, point.x, point.y) > INTERACT_DIST) {
+          return showMessage(currentJob.stage === 'pickup' ? 'Подойди к точке выдачи заказа.' : 'Подойди к клиенту для сдачи заказа.', 1.0);
+        }
+        if (currentJob.stage === 'pickup') {
+          currentJob.stage = 'deliver';
+          player.energy = clamp(player.energy - 6, 0, player.maxEnergy);
+          showMessage(`Заказ взят. Теперь отвези его в «${currentJob.target.label}».`, 1.8);
+        } else {
+          player.money += currentJob.reward;
+          player.energy = clamp(player.energy - 8, 0, player.maxEnergy);
+          showMessage(`Доставка выполнена. +$${currentJob.reward}`, 1.4);
+          currentJob = null;
+        }
+        updateHUD();
+        return;
+      }
+
+      if (currentJob.type === 'repair') {
+        const crack = currentJob.target;
+        if (!crack || crack.fixed) {
+          currentJob = null;
+          return showMessage('Эта трещина уже закрыта. Возьми новую работу.', 1.0);
+        }
+        if (distPoints(player.x, player.y, crack.x, crack.y) > INTERACT_DIST) {
+          return showMessage('Подойди ближе к трещине на дороге.', 1.0);
+        }
+        crack.fixed = true;
+        crack.assigned = false;
+        player.money += currentJob.reward;
+        player.energy = clamp(player.energy - 10, 0, player.maxEnergy);
+        showMessage(`Трещина заделана. +$${currentJob.reward}`, 1.4);
+        currentJob = null;
+        updateHUD();
+        return;
+      }
+    }
+
+    const { office, distance } = nearestJobOffice();
+    if (!office || distance > INTERACT_DIST) return showMessage('Подойди к точке работы, чтобы устроиться.', 1.0);
+
+    if (office.type === 'courier') startCourierJob();
+    if (office.type === 'repair') startRepairJob();
+    updateHUD();
+  }
+
+  function startSleep() {
+    if (!state.running || state.paused) return;
+    if (!safehouse || distPoints(player.x, player.y, safehouse.bedX, safehouse.bedY) > INTERACT_DIST) {
+      return showMessage('Чтобы спать, подойди к лагерю и кровати.', 1.2);
+    }
+    if (zombies.some(z => distPoints(z.x, z.y, safehouse.bedX, safehouse.bedY) < 170)) {
+      return showMessage('Слишком опасно — рядом зомби. Сначала зачисти лагерь.', 1.2);
+    }
+
+    state.sleeping = true;
+    state.sleepTimer = 1.6;
+    player.x = safehouse.bedX;
+    player.y = safehouse.bedY;
+    player.facingX = 1;
+    player.facingY = 0;
+    clearJoystick();
+    showMessage('Герой ложится спать...', 1.4);
+  }
+
+  function finishSleep() {
+    state.sleeping = false;
+    state.day += 1;
+    state.timeInDay = 0;
+    state.dayEnded = false;
+    state.spawnTimer = 1.2;
+    player.energy = player.maxEnergy;
+    player.hp = clamp(player.hp + 40, 0, player.maxHp);
+    player.x = safehouse.bedX + 42;
+    player.y = safehouse.bedY + 6;
+    player.facingX = 0;
+    player.facingY = -1;
+    bullets = [];
+    if (currentJob) {
+      currentJob = null;
+      showMessage(`Наступил день ${state.day}. Старый заказ отменён, герой выспался.`, 2.0);
+    } else {
+      showMessage(`Наступил день ${state.day}. Герой выспался и готов работать дальше.`, 2.0);
+    }
+    spawnRoadCracks();
+    for (let i = 0; i < 2 + state.day; i++) spawnZombie();
+    for (let i = 0; i < 4; i++) spawnRandomLoot();
+    updateHUD();
+    updateRotateHint();
+  }
+
+  function resetGame() {
+    state.running = true;
+    state.paused = false;
+    state.day = 1;
+    state.timeInDay = 0;
+    state.dayEnded = false;
+    state.sleeping = false;
+    state.sleepTimer = 0;
+    state.spawnTimer = 1.5;
+    player.hp = player.maxHp;
+    player.energy = player.maxEnergy;
+    player.money = 120;
+    player.ammo = 50;
+    player.wood = 12;
+    player.metal = 6;
+    player.fireCooldown = 0;
+    player.facingX = 0;
+    player.facingY = -1;
+    player.hitFlash = 0;
+    player.walkCycle = 0;
+    bullets = [];
+    zombies = [];
+    loot = [];
+    walls = [];
+    currentJob = null;
+    velX = 0;
+    velY = 0;
+    hideMessage();
+    spawnTerrain();
+    player.x = safehouse.bedX + 36;
+    player.y = safehouse.bedY + 10;
+    spawnDecor();
+    for (let i = 0; i < 4; i++) spawnZombie(true);
+    for (let i = 0; i < 10; i++) spawnRandomLoot();
+    overlay.style.display = 'none';
+    restartBtn.style.display = 'none';
+    pauseBtn.style.display = 'block';
+    clearJoystick();
+    updateHUD();
+    updateRotateHint();
+    showMessage('День 1. Выживай, строй укрепления и отбивайся от зомби.', 2.6);
+  }
+
+  function openOverlay(title, text, gameOver = false) {
+    overlayTitle.textContent = title;
+    overlayText.textContent = text;
+    overlay.style.display = 'flex';
+    startBtn.style.display = gameOver ? 'none' : 'inline-block';
+    restartBtn.style.display = gameOver ? 'inline-block' : 'none';
+    pauseBtn.style.display = 'none';
+    joystick.style.display = 'none';
+    updateRotateHint();
+  }
+
+  function updateHUD() {
+    const nextSleepIn = Math.max(0, Math.ceil(DAY_LENGTH - state.timeInDay));
+    const jobText = currentJob
+      ? (currentJob.type === 'courier'
+          ? `Работа: Курьер — ${currentJob.stage === 'pickup' ? 'забрать заказ' : 'отвезти клиенту'}`
+          : 'Работа: Ремонт дороги — заделай трещину')
+      : 'Работа: нет активной';
+    const dayState = state.dayEnded ? 'Ночь — пора спать' : `${formatClock()} | до усталости ${nextSleepIn}с`;
+    hud.textContent = `День: ${state.day} | 🕒 ${dayState} | 💰 $${player.money}\n❤️ HP: ${Math.max(0, Math.floor(player.hp))}/${player.maxHp} | ⚡ Энергия: ${Math.max(0, Math.floor(player.energy))}/${player.maxEnergy} | 🔫 Патроны: ${player.ammo}\n🪵 Дерево: ${player.wood} | 🛠 Железо: ${player.metal} | 🧟 Зомби: ${zombies.length}\n${jobText}`;
+  }
+
+  function spawnRandomLoot() {
+    const kinds = ['wood', 'wood', 'ammo', 'metal', 'med'];
+    const kind = kinds[Math.floor(Math.random() * kinds.length)];
+    const pos = findWalkablePoint({ margin: 90, minDistFromPlayer: 160, tries: 240 });
+    loot.push({
+      x: pos.x,
+      y: pos.y,
+      kind,
+      amount: kind === 'wood' ? 3 : kind === 'metal' ? 2 : kind === 'ammo' ? 8 : 18,
+      pulse: rand(0, Math.PI * 2)
+    });
+  }
+
+  function spawnLootDrop(x, y) {
+    const kinds = ['wood', 'ammo', 'metal', 'med'];
+    const kind = kinds[Math.floor(Math.random() * kinds.length)];
+    let pos = { x, y };
+    for (let i = 0; i < 30; i++) {
+      const tx = x + rand(-26, 26);
+      const ty = y + rand(-26, 26);
+      if (canMoveTo(tx, ty, 10)) {
+        pos = { x: tx, y: ty };
+        break;
+      }
+    }
+    loot.push({
+      x: pos.x,
+      y: pos.y,
+      kind,
+      amount: kind === 'wood' ? 2 + Math.floor(Math.random() * 3) : kind === 'metal' ? 1 + Math.floor(Math.random() * 3) : kind === 'ammo' ? 6 + Math.floor(Math.random() * 8) : 14,
+      pulse: rand(0, Math.PI * 2)
+    });
+  }
+
+  function spawnZombie(initial = false) {
+    let zx = player.x;
+    let zy = player.y;
+    let found = false;
+    for (let i = 0; i < 60; i++) {
+      const angle = rand(0, Math.PI * 2);
+      const dist = initial ? rand(420, 760) : rand(650, 980);
+      const tx = clamp(player.x + Math.cos(angle) * dist, 40, WORLD_W - 40);
+      const ty = clamp(player.y + Math.sin(angle) * dist, 40, WORLD_H - 40);
+      if (!canMoveTo(tx, ty, 20)) continue;
+      if (Math.hypot(tx - player.x, ty - player.y) < (initial ? 380 : 580)) continue;
+      zx = tx;
+      zy = ty;
+      found = true;
+      break;
+    }
+    if (!found) {
+      const pos = findWalkablePoint({ margin: 120, minDistFromPlayer: initial ? 420 : 620, tries: 240 });
+      zx = pos.x;
+      zy = pos.y;
+    }
+    zombies.push({
+      x: zx,
+      y: zy,
+      radius: 18,
+      hp: 28 + state.day * 10,
+      maxHp: 28 + state.day * 10,
+      speed: 58 + state.day * 6 + Math.random() * 18,
+      damage: 8 + state.day * 1.4,
+      attackCd: rand(0.2, 0.7),
+      flash: 0
+    });
+  }
+
+  function buildWall(type) {
+    if (!state.running || state.paused) return;
+
+    const dirX = player.facingX || 1;
+    const dirY = player.facingY || 0;
+    let obj = null;
+
+    if (type === 1) {
+      if (player.wood < 4) return showMessage('Недостаточно дерева.', 0.9);
+      obj = { x: player.x + dirX * 56 - 42, y: player.y + dirY * 56 - 14, w: 84, h: 28, type: 1, hp: 120, maxHp: 120, solid: true };
+      player.wood -= 4;
+    } else if (type === 2) {
+      if (player.metal < 5) return showMessage('Недостаточно железа.', 0.9);
+      obj = { x: player.x + dirX * 58 - 46, y: player.y + dirY * 58 - 16, w: 92, h: 32, type: 2, hp: 220, maxHp: 220, solid: true };
+      player.metal -= 5;
+    } else if (type === 3) {
+      if (player.wood < 6) return showMessage('Недостаточно дерева для огорода.', 0.9);
+      obj = { x: player.x + dirX * 70 - 48, y: player.y + dirY * 70 - 48, w: 96, h: 96, type: 3, hp: 150, maxHp: 150, solid: false, grow: 0, ready: false };
+      player.wood -= 6;
+    }
+
+    if (!obj) return;
+    if (obj.x < 20 || obj.y < 20 || obj.x + obj.w > WORLD_W - 20 || obj.y + obj.h > WORLD_H - 20) {
+      if (type === 1) player.wood += 4;
+      if (type === 2) player.metal += 5;
+      if (type === 3) player.wood += 6;
+      return showMessage('Слишком близко к краю карты.', 0.9);
+    }
+
+    if (rectHitsCity(obj)) {
+      if (type === 1) player.wood += 4;
+      if (type === 2) player.metal += 5;
+      if (type === 3) player.wood += 6;
+      return showMessage('Нельзя ставить это внутри городского здания.', 1.0);
+    }
+
+    for (const wall of walls) {
+      if (rectsOverlap(obj, wall)) {
+        if (type === 1) player.wood += 4;
+        if (type === 2) player.metal += 5;
+        if (type === 3) player.wood += 6;
+        return showMessage('Здесь уже стоит постройка.', 0.9);
+      }
+    }
+
+    if (circleRectCollide(player.x, player.y, player.radius + 12, obj)) {
+      if (type === 1) player.wood += 4;
+      if (type === 2) player.metal += 5;
+      if (type === 3) player.wood += 6;
+      return showMessage('Отойди чуть дальше перед установкой.', 0.9);
+    }
+
+    walls.push(obj);
+    updateHUD();
+    showMessage(type === 3 ? 'Огород построен.' : 'Постройка установлена.', 0.8);
+  }
+
+  function shootAtWorld(targetX, targetY) {
+    if (!state.running || state.paused) return;
+    if (player.ammo <= 0) return showMessage('Нет патронов.', 0.8);
+    if (player.fireCooldown > 0) return;
+    if (player.energy <= 0) return showMessage('Герой слишком устал. Нужно поспать.', 0.9);
+
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const dirX = dx / len;
+    const dirY = dy / len;
+    player.facingX = dirX;
+    player.facingY = dirY;
+    state.aimX = dirX;
+    state.aimY = dirY;
+    player.energy = clamp(player.energy - 0.8, 0, player.maxEnergy);
+    player.ammo -= 1;
+    player.fireCooldown = FIRE_COOLDOWN;
+    bullets.push({
+      x: player.x + dirX * 18,
+      y: player.y + dirY * 18,
+      vx: dirX * BULLET_SPEED,
+      vy: dirY * BULLET_SPEED,
+      life: BULLET_LIFE,
+      radius: 5
+    });
+    updateHUD();
+  }
+
+  function pickupNearbyLoot() {
+    if (!state.running) return;
+    let picked = 0;
+    loot = loot.filter(item => {
+      const d = Math.hypot(item.x - player.x, item.y - player.y);
+      if (d > LOOT_PICK_DIST) return true;
+      picked++;
+      if (item.kind === 'wood') player.wood += item.amount;
+      if (item.kind === 'metal') player.metal += item.amount;
+      if (item.kind === 'ammo') player.ammo += item.amount;
+      if (item.kind === 'med') player.hp = clamp(player.hp + item.amount, 0, player.maxHp);
+      return false;
+    });
+    if (picked > 0) {
+      updateHUD();
+      showMessage('Подобран лут.', 0.7);
+    } else {
+      showMessage('Рядом ничего нет.', 0.7);
+    }
+  }
+
+  function updateFarms(dt) {
+    for (const wall of walls) {
+      if (wall.type !== 3) continue;
+      wall.grow += dt;
+      if (wall.grow >= 10 && !wall.ready) {
+        wall.ready = true;
+      }
+      if (wall.ready) {
+        const cx = wall.x + wall.w / 2;
+        const cy = wall.y + wall.h / 2;
+        if (Math.hypot(player.x - cx, player.y - cy) < 72) {
+          wall.ready = false;
+          wall.grow = 0;
+          player.wood += 3;
+          player.hp = clamp(player.hp + 3, 0, player.maxHp);
+          updateHUD();
+          showMessage('Огород дал ресурсы и немного восстановил HP.', 1.0);
+        }
+      }
+    }
+  }
+
+  function damageWallsFromZombie(zombie, dt) {
+    for (const wall of walls) {
+      if (!wall.solid) continue;
+      if (!circleRectCollide(zombie.x, zombie.y, zombie.radius + 4, wall)) continue;
+      wall.hp -= zombie.damage * dt * 2.2;
+      if (wall.hp <= 0) {
+        wall.hp = 0;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function updatePlayer(dt) {
+    let mx = 0;
+    let my = 0;
+    if (keys.left) mx -= 1;
+    if (keys.right) mx += 1;
+    if (keys.up) my -= 1;
+    if (keys.down) my += 1;
+    if (joyActive) {
+      mx += velX;
+      my += velY;
+    }
+
+    const len = Math.hypot(mx, my);
+    const moving = len > 0.001;
+    let speedMul = 1;
+    if (player.energy < 45) speedMul *= 0.88;
+    if (player.energy < 20) speedMul *= 0.78;
+    if (player.energy <= 0) speedMul *= 0.55;
+    if (state.dayEnded) speedMul *= 0.82;
+
+    if (len > 0.001) {
+      const dirX = mx / len;
+      const dirY = my / len;
+      player.facingX = dirX;
+      player.facingY = dirY;
+      player.walkCycle += dt * 9;
+      moveCircle(player, dirX * player.speed * speedMul * dt, dirY * player.speed * speedMul * dt, player.radius);
+    } else {
+      player.walkCycle *= 0.85;
+    }
+
+    const drain = dt * (moving ? 0.75 : 0.24) + (state.dayEnded ? dt * 0.35 : 0);
+    player.energy = clamp(player.energy - drain, 0, player.maxEnergy);
+    player.fireCooldown = Math.max(0, player.fireCooldown - dt);
+    player.hitFlash = Math.max(0, player.hitFlash - dt * 3);
+  }
+
+  function updateBullets(dt) {
+    const nextBullets = [];
+    bulletLoop:
+    for (const bullet of bullets) {
+      bullet.x += bullet.vx * dt;
+      bullet.y += bullet.vy * dt;
+      bullet.life -= dt;
+      if (bullet.life <= 0) continue;
+      if (bullet.x < 0 || bullet.y < 0 || bullet.x > WORLD_W || bullet.y > WORLD_H) continue;
+
+      for (const building of cityBuildings) {
+        if (circleRectCollide(bullet.x, bullet.y, bullet.radius, building)) {
+          continue bulletLoop;
+        }
+      }
+
+      for (const wall of walls) {
+        if (circleRectCollide(bullet.x, bullet.y, bullet.radius, wall)) {
+          if (wall.type !== 3) {
+            wall.hp -= 22;
+            if (wall.hp < 0) wall.hp = 0;
+          }
+          continue bulletLoop;
+        }
+      }
+
+      for (const zombie of zombies) {
+        if (circleCircle({ x: bullet.x, y: bullet.y }, zombie, bullet.radius, zombie.radius)) {
+          zombie.hp -= 42;
+          zombie.flash = 0.25;
+          continue bulletLoop;
+        }
+      }
+      nextBullets.push(bullet);
+    }
+    bullets = nextBullets;
+  }
+
+  function updateZombies(dt) {
+    for (const zombie of zombies) {
+      const dx = player.x - zombie.x;
+      const dy = player.y - zombie.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      zombie.attackCd -= dt;
+      zombie.flash = Math.max(0, zombie.flash - dt * 3);
+
+      if (dist < 30) {
+        if (zombie.attackCd <= 0) {
+          player.hp -= zombie.damage;
+          zombie.attackCd = 0.8;
+          player.hitFlash = 0.35;
+          showMessage('Тебя ударил зомби!', 0.45);
+        }
+      }
+
+      const dirX = dx / dist;
+      const dirY = dy / dist;
+      let moveX = dirX * zombie.speed * dt;
+      let moveY = dirY * zombie.speed * dt;
+
+      const hitWall = damageWallsFromZombie(zombie, dt);
+      if (!hitWall) {
+        if (!canMoveTo(zombie.x + moveX, zombie.y, zombie.radius)) {
+          moveY += (Math.random() < 0.5 ? -1 : 1) * zombie.speed * dt * 0.8;
+        }
+        if (!canMoveTo(zombie.x, zombie.y + moveY, zombie.radius)) {
+          moveX += (Math.random() < 0.5 ? -1 : 1) * zombie.speed * dt * 0.8;
+        }
+        moveCircle(zombie, moveX, moveY, zombie.radius);
+      }
+    }
+
+    zombies = zombies.filter(z => {
+      if (z.hp > 0) return true;
+      if (Math.random() < 0.9) spawnLootDrop(z.x, z.y);
+      return false;
+    });
+
+    walls = walls.filter(w => w.hp > 0);
+  }
+
+  function updateDay(dt) {
+    if (state.dayEnded) return;
+    state.timeInDay += dt;
+    if (state.timeInDay >= DAY_LENGTH) {
+      state.timeInDay = DAY_LENGTH;
+      state.dayEnded = true;
+      showMessage('Герой вымотался. Возвращайся в лагерь и жми «Спать».', 2.2);
+    }
+  }
+
+  function updateSpawns(dt) {
+    state.spawnTimer -= dt;
+    if (state.spawnTimer > 0) return;
+    state.spawnTimer = clamp(2.4 - state.day * 0.16 + Math.random() * 0.9, 0.55, 2.8);
+    if (zombies.length < 36 + state.day * 6) {
+      spawnZombie();
+    }
+    if (loot.length < 24 && Math.random() < 0.28) {
+      spawnRandomLoot();
+    }
+  }
+
+  function checkGameOver() {
+    if (player.hp > 0) return;
+    state.running = false;
+    state.paused = false;
+    clearJoystick();
+    openOverlay('Игра окончена', `Ты продержался до дня ${state.day}.\nПостройки: ${walls.length}\nОставшиеся ресурсы: дерево ${player.wood}, железо ${player.metal}, патроны ${player.ammo}`, true);
+  }
+
+  function updateCamera() {
+    state.cameraX = clamp(player.x - VIEW_W / 2, 0, WORLD_W - VIEW_W);
+    state.cameraY = clamp(player.y - VIEW_H / 2, 0, WORLD_H - VIEW_H);
+  }
+
+  function update(dt) {
+    if (state.sleeping) {
+      state.sleepTimer -= dt;
+      if (state.sleepTimer <= 0) finishSleep();
+      return;
+    }
+
+    if (!state.running || state.paused) {
+      if (state.messageTimer > 0) {
+        state.messageTimer -= dt;
+        if (state.messageTimer <= 0) hideMessage();
+      }
+      return;
+    }
+
+    if (shouldForceLandscape()) {
+      clearJoystick();
+      return;
+    }
+
+    if (state.messageTimer > 0) {
+      state.messageTimer -= dt;
+      if (state.messageTimer <= 0) hideMessage();
+    }
+
+    updatePlayer(dt);
+    updateBullets(dt);
+    updateZombies(dt);
+    updateFarms(dt);
+    updateDay(dt);
+    updateSpawns(dt);
+    pickupTouchLootIfClose();
+    updateCamera();
+    updateHUD();
+    checkGameOver();
+  }
+
+  function pickupTouchLootIfClose() {
+    if (!isTouch) return;
+    let touched = false;
+    loot = loot.filter(item => {
+      const d = Math.hypot(item.x - player.x, item.y - player.y);
+      if (d > 26) return true;
+      touched = true;
+      if (item.kind === 'wood') player.wood += item.amount;
+      if (item.kind === 'metal') player.metal += item.amount;
+      if (item.kind === 'ammo') player.ammo += item.amount;
+      if (item.kind === 'med') player.hp = clamp(player.hp + item.amount, 0, player.maxHp);
+      return false;
+    });
+    if (touched) updateHUD();
+  }
+
+  function drawBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+    g.addColorStop(0, '#243623');
+    g.addColorStop(1, '#161d13');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    ctx.strokeStyle = 'rgba(210, 235, 170, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = -state.cameraX % 96; x < VIEW_W; x += 96) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, VIEW_H);
+      ctx.stroke();
+    }
+    for (let y = -state.cameraY % 96; y < VIEW_H; y += 96) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(VIEW_W, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawTerrainFeatures() {
+    for (const road of roadRects) {
+      const p = worldToScreen(road.x, road.y);
+      if (p.x + road.w < -40 || p.y + road.h < -40 || p.x > VIEW_W + 40 || p.y > VIEW_H + 40) continue;
+      ctx.fillStyle = road.color;
+      ctx.fillRect(p.x, p.y, road.w, road.h);
+      ctx.strokeStyle = 'rgba(245, 229, 176, 0.1)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p.x, p.y, road.w, road.h);
+
+      const horizontal = road.w > road.h;
+      ctx.strokeStyle = 'rgba(252, 241, 171, 0.28)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([18, 18]);
+      ctx.beginPath();
+      if (horizontal) {
+        ctx.moveTo(p.x + 10, p.y + road.h / 2);
+        ctx.lineTo(p.x + road.w - 10, p.y + road.h / 2);
+      } else {
+        ctx.moveTo(p.x + road.w / 2, p.y + 10);
+        ctx.lineTo(p.x + road.w / 2, p.y + road.h - 10);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    for (const patch of terrainPatches) {
+      const p = worldToScreen(patch.x, patch.y);
+      if (p.x + patch.rx < -60 || p.y + patch.ry < -60 || p.x - patch.rx > VIEW_W + 60 || p.y - patch.ry > VIEW_H + 60) continue;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.fillStyle = patch.color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, patch.rx, patch.ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    for (const park of parkRects) {
+      const p = worldToScreen(park.x, park.y);
+      if (p.x + park.w < -50 || p.y + park.h < -50 || p.x > VIEW_W + 50 || p.y > VIEW_H + 50) continue;
+      ctx.fillStyle = '#39522e';
+      ctx.fillRect(p.x, p.y, park.w, park.h);
+      ctx.strokeStyle = 'rgba(185, 230, 170, 0.28)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p.x, p.y, park.w, park.h);
+      ctx.strokeStyle = 'rgba(230, 220, 190, 0.22)';
+      ctx.beginPath();
+      ctx.moveTo(p.x + 16, p.y + park.h / 2);
+      ctx.lineTo(p.x + park.w - 16, p.y + park.h / 2);
+      ctx.moveTo(p.x + park.w / 2, p.y + 16);
+      ctx.lineTo(p.x + park.w / 2, p.y + park.h - 16);
+      ctx.stroke();
+    }
+
+    for (const crack of roadCracks) {
+      if (crack.fixed) continue;
+      const p = worldToScreen(crack.x, crack.y);
+      if (p.x < -40 || p.y < -40 || p.x > VIEW_W + 40 || p.y > VIEW_H + 40) continue;
+      ctx.strokeStyle = crack.assigned ? '#ffe79a' : '#171717';
+      ctx.lineWidth = crack.assigned ? 3 : 2;
+      ctx.beginPath();
+      ctx.moveTo(p.x - crack.width * 0.5, p.y - 2);
+      ctx.lineTo(p.x - crack.width * 0.15, p.y + 6);
+      ctx.lineTo(p.x + crack.width * 0.05, p.y - 4);
+      ctx.lineTo(p.x + crack.width * 0.34, p.y + 7);
+      ctx.lineTo(p.x + crack.width * 0.5, p.y - 3);
+      ctx.stroke();
+    }
+
+    if (safehouse) {
+      const p = worldToScreen(safehouse.x, safehouse.y);
+      ctx.fillStyle = '#54724d';
+      ctx.fillRect(p.x, p.y, safehouse.w, safehouse.h);
+      ctx.fillStyle = '#a0b78f';
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y + safehouse.h);
+      ctx.lineTo(p.x + safehouse.w / 2, p.y + 10);
+      ctx.lineTo(p.x + safehouse.w, p.y + safehouse.h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ddebcf';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p.x, p.y + 26, safehouse.w, safehouse.h - 26);
+      ctx.fillStyle = '#d0b487';
+      ctx.fillRect(worldToScreen(safehouse.bedX, safehouse.bedY).x - 20, worldToScreen(safehouse.bedX, safehouse.bedY).y - 10, 40, 18);
+      ctx.fillStyle = '#f7f5da';
+      ctx.fillRect(worldToScreen(safehouse.bedX, safehouse.bedY).x - 18, worldToScreen(safehouse.bedX, safehouse.bedY).y - 8, 16, 8);
+      ctx.fillStyle = '#f3fbff';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('ЛАГЕРЬ', p.x + safehouse.w / 2, p.y - 8);
+    }
+
+    for (const office of jobOffices) {
+      const p = worldToScreen(office.x, office.y);
+      ctx.fillStyle = office.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#16212b';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(office.type === 'courier' ? 'К' : 'Р', p.x, p.y + 4);
+      ctx.fillStyle = '#f3fbff';
+      ctx.font = 'bold 13px Arial';
+      ctx.fillText(office.label, p.x, p.y - 24);
+    }
+
+    for (const building of cityBuildings) {
+      const p = worldToScreen(building.x, building.y);
+      if (p.x + building.w < -50 || p.y + building.h < -50 || p.x > VIEW_W + 50 || p.y > VIEW_H + 50) continue;
+      ctx.fillStyle = building.roof;
+      ctx.fillRect(p.x, p.y, building.w, building.h);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      ctx.fillRect(p.x + 8, p.y + 8, building.w - 16, building.h - 16);
+      ctx.strokeStyle = 'rgba(236, 246, 250, 0.28)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p.x, p.y, building.w, building.h);
+
+      const cols = Math.max(2, Math.floor(building.w / 46));
+      const rows = Math.max(2, Math.floor(building.h / 38));
+      for (let cx = 0; cx < cols; cx++) {
+        for (let cy = 0; cy < rows; cy++) {
+          const wx = p.x + 12 + cx * ((building.w - 24) / cols);
+          const wy = p.y + 12 + cy * ((building.h - 24) / rows);
+          ctx.fillStyle = 'rgba(190, 226, 255, 0.16)';
+          ctx.fillRect(wx, wy, 12, 9);
+        }
+      }
+
+      ctx.fillStyle = '#5b4634';
+      ctx.fillRect(p.x + building.w / 2 - 10, p.y + building.h - 14, 20, 14);
+    }
+
+    for (const ruin of ruins) {
+      const p = worldToScreen(ruin.x, ruin.y);
+      if (p.x + ruin.w < -30 || p.y + ruin.h < -30 || p.x > VIEW_W + 30 || p.y > VIEW_H + 30) continue;
+      ctx.save();
+      ctx.translate(p.x + ruin.w / 2, p.y + ruin.h / 2);
+      ctx.rotate(ruin.rot);
+      ctx.fillStyle = ruin.kind === 'car' ? 'rgba(104, 54, 45, 0.72)' : 'rgba(120, 126, 117, 0.4)';
+      ctx.fillRect(-ruin.w / 2, -ruin.h / 2, ruin.w, ruin.h);
+      ctx.strokeStyle = ruin.kind === 'car' ? 'rgba(255, 208, 160, 0.2)' : 'rgba(220, 230, 220, 0.18)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-ruin.w / 2, -ruin.h / 2, ruin.w, ruin.h);
+      if (ruin.kind === 'car') {
+        ctx.fillStyle = 'rgba(210, 235, 240, 0.16)';
+        ctx.fillRect(-ruin.w * 0.18, -ruin.h * 0.3, ruin.w * 0.36, ruin.h * 0.28);
+      }
+      ctx.restore();
+    }
+
+    if (currentJob) {
+      const marker = currentJob.type === 'courier'
+        ? (currentJob.stage === 'pickup' ? currentJob.pickup : currentJob.target)
+        : currentJob.target;
+      if (marker) {
+        const p = worldToScreen(marker.x, marker.y);
+        ctx.strokeStyle = currentJob.type === 'courier' ? '#ffd16b' : '#9fe7ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 24, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y - 34);
+        ctx.lineTo(p.x, p.y - 10);
+        ctx.stroke();
+        ctx.fillStyle = '#f8fdff';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(currentJob.type === 'courier' ? (currentJob.stage === 'pickup' ? 'ВЫДАЧА' : 'ДОСТАВКА') : 'ТРЕЩИНА', p.x, p.y - 38);
+      }
+    }
+
+    const border = worldToScreen(0, 0);
+    ctx.strokeStyle = 'rgba(87, 65, 42, 0.9)';
+    ctx.lineWidth = 22;
+    ctx.strokeRect(border.x, border.y, WORLD_W, WORLD_H);
+  }
+
+  function drawDecor() {
+    for (const item of decor) {
+      const p = worldToScreen(item.x, item.y);
+      if (p.x < -40 || p.y < -40 || p.x > VIEW_W + 40 || p.y > VIEW_H + 40) continue;
+      if (item.kind === 'tree') {
+        ctx.fillStyle = '#4a3521';
+        ctx.fillRect(p.x - 3, p.y - 2, 6, item.size);
+        ctx.fillStyle = '#2a6b34';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - item.size * 0.2, item.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#3d8d46';
+        ctx.beginPath();
+        ctx.arc(p.x - 6, p.y + 1, item.size * 0.52, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (item.kind === 'crate') {
+        ctx.fillStyle = '#8a6843';
+        ctx.fillRect(p.x - item.size * 0.6, p.y - item.size * 0.6, item.size * 1.2, item.size * 1.2);
+        ctx.strokeStyle = '#d9b37a';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(p.x - item.size * 0.6, p.y - item.size * 0.6, item.size * 1.2, item.size * 1.2);
+      } else {
+        ctx.fillStyle = '#55665c';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, item.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  function drawWalls() {
+    for (const wall of walls) {
+      const p = worldToScreen(wall.x, wall.y);
+      if (p.x + wall.w < -20 || p.y + wall.h < -20 || p.x > VIEW_W + 20 || p.y > VIEW_H + 20) continue;
+
+      if (wall.type === 1) {
+        ctx.fillStyle = '#7c5731';
+        ctx.fillRect(p.x, p.y, wall.w, wall.h);
+        ctx.strokeStyle = '#d6b089';
+      } else if (wall.type === 2) {
+        ctx.fillStyle = '#7a8c97';
+        ctx.fillRect(p.x, p.y, wall.w, wall.h);
+        ctx.strokeStyle = '#e8f9ff';
+      } else {
+        ctx.fillStyle = '#284117';
+        ctx.fillRect(p.x, p.y, wall.w, wall.h);
+        ctx.fillStyle = wall.ready ? '#6dff87' : '#6fb04f';
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 3; j++) {
+            ctx.beginPath();
+            ctx.arc(p.x + 16 + i * 20, p.y + 18 + j * 24, wall.ready ? 6 : 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.strokeStyle = '#b4ffbb';
+      }
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p.x, p.y, wall.w, wall.h);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(p.x, p.y - 8, wall.w, 5);
+      ctx.fillStyle = wall.type === 2 ? '#b2ecff' : wall.type === 3 ? '#7cff8d' : '#ffd18b';
+      ctx.fillRect(p.x, p.y - 8, wall.w * (wall.hp / wall.maxHp), 5);
+    }
+  }
+
+  function drawLoot() {
+    for (const item of loot) {
+      const p = worldToScreen(item.x, item.y);
+      if (p.x < -30 || p.y < -30 || p.x > VIEW_W + 30 || p.y > VIEW_H + 30) continue;
+      item.pulse += 0.08;
+      const bob = Math.sin(item.pulse) * 3;
+      const y = p.y + bob;
+
+      if (item.kind === 'wood') ctx.fillStyle = '#c68e54';
+      if (item.kind === 'metal') ctx.fillStyle = '#c7efff';
+      if (item.kind === 'ammo') ctx.fillStyle = '#ffca65';
+      if (item.kind === 'med') ctx.fillStyle = '#ff7b7b';
+
+      ctx.beginPath();
+      ctx.arc(p.x, y, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#031014';
+      ctx.font = 'bold 10px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(item.kind === 'med' ? '+' : item.kind === 'ammo' ? 'A' : item.kind === 'metal' ? 'M' : 'W', p.x, y + 3);
+    }
+  }
+
+  function drawBullets() {
+    ctx.fillStyle = '#ffe27c';
+    for (const bullet of bullets) {
+      const p = worldToScreen(bullet.x, bullet.y);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, bullet.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawZombies() {
+    for (const zombie of zombies) {
+      const p = worldToScreen(zombie.x, zombie.y);
+      if (p.x < -40 || p.y < -40 || p.x > VIEW_W + 40 || p.y > VIEW_H + 40) continue;
+      ctx.fillStyle = zombie.flash > 0 ? '#ffb4b4' : '#78ff6f';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, zombie.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#132e10';
+      ctx.beginPath();
+      ctx.arc(p.x - 6, p.y - 3, 3, 0, Math.PI * 2);
+      ctx.arc(p.x + 6, p.y - 3, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#163911';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(p.x - 6, p.y + 7);
+      ctx.lineTo(p.x + 6, p.y + 7);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(p.x - 18, p.y - 28, 36, 5);
+      ctx.fillStyle = '#ff7f7f';
+      ctx.fillRect(p.x - 18, p.y - 28, 36 * (zombie.hp / zombie.maxHp), 5);
+    }
+  }
+
+  function drawPlayer() {
+    const p = worldToScreen(player.x, player.y);
+    if (state.sleeping) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(Math.PI / 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.beginPath();
+      ctx.ellipse(0, 16, 16, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f0c49a';
+      ctx.beginPath();
+      ctx.arc(0, -20, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f0d34d';
+      ctx.fillRect(-12, -12, 24, 24);
+      ctx.fillStyle = '#3967d6';
+      ctx.fillRect(-10, 12, 20, 10);
+      ctx.restore();
+      return;
+    }
+
+    const facingAngle = Math.atan2(player.facingY || -1, player.facingX || 0) + Math.PI / 2;
+    const step = Math.sin(player.walkCycle) * 3;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(facingAngle);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 15, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#26323f';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-6, 8);
+    ctx.lineTo(-7 + step, 24);
+    ctx.moveTo(6, 8);
+    ctx.lineTo(7 - step, 24);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#d6b44a';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(-12, -2);
+    ctx.lineTo(-18, 8 + step * 0.5);
+    ctx.moveTo(12, -2);
+    ctx.lineTo(18, 8 - step * 0.5);
+    ctx.stroke();
+
+    ctx.fillStyle = player.hitFlash > 0 ? '#ffd7d7' : '#f0d34d';
+    ctx.fillRect(-11, -12, 22, 24);
+    ctx.strokeStyle = '#fff1a8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-11, -12, 22, 24);
+
+    ctx.fillStyle = '#f0c49a';
+    ctx.beginPath();
+    ctx.arc(0, -22, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#362515';
+    ctx.fillRect(-7, -29, 14, 5);
+    ctx.fillRect(-8, -25, 16, 3);
+
+    ctx.fillStyle = '#0f1620';
+    ctx.fillRect(-2, -4, 4, 9);
+
+    ctx.fillStyle = '#444';
+    ctx.fillRect(7, -5, 14, 5);
+    ctx.fillStyle = '#d7b577';
+    ctx.fillRect(18, -4, 6, 3);
+
+    ctx.fillStyle = '#3967d6';
+    ctx.fillRect(-10, 10, 9, 11);
+    ctx.fillRect(1, 10, 9, 11);
+    ctx.fillStyle = '#1a232b';
+    ctx.fillRect(-9, 21, 8, 3);
+    ctx.fillRect(1, 21, 8, 3);
+    ctx.restore();
+  }
+
+  function drawMinimap() {
+    miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+    miniCtx.fillStyle = '#293323';
+    miniCtx.fillRect(0, 0, miniCanvas.width, miniCanvas.height);
+
+    const sx = miniCanvas.width / WORLD_W;
+    const sy = miniCanvas.height / WORLD_H;
+
+    miniCtx.fillStyle = '#5a5d60';
+    for (const road of roadRects) {
+      miniCtx.fillRect(road.x * sx, road.y * sy, Math.max(2, road.w * sx), Math.max(2, road.h * sy));
+    }
+
+    miniCtx.fillStyle = '#45633f';
+    for (const park of parkRects) {
+      miniCtx.fillRect(park.x * sx, park.y * sy, Math.max(2, park.w * sx), Math.max(2, park.h * sy));
+    }
+
+    miniCtx.fillStyle = '#8e969d';
+    for (const building of cityBuildings) {
+      miniCtx.fillRect(building.x * sx, building.y * sy, Math.max(2, building.w * sx), Math.max(2, building.h * sy));
+    }
+
+    miniCtx.fillStyle = '#9f7f52';
+    for (const wall of walls) {
+      miniCtx.fillRect(wall.x * sx, wall.y * sy, Math.max(2, wall.w * sx), Math.max(2, wall.h * sy));
+    }
+
+    miniCtx.fillStyle = '#171717';
+    for (const crack of roadCracks) {
+      if (crack.fixed) continue;
+      miniCtx.fillRect(crack.x * sx - 1, crack.y * sy - 1, 3, 3);
+    }
+
+    for (const office of jobOffices) {
+      miniCtx.fillStyle = office.color;
+      miniCtx.fillRect(office.x * sx - 3, office.y * sy - 3, 6, 6);
+    }
+
+    if (safehouse) {
+      miniCtx.fillStyle = '#eaf7ff';
+      miniCtx.fillRect(safehouse.bedX * sx - 3, safehouse.bedY * sy - 3, 6, 6);
+    }
+
+    miniCtx.fillStyle = '#ff7070';
+    for (const zombie of zombies) {
+      miniCtx.fillRect(zombie.x * sx - 1, zombie.y * sy - 1, 3, 3);
+    }
+
+    miniCtx.fillStyle = '#ffd76b';
+    for (const item of loot) {
+      miniCtx.fillRect(item.x * sx, item.y * sy, 2, 2);
+    }
+
+    miniCtx.fillStyle = '#63f7ff';
+    miniCtx.beginPath();
+    miniCtx.arc(player.x * sx, player.y * sy, 4, 0, Math.PI * 2);
+    miniCtx.fill();
+
+    if (currentJob) {
+      const marker = currentJob.type === 'courier'
+        ? (currentJob.stage === 'pickup' ? currentJob.pickup : currentJob.target)
+        : currentJob.target;
+      if (marker) {
+        miniCtx.strokeStyle = currentJob.type === 'courier' ? '#ffd16b' : '#9fe7ff';
+        miniCtx.lineWidth = 2;
+        miniCtx.beginPath();
+        miniCtx.arc(marker.x * sx, marker.y * sy, 6, 0, Math.PI * 2);
+        miniCtx.stroke();
+      }
+    }
+  }
+
+  function render() {
+    drawBackground();
+    drawTerrainFeatures();
+    drawDecor();
+    drawWalls();
+    drawLoot();
+    drawBullets();
+    drawZombies();
+    drawPlayer();
+    drawMinimap();
+
+    if (state.sleeping) {
+      ctx.fillStyle = 'rgba(0,0,0,0.34)';
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      ctx.fillStyle = '#f6ffff';
+      ctx.font = 'bold 38px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('СОН', VIEW_W / 2, VIEW_H / 2 - 4);
+      ctx.font = '20px Arial';
+      ctx.fillText('Герой отдыхает до следующего дня…', VIEW_W / 2, VIEW_H / 2 + 28);
+    }
+
+    if (state.paused && state.running) {
+      ctx.fillStyle = 'rgba(0,0,0,0.42)';
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      ctx.fillStyle = '#ecffff';
+      ctx.font = 'bold 44px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('ПАУЗА', VIEW_W / 2, VIEW_H / 2 - 10);
+      ctx.font = '20px Arial';
+      ctx.fillText('Нажми Ⅱ / P чтобы продолжить', VIEW_W / 2, VIEW_H / 2 + 28);
+    }
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.033, (now - state.lastTime) / 1000);
+    state.lastTime = now;
+    update(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  function clearJoystick() {
+    joyActive = false;
+    joyPointerId = null;
+    velX = 0;
+    velY = 0;
+    const shouldShow = isTouch && state.running && !state.paused && !state.sleeping && !shouldForceLandscape();
+    joystick.style.display = shouldShow ? 'block' : 'none';
+    const joyW = joystick.offsetWidth || 132;
+    const joyH = joystick.offsetHeight || 132;
+    const innerW = innerJoy.offsetWidth || 44;
+    const innerH = innerJoy.offsetHeight || 44;
+    const centerX = (joyW - innerW) / 2;
+    const centerY = (joyH - innerH) / 2;
+    innerJoy.style.left = centerX + 'px';
+    innerJoy.style.top = centerY + 'px';
+  }
+
+  function beginJoystick(pointerId = null) {
+    joyActive = true;
+    joyPointerId = pointerId;
+    joystick.style.display = 'block';
+    const rect = joystick.getBoundingClientRect();
+    joyCX = rect.left + rect.width / 2;
+    joyCY = rect.top + rect.height / 2;
+  }
+
+  function moveJoystick(clientX, clientY) {
+    if (!joyActive) return;
+    let dx = (clientX - joyCX) / 46;
+    let dy = (clientY - joyCY) / 46;
+    const len = Math.hypot(dx, dy);
+    if (len > 1) {
+      dx /= len;
+      dy /= len;
+    }
+    velX = dx;
+    velY = dy;
+    const center = joystick.offsetWidth / 2 - innerJoy.offsetWidth / 2;
+    innerJoy.style.left = (center + dx * 28) + 'px';
+    innerJoy.style.top = (center + dy * 28) + 'px';
+  }
+
+  function shootTowardsScreen(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (clientX - rect.left) * (VIEW_W / rect.width);
+    const y = (clientY - rect.top) * (VIEW_H / rect.height);
+    shootAtWorld(state.cameraX + x, state.cameraY + y);
+  }
+
+  function togglePause(force = null) {
+    if (!state.running || state.sleeping) return;
+    state.paused = force === null ? !state.paused : !!force;
+    clearJoystick();
+    keys.up = keys.down = keys.left = keys.right = false;
+    pauseBtn.textContent = state.paused ? '▶' : 'Ⅱ';
+    updateRotateHint();
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!state.running) return;
+    if (shouldForceLandscape()) {
+      e.preventDefault();
+      return;
+    }
+    if (e.pointerType === 'touch') {
+      if (e.clientX < window.innerWidth * 0.38 && !joyActive) {
+        beginJoystick(e.pointerId);
+      } else {
+        shootTowardsScreen(e.clientX, e.clientY);
+      }
+      e.preventDefault();
+      return;
+    }
+    shootTowardsScreen(e.clientX, e.clientY);
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!joyActive) return;
+    if (joyPointerId !== null && e.pointerId !== joyPointerId) return;
+    moveJoystick(e.clientX, e.clientY);
+  }, { passive: false });
+
+  window.addEventListener('pointerup', (e) => {
+    if (joyPointerId !== null && e.pointerId !== joyPointerId) return;
+    clearJoystick();
+  });
+
+  window.addEventListener('pointercancel', () => clearJoystick());
+
+  fireBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (shouldForceLandscape()) return;
+    shootAtWorld(player.x + player.facingX * 120, player.y + player.facingY * 120);
+  });
+  fireBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (shouldForceLandscape()) return;
+    shootAtWorld(player.x + player.facingX * 120, player.y + player.facingY * 120);
+  });
+  lootBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (shouldForceLandscape()) return;
+    pickupNearbyLoot();
+  });
+  lootBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (shouldForceLandscape()) return;
+    pickupNearbyLoot();
+  });
+
+  buildButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (shouldForceLandscape()) return;
+      buildWall(Number(btn.dataset.build));
+    });
+  });
+
+  workBtn.addEventListener('click', () => {
+    if (shouldForceLandscape()) return;
+    handleWorkAction();
+  });
+
+  sleepBtn.addEventListener('click', () => {
+    if (shouldForceLandscape()) return;
+    startSleep();
+  });
+
+  startBtn.addEventListener('click', resetGame);
+  restartBtn.addEventListener('click', resetGame);
+  pauseBtn.addEventListener('click', () => togglePause());
+
+  window.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " ", "e", "p", "1", "2", "3", "f", "r"].includes(key)) e.preventDefault();
+    if (key === 'a' || key === 'arrowleft') keys.left = true;
+    if (key === 'd' || key === 'arrowright') keys.right = true;
+    if (key === 'w' || key === 'arrowup') keys.up = true;
+    if (key === 's' || key === 'arrowdown') keys.down = true;
+    if (key === ' ') shootAtWorld(player.x + player.facingX * 160, player.y + player.facingY * 160);
+    if (key === 'e') pickupNearbyLoot();
+    if (key === 'f') handleWorkAction();
+    if (key === 'r') startSleep();
+    if (key === '1') buildWall(1);
+    if (key === '2') buildWall(2);
+    if (key === '3') buildWall(3);
+    if (key === 'p') togglePause();
+  });
+
+  window.addEventListener('keyup', (e) => {
+    const key = e.key.toLowerCase();
+    if (key === 'a' || key === 'arrowleft') keys.left = false;
+    if (key === 'd' || key === 'arrowright') keys.right = false;
+    if (key === 'w' || key === 'arrowup') keys.up = false;
+    if (key === 's' || key === 'arrowdown') keys.down = false;
+  });
+
+  window.addEventListener('blur', () => {
+    keys.up = keys.down = keys.left = keys.right = false;
+    clearJoystick();
+    if (state.running) togglePause(true);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && state.running) togglePause(true);
+  });
+
+  function resize() {
+    setViewportUnits();
+    updateRotateHint();
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resize, { passive: true });
+    window.visualViewport.addEventListener('scroll', resize, { passive: true });
+  }
+
+  openOverlay('Зомби Выживание — Большая Карта', 'Это одиночная HTML-игра, которая открывается прямо по файлу.\n\nНа телефоне лучше играть горизонтально: джойстик слева снизу, атака справа снизу, часть кнопок сверху, часть снизу.');
+  updateCamera();
+  updateHUD();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

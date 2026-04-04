@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Кристалл Стёр — Башня 50 этажей</title>
+<style>
+ :root {
+  --ui-cyan: #00eaff;
+  --ui-bg: #0a0f16;
+ }
+ * { box-sizing: border-box; }
+ body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+  font-family: Arial, sans-serif;
+  color: #fff;
+ }
+ #game {
+  display: block;
+  background: #112233;
+  margin: 0 auto;
+  image-rendering: auto;
+ }
+ #hud {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  color: var(--ui-cyan);
+  font-size: 18px;
+  z-index: 20;
+  text-shadow: 0 0 10px var(--ui-cyan);
+  background: rgba(5, 12, 20, 0.45);
+  padding: 8px 12px;
+  border-radius: 12px;
+  white-space: pre-line;
+ }
+ button { -webkit-tap-highlight-color: transparent; }
+ #mineBtn {
+  position: absolute;
+  bottom: max(25px, env(safe-area-inset-bottom));
+  right: max(24px, env(safe-area-inset-right));
+  background: #f00;
+  color: #fff;
+  border: none;
+  font-size: 22px;
+  border-radius: 50%;
+  width: 88px;
+  height: 88px;
+  z-index: 100;
+  box-shadow: 0 0 20px #f00;
+  font-weight: 700;
+ }
+ #shopBtn {
+  position: absolute;
+  bottom: max(25px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ui-cyan);
+  color: #111;
+  border: none;
+  padding: 12px 22px;
+  font-size: 17px;
+  border-radius: 12px;
+  z-index: 100;
+  font-weight: 700;
+ }
+ #climbBtn {
+  position: absolute;
+  bottom: calc(max(25px, env(safe-area-inset-bottom)) + 95px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f0;
+  color: #111;
+  border: none;
+  padding: 14px 28px;
+  font-size: 19px;
+  border-radius: 12px;
+  display: none;
+  z-index: 100;
+  font-weight: 700;
+ }
+ #joystick {
+  position: absolute;
+  bottom: calc(max(25px, env(safe-area-inset-bottom)) + 55px);
+  left: max(24px, env(safe-area-inset-left));
+  width: 130px;
+  height: 130px;
+  background: rgba(0, 255, 255, 0.2);
+  border: 5px solid var(--ui-cyan);
+  border-radius: 50%;
+  z-index: 50;
+  display: none;
+  box-shadow: 0 0 20px var(--ui-cyan);
+ }
+ #inner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: var(--ui-cyan);
+  border-radius: 50%;
+  top: 45px;
+  left: 45px;
+  box-shadow: 0 0 15px var(--ui-cyan);
+ }
+ #shop {
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  background: rgba(10, 14, 22, 0.96);
+  padding: 15px;
+  border: 3px solid var(--ui-cyan);
+  border-radius: 12px;
+  color: var(--ui-cyan);
+  display: none;
+  width: min(280px, calc(100vw - 40px));
+  z-index: 120;
+ }
+ #shop h2 { margin: 0 0 12px; }
+ #shop button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px 12px;
+  font-size: 16px;
+ }
+ #tip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 14px;
+  z-index: 200;
+  display: none;
+  text-align: center;
+  width: min(320px, calc(100vw - 30px));
+  border: 2px solid rgba(255,255,255,0.15);
+ }
+ @media (max-width: 900px) {
+  #hud { font-size: 15px; }
+  #mineBtn { width: 80px; height: 80px; font-size: 20px; }
+  #shopBtn { font-size: 15px; }
+  #climbBtn { font-size: 17px; }
+ }
+</style>
+</head>
+<body>
+
+<canvas id="game" width="640" height="480"></canvas>
+
+<div id="hud">Этаж: <span id="floor">1</span>/50  💎 <span id="crystals">0</span>  💰 <span id="money">50</span>$</div>
+
+<button id="mineBtn" onclick="mineAction()">🔨<br>ЛОМАТЬ</button>
+<button id="shopBtn" onclick="toggleShop()">🛒 Магазин</button>
+<button id="climbBtn" onclick="climbStairs()">↑ Подняться по лестнице</button>
+
+<div id="joystick"><div id="inner"></div></div>
+
+<div id="shop">
+ <h2>Магазин</h2>
+ <button onclick="buy('pick')">Кирка — <span id="pickP">30</span>$</button>
+ <button onclick="buy('auto')">Авто-стёр — <span id="autoP">80</span>$</button>
+ <button onclick="buy('multi')">Множитель — <span id="multiP">160</span>$</button>
+ <button onclick="buy('stick')">Палка — 25$</button>
+ <button onclick="buy('lantern')">Фонарь — 45$</button>
+ <button onclick="toggleShop()" style="background:#555;margin-top:15px;color:#fff;">Закрыть</button>
+</div>
+
+<div id="tip">Для лучшего опыта на телефоне поверни экран в горизонтальный режим.</div>
+
+<script>
+const WORLD_W = 640;
+const WORLD_H = 480;
+const BOSS_MAX_HP = 400;
+const PLAYER_SPEED = 7;
+const MONSTER_HIT_RADIUS = 28;
+const MONSTER_DAMAGE_COOLDOWN = 45;
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+canvas.width = WORLD_W;
+canvas.height = WORLD_H;
+
+let player = { x: 70, y: 420, size: 28, hp: 100, damageCooldown: 0 };
+let currentFloor = 1;
+let crystalsCount = 0, money = 50;
+let pickLevel = 1, autoLevel = 0, multiLevel = 1;
+
+let diamonds = [];
+let walls = [];
+let monsters = [];
+let ladder = { x: 560, y: 60, w: 42, h: 90 };
+let bossHealth = 0;
+let gameWon = false;
+let floorAlertShown = false;
+
+let velX = 0, velY = 0;
+let joyActive = false, joyX = 0, joyY = 0;
+const keys = { left: false, right: false, up: false, down: false };
+
+const joystick = document.getElementById('joystick');
+const inner = document.getElementById('inner');
+const tip = document.getElementById('tip');
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+function resizeCanvasDisplay() {
+ const vw = window.innerWidth;
+ const vh = window.innerHeight;
+ const scale = Math.min(vw / WORLD_W, vh / WORLD_H);
+ const drawW = Math.max(320, Math.floor(WORLD_W * scale));
+ const drawH = Math.max(240, Math.floor(WORLD_H * scale));
+ canvas.style.width = drawW + 'px';
+ canvas.style.height = drawH + 'px';
+ canvas.style.marginTop = Math.max(0, Math.floor((vh - drawH) / 2)) + 'px';
+ tip.style.display = isTouchDevice && window.innerHeight > window.innerWidth ? 'block' : 'none';
+}
+
+function overlapsRectCircle(rect, cx, cy, radius) {
+ const nearestX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+ const nearestY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+ const dx = cx - nearestX;
+ const dy = cy - nearestY;
+ return dx * dx + dy * dy < radius * radius;
+}
+
+function canStandAt(x, y, radius = 18) {
+ if (x < 20 + radius || x > WORLD_W - 20 - radius) return false;
+ if (y < 20 + radius || y > WORLD_H - 20 - radius) return false;
+ return !walls.some(w => overlapsRectCircle(w, x, y, radius));
+}
+
+function findFreeSpot(preferredX = 100, preferredY = 100, radius = 20) {
+ const tries = [];
+ tries.push({ x: preferredX, y: preferredY });
+ for (let i = 0; i < 120; i++) {
+  tries.push({
+   x: 50 + Math.random() * (WORLD_W - 100),
+   y: 50 + Math.random() * (WORLD_H - 100)
+  });
+ }
+ for (const t of tries) {
+  if (canStandAt(t.x, t.y, radius)) return t;
+ }
+ return { x: 70, y: 420 };
+}
+
+function buildMazeForFloor(floor) {
+ const mazeType = floor % 5;
+ const list = [];
+ const add = (x, y, w, h) => list.push({ x, y, w, h });
+
+ add(0, 0, WORLD_W, 18);
+ add(0, WORLD_H - 18, WORLD_W, 18);
+ add(0, 0, 18, WORLD_H);
+ add(WORLD_W - 18, 0, 18, WORLD_H);
+
+ if (floor === 50) return list;
+
+ if (mazeType === 0) {
+  add(150, 70, 24, 250);
+  add(290, 0, 24, 180);
+  add(290, 250, 24, 230);
+  add(430, 70, 24, 250);
+  add(150, 320, 180, 24);
+  add(330, 180, 120, 24);
+ }
+ if (mazeType === 1) {
+  add(110, 120, 170, 24);
+  add(360, 120, 170, 24);
+  add(200, 240, 24, 180);
+  add(390, 60, 24, 180);
+  add(80, 340, 180, 24);
+  add(340, 330, 190, 24);
+ }
+ if (mazeType === 2) {
+  add(140, 60, 24, 320);
+  add(260, 140, 200, 24);
+  add(260, 300, 200, 24);
+  add(500, 60, 24, 320);
+  add(140, 380, 220, 24);
+ }
+ if (mazeType === 3) {
+  add(120, 90, 400, 24);
+  add(120, 240, 400, 24);
+  add(120, 390, 400, 24);
+  add(220, 90, 24, 90);
+  add(380, 240, 24, 90);
+ }
+ if (mazeType === 4) {
+  add(90, 80, 24, 300);
+  add(200, 80, 220, 24);
+  add(420, 80, 24, 300);
+  add(200, 220, 180, 24);
+  add(130, 360, 260, 24);
+ }
+
+ return list;
+}
+
+function spawnMonsters() {
+ monsters = [];
+ if (currentFloor >= 50) return;
+ const count = Math.min(1 + Math.floor(currentFloor / 10), 4);
+ for (let i = 0; i < count; i++) {
+  const spot = findFreeSpot(420, 140 + i * 30, 22);
+  monsters.push({
+   x: spot.x,
+   y: spot.y,
+   r: 18,
+   hp: 40 + currentFloor * 4,
+   speed: 1.1 + currentFloor * 0.015,
+   dirX: Math.random() < 0.5 ? -1 : 1,
+   dirY: Math.random() < 0.5 ? -1 : 1,
+   type: currentFloor >= 35 ? 'fast' : 'normal'
+  });
+ }
+}
+
+function spawnDiamonds() {
+ walls = buildMazeForFloor(currentFloor);
+ diamonds = [];
+ const count = currentFloor === 50 ? 4 : 7;
+ for (let i = 0; i < count; i++) {
+  const spot = findFreeSpot(120 + i * 40, 120 + (i % 3) * 70, 24);
+  diamonds.push({
+   x: spot.x,
+   y: spot.y,
+   value: 12 + Math.random() * 18,
+   color: '#0ff'
+  });
+ }
+  if (currentFloor === 50) {
+   bossHealth = BOSS_MAX_HP;
+   monsters = [];
+  } else {
+   bossHealth = 0;
+   spawnMonsters();
+  }
+  player.x = 70;
+  player.y = 420;
+  floorAlertShown = false;
+}
+
+function updateKeyboardVelocity() {
+ if (joyActive) return;
+ const left = keys.left ? -1 : 0;
+ const right = keys.right ? 1 : 0;
+ const up = keys.up ? -1 : 0;
+ const down = keys.down ? 1 : 0;
+ velX = left + right;
+ velY = up + down;
+ if (velX !== 0 && velY !== 0) {
+  velX *= 0.707;
+  velY *= 0.707;
+ }
+}
+
+spawnDiamonds();
+resizeCanvasDisplay();
+window.addEventListener('resize', resizeCanvasDisplay);
+window.addEventListener('orientationchange', resizeCanvasDisplay);
+
+canvas.addEventListener('touchstart', e => {
+ e.preventDefault();
+ const t = e.touches[0];
+ const rect = canvas.getBoundingClientRect();
+ const tx = t.clientX - rect.left;
+ if (tx < rect.width * 0.38) {
+  joyActive = true;
+  joyX = t.clientX;
+  joyY = t.clientY;
+  joystick.style.left = (joyX - 65) + 'px';
+  joystick.style.top = (joyY - 65) + 'px';
+  joystick.style.display = 'block';
+ }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+ if (!joyActive) return;
+ e.preventDefault();
+ const t = e.touches[0];
+ velX = (t.clientX - joyX) / 60;
+ velY = (t.clientY - joyY) / 60;
+ velX = Math.max(-1.5, Math.min(1.5, velX));
+ velY = Math.max(-1.5, Math.min(1.5, velY));
+ inner.style.left = (45 + velX * 30) + 'px';
+ inner.style.top = (45 + velY * 30) + 'px';
+}, { passive: false });
+
+function stopJoystick() {
+ joyActive = false;
+ velX = 0;
+ velY = 0;
+ joystick.style.display = 'none';
+ inner.style.left = '45px';
+ inner.style.top = '45px';
+ updateKeyboardVelocity();
+}
+
+canvas.addEventListener('touchend', stopJoystick, { passive: true });
+canvas.addEventListener('touchcancel', stopJoystick, { passive: true });
+
+window.addEventListener('keydown', e => {
+ const key = e.key.toLowerCase();
+ if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "enter", "w", "a", "s", "d", "m"].includes(key)) {
+  e.preventDefault();
+ }
+ if (key === 'arrowleft' || key === 'a') keys.left = true;
+ if (key === 'arrowright' || key === 'd') keys.right = true;
+ if (key === 'arrowup' || key === 'w') keys.up = true;
+ if (key === 'arrowdown' || key === 's') keys.down = true;
+ if (key === ' ' || key === 'enter') mineAction();
+ if (key === 'm') toggleShop();
+ updateKeyboardVelocity();
+});
+
+window.addEventListener('keyup', e => {
+ const key = e.key.toLowerCase();
+ if (key === 'arrowleft' || key === 'a') keys.left = false;
+ if (key === 'arrowright' || key === 'd') keys.right = false;
+ if (key === 'arrowup' || key === 'w') keys.up = false;
+ if (key === 'arrowdown' || key === 's') keys.down = false;
+ updateKeyboardVelocity();
+});
+
+function mineAction() {
+ let hit = false;
+ for (let i = diamonds.length - 1; i >= 0; i--) {
+  const d = diamonds[i];
+  const dx = player.x - d.x;
+  const dy = player.y - d.y;
+  if (dx * dx + dy * dy < 3000) {
+   const gain = pickLevel * multiLevel * d.value;
+   crystalsCount += gain;
+   money += Math.floor(gain * 0.6);
+   diamonds.splice(i, 1);
+   hit = true;
+   updateHUD();
+   break;
+  }
+ }
+
+ for (let i = monsters.length - 1; i >= 0; i--) {
+  const m = monsters[i];
+  const dx = player.x - m.x;
+  const dy = player.y - m.y;
+  if (dx * dx + dy * dy < 4200) {
+   m.hp -= 28 * pickLevel;
+   hit = true;
+   if (m.hp <= 0) {
+    money += 12 + currentFloor;
+    crystalsCount += 4 + currentFloor * 0.4;
+    monsters.splice(i, 1);
+    updateHUD();
+   }
+   break;
+  }
+ }
+
+ if (currentFloor === 50 && bossHealth > 0) {
+  const bossCenterX = 320;
+  const bossCenterY = 130;
+  const dx = player.x - bossCenterX;
+  const dy = player.y - bossCenterY;
+  if (dx * dx + dy * dy < 42000) {
+   bossHealth -= 30 * pickLevel;
+   if (bossHealth <= 0) {
+    bossHealth = 0;
+    gameWon = true;
+    alert('🎉 ПОБЕДА!\nТы прошёл все 50 этажей, победил босса и выбрался из башни!');
+   }
+   hit = true;
+  }
+ }
+ if (!hit) alert('Подойди ближе к алмазу, монстру или боссу!');
+ checkClimb();
+}
+
+function checkClimb() {
+ document.getElementById('climbBtn').style.display = diamonds.length === 0 && monsters.length === 0 && currentFloor < 50 ? 'block' : 'none';
+}
+
+function climbStairs() {
+ if (currentFloor < 50) {
+  currentFloor++;
+  document.getElementById('climbBtn').style.display = 'none';
+  spawnDiamonds();
+  updateHUD();
+ }
+}
+
+function buy(item) {
+ if (item === 'pick') {
+  const c = Math.floor(30 * Math.pow(1.5, pickLevel - 1));
+  if (money >= c) { money -= c; pickLevel++; }
+ }
+ if (item === 'auto') {
+  const c = Math.floor(80 * Math.pow(1.6, autoLevel));
+  if (money >= c) { money -= c; autoLevel++; }
+ }
+ if (item === 'multi') {
+  const c = Math.floor(160 * Math.pow(1.7, multiLevel - 1));
+  if (money >= c) { money -= c; multiLevel++; }
+ }
+ updateHUD();
+}
+
+function toggleShop() {
+ const s = document.getElementById('shop');
+ s.style.display = s.style.display === 'block' ? 'none' : 'block';
+}
+
+function updateHUD() {
+ document.getElementById('hud').textContent = `Этаж: ${currentFloor}/50  💎 ${Math.floor(crystalsCount)}  💰 ${Math.floor(money)}$\n❤️ ${Math.max(0, Math.floor(player.hp))}   👾 ${monsters.length}   ⛏️ ${pickLevel}`;
+ document.getElementById('pickP').textContent = Math.floor(30 * Math.pow(1.5, pickLevel - 1));
+ document.getElementById('autoP').textContent = Math.floor(80 * Math.pow(1.6, autoLevel));
+ document.getElementById('multiP').textContent = Math.floor(160 * Math.pow(1.7, multiLevel - 1));
+}
+
+function movePlayer() {
+ const nextX = player.x + velX * PLAYER_SPEED;
+ const nextY = player.y + velY * PLAYER_SPEED;
+ if (canStandAt(nextX, player.y, 18)) player.x = nextX;
+ if (canStandAt(player.x, nextY, 18)) player.y = nextY;
+}
+
+function updateMonsters() {
+ monsters.forEach(m => {
+  const targetX = player.x - m.x;
+  const targetY = player.y - m.y;
+  const dist = Math.hypot(targetX, targetY) || 1;
+  let mx = (targetX / dist) * m.speed;
+  let my = (targetY / dist) * m.speed;
+
+  if (currentFloor < 15) {
+    mx = m.dirX * m.speed;
+    my = m.dirY * m.speed;
+  }
+
+  const nx = m.x + mx;
+  const ny = m.y + my;
+  const freeX = canStandAt(nx, m.y, m.r);
+  const freeY = canStandAt(m.x, ny, m.r);
+
+  if (freeX) m.x = nx; else m.dirX *= -1;
+  if (freeY) m.y = ny; else m.dirY *= -1;
+
+  const dx = player.x - m.x;
+  const dy = player.y - m.y;
+  if (dx * dx + dy * dy < (m.r + MONSTER_HIT_RADIUS) * (m.r + MONSTER_HIT_RADIUS)) {
+    if (player.damageCooldown <= 0) {
+      player.hp -= 8 + Math.floor(currentFloor / 8);
+      player.damageCooldown = MONSTER_DAMAGE_COOLDOWN;
+      updateHUD();
+      if (player.hp <= 0) {
+        player.hp = 0;
+        alert('💀 Тебя съели монстры! Попробуй ещё раз.');
+        currentFloor = 1;
+        crystalsCount = 0;
+        money = 50;
+        pickLevel = 1;
+        autoLevel = 0;
+        multiLevel = 1;
+        player.hp = 100;
+        spawnDiamonds();
+        updateHUD();
+      }
+    }
+  }
+ });
+}
+
+function drawMaze() {
+ walls.forEach(w => {
+  const grad = ctx.createLinearGradient(w.x, w.y, w.x + w.w, w.y + w.h);
+  grad.addColorStop(0, '#23394c');
+  grad.addColorStop(1, '#12202f');
+  ctx.fillStyle = grad;
+  ctx.fillRect(w.x, w.y, w.w, w.h);
+  ctx.strokeStyle = '#48b7ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(w.x, w.y, w.w, w.h);
+ });
+}
+
+function drawLadder() {
+ ctx.fillStyle = '#ff0';
+ ctx.fillRect(ladder.x, ladder.y, ladder.w, ladder.h);
+ ctx.fillStyle = '#000';
+ ctx.font = '40px Arial';
+ ctx.fillText('🪜', ladder.x + 5, ladder.y + 65);
+}
+
+function drawDiamonds() {
+ ctx.shadowBlur = 30;
+ diamonds.forEach(d => {
+  ctx.shadowColor = '#0ff';
+  ctx.fillStyle = '#0ff';
+  ctx.beginPath();
+  ctx.arc(d.x, d.y, 22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.font = '28px Arial';
+  ctx.fillText('💎', d.x - 15, d.y + 10);
+ });
+ ctx.shadowBlur = 0;
+}
+
+function drawMonsters() {
+ monsters.forEach(m => {
+  ctx.fillStyle = m.type === 'fast' ? '#ff5a6a' : '#ff7a00';
+  ctx.beginPath();
+  ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.font = '28px Arial';
+  ctx.fillText('👾', m.x - 14, m.y + 10);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(m.x - 18, m.y - 30, 36, 5);
+  ctx.fillStyle = '#0f0';
+  ctx.fillRect(m.x - 18, m.y - 30, Math.max(0, (m.hp / (40 + currentFloor * 4)) * 36), 5);
+ });
+}
+
+function drawBoss() {
+ if (currentFloor !== 50 || bossHealth <= 0) return;
+ ctx.fillStyle = '#f00';
+ ctx.fillRect(280, 80, 80, 100);
+ ctx.font = '60px Arial';
+ ctx.fillText('👹', 290, 155);
+ ctx.fillStyle = '#fff';
+ ctx.fillRect(270, 200, 100, 12);
+ ctx.fillStyle = '#0f0';
+ ctx.fillRect(270, 200, (bossHealth / BOSS_MAX_HP) * 100, 12);
+}
+
+function drawPlayer() {
+ ctx.fillStyle = '#0f9';
+ ctx.fillRect(player.x - 18, player.y - 22, 36, 44);
+ ctx.font = '34px Arial';
+ ctx.fillText('🧍', player.x - 19, player.y + 13);
+}
+
+function maybeShowFloorTip() {
+ if (floorAlertShown || currentFloor === 50) return;
+ floorAlertShown = true;
+ if (currentFloor % 10 === 0) {
+  setTimeout(() => alert(`⚠️ Этаж ${currentFloor}\nЛабиринты стали сложнее, а монстров больше.`), 120);
+ }
+}
+
+function gameLoop() {
+ movePlayer();
+ if (player.damageCooldown > 0) player.damageCooldown--;
+ if (!gameWon) updateMonsters();
+
+ if (autoLevel > 0 && Math.random() < 0.05) {
+  crystalsCount += autoLevel * 1.5;
+  money += autoLevel * 0.4;
+  updateHUD();
+ }
+
+ ctx.fillStyle = currentFloor === 50 ? '#2d1020' : '#112233';
+ ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+ drawMaze();
+ drawLadder();
+ drawDiamonds();
+ drawMonsters();
+ drawBoss();
+ drawPlayer();
+ maybeShowFloorTip();
+
+ requestAnimationFrame(gameLoop);
+}
+
+updateHUD();
+checkClimb();
+gameLoop();
+
+alert('🎮 Башня обновлена!\n\n• На этажах появились лабиринты\n• На уровнях теперь есть монстры 👾\n• Чтобы подняться выше, зачисти этаж: собери алмазы и убей монстров\n• Кнопкой «ЛОМАТЬ» можно бить и алмазы, и монстров\n• На 50 этаже — босс!\n\nДесктоп: WASD / стрелки — ходить, Enter или пробел — ломать, M — магазин.');
+</script>
+</body>
+</html>

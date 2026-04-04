@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Шахтёр и Нефть — File Edition</title>
+<style>
+  :root {
+    --vh: 1vh;
+    --panel: rgba(6, 13, 20, 0.76);
+    --line: rgba(108, 234, 255, 0.28);
+    --text: #effcff;
+    --muted: #bddce3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    min-height: calc(var(--vh) * 100);
+    overflow: hidden;
+    background: #04090d;
+    font-family: Arial, sans-serif;
+    color: var(--text);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-text-size-adjust: 100%;
+    -webkit-touch-callout: none;
+    overscroll-behavior: none;
+  }
+  #wrap {
+    position: relative;
+    width: 100vw;
+    height: calc(var(--vh) * 100);
+    overflow: hidden;
+    background: radial-gradient(circle at top, #0d1a21 0%, #061016 60%, #04070b 100%);
+  }
+  canvas { display: block; }
+  #game {
+    width: 100%;
+    height: 100%;
+    background: #1a2a1a;
+    touch-action: none;
+  }
+  .panel {
+    position: absolute;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 18px rgba(0,0,0,0.25);
+  }
+  #hud {
+    left: max(12px, env(safe-area-inset-left));
+    top: max(12px, env(safe-area-inset-top));
+    z-index: 25;
+    padding: 12px 14px;
+    line-height: 1.45;
+    min-width: min(420px, calc(100vw - 150px));
+    max-width: min(520px, calc(100vw - 150px));
+    white-space: pre-line;
+    color: #e8fbff;
+    text-shadow: 0 0 8px rgba(108, 234, 255, 0.18);
+  }
+  #miniWrap {
+    right: max(12px, env(safe-area-inset-right));
+    top: max(12px, env(safe-area-inset-top));
+    z-index: 28;
+    width: 152px;
+    height: 152px;
+    padding: 5px;
+  }
+  #mini {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: #112;
+  }
+  #topButtons {
+    position: absolute;
+    left: 50%;
+    top: max(12px, env(safe-area-inset-top));
+    transform: translateX(-50%);
+    z-index: 30;
+    width: min(720px, calc(100vw - 24px));
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 11px 15px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #08151b;
+    background: linear-gradient(180deg, #90fbff 0%, #4fd9ff 100%);
+    box-shadow: 0 0 18px rgba(79, 217, 255, 0.22);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn.warn { background: linear-gradient(180deg, #ffd486 0%, #ffb850 100%); color: #2b1600; }
+  .btn.good { background: linear-gradient(180deg, #a4ff9d 0%, #57dc5b 100%); color: #0b220e; }
+  .btn.red { background: linear-gradient(180deg, #ffb0b0 0%, #ff6c6c 100%); color: #2c0808; }
+  #message {
+    position: absolute;
+    left: 50%;
+    top: calc(max(72px, env(safe-area-inset-top)) + 8px);
+    transform: translateX(-50%);
+    z-index: 32;
+    display: none;
+    min-width: min(320px, calc(100vw - 24px));
+    max-width: min(560px, calc(100vw - 24px));
+    padding: 10px 14px;
+    border-radius: 12px;
+    text-align: center;
+    background: rgba(3, 9, 14, 0.88);
+    border: 1px solid rgba(108, 234, 255, 0.2);
+    white-space: pre-line;
+    pointer-events: none;
+  }
+  #helpStrip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 2px);
+    transform: translateX(-50%);
+    z-index: 24;
+    width: min(980px, calc(100vw - 24px));
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(3, 9, 14, 0.7);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #d8edf0;
+    text-align: center;
+    font-size: 14px;
+  }
+  #joystick {
+    position: absolute;
+    left: max(22px, env(safe-area-inset-left));
+    bottom: calc(max(84px, env(safe-area-inset-bottom)) + 8px);
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 6px solid rgba(108, 234, 255, 0.88);
+    background: rgba(108, 234, 255, 0.12);
+    z-index: 45;
+    display: none;
+    pointer-events: none;
+    box-shadow: 0 0 20px rgba(108, 234, 255, 0.28);
+  }
+  #innerJoy {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    left: 48px;
+    top: 48px;
+    border-radius: 50%;
+    background: #79f4ff;
+    box-shadow: 0 0 14px rgba(121, 244, 255, 0.9);
+  }
+  #touchActions {
+    position: absolute;
+    inset: 0;
+    z-index: 46;
+    pointer-events: none;
+  }
+  .actionBtn {
+    position: absolute;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    border: none;
+    font-size: 14px;
+    font-weight: 800;
+    color: #08151b;
+    background: linear-gradient(180deg, #ffcf80 0%, #ff9d3f 100%);
+    box-shadow: 0 0 18px rgba(255, 157, 63, 0.28);
+    display: none;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #mineBtn {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(max(94px, env(safe-area-inset-bottom)) + 8px);
+  }
+  #shopBtnMobile {
+    right: max(16px, env(safe-area-inset-right));
+    top: calc(max(186px, env(safe-area-inset-top)) + 4px);
+    background: linear-gradient(180deg, #9fffd3 0%, #4fe2a0 100%);
+  }
+  #panelOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 80;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.58);
+    padding: 20px;
+  }
+  #shop, #guide, #gameOver {
+    display: none;
+    width: min(520px, calc(100vw - 24px));
+    max-height: calc(var(--vh) * 100 - 40px);
+    overflow: auto;
+    border-radius: 18px;
+    background: rgba(5, 12, 18, 0.96);
+    border: 1px solid rgba(108, 234, 255, 0.24);
+    padding: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.38);
+  }
+  #shop h2, #guide h2, #gameOver h2 {
+    margin: 0 0 14px 0;
+    text-align: center;
+  }
+  .shop-card {
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .shop-card b { color: #fff; }
+  .small-note { color: #9fc0c8; font-size: 13px; }
+  @media (hover: none) and (pointer: coarse) {
+    .actionBtn { display: block; }
+  }
+  @media (max-width: 760px) {
+    #hud {
+      min-width: auto;
+      max-width: calc(100vw - 132px);
+      width: calc(100vw - 144px);
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+    #miniWrap {
+      width: 108px;
+      height: 108px;
+    }
+    #topButtons {
+      top: calc(max(126px, env(safe-area-inset-top)) + 4px);
+      width: calc(100vw - 20px);
+      gap: 6px;
+    }
+    .btn {
+      font-size: 13px;
+      padding: 9px 11px;
+      flex: 1 1 calc(50% - 6px);
+    }
+    #helpStrip {
+      display: none;
+    }
+    .actionBtn {
+      width: 80px;
+      height: 80px;
+      font-size: 13px;
+    }
+    #joystick {
+      width: 128px;
+      height: 128px;
+      bottom: calc(max(84px, env(safe-area-inset-bottom)) + 4px);
+    }
+    #innerJoy {
+      width: 40px;
+      height: 40px;
+      left: 44px;
+      top: 44px;
+    }
+    #mineBtn {
+      bottom: calc(max(88px, env(safe-area-inset-bottom)) + 4px);
+    }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="1280" height="720"></canvas>
+
+  <div id="hud" class="panel"></div>
+
+  <div id="miniWrap" class="panel">
+    <canvas id="mini" width="140" height="140"></canvas>
+  </div>
+
+  <div id="topButtons">
+    <button id="openShopBtn" class="btn good">🛒 Магазин</button>
+    <button id="openGuideBtn" class="btn">📖 Справочник</button>
+    <button id="sleepBtn" class="btn warn" style="display:none;">😴 Спать</button>
+    <button id="placeBtn" class="btn red" style="display:none;">🛢 Поставить вышку</button>
+  </div>
+
+  <div id="message"></div>
+
+  <div id="joystick"><div id="innerJoy"></div></div>
+
+  <div id="touchActions">
+    <button id="mineBtn" class="actionBtn">⛏<br>ШАХТА</button>
+    <button id="shopBtnMobile" class="actionBtn">🛒<br>SHOP</button>
+  </div>
+
+  <div id="helpStrip">ПК: WASD / стрелки — ходьба, E — магазин/сон/дробилка, Q — поставить вышку, P — пауза. Телефон: джойстик слева снизу, кнопки справа.</div>
+
+  <div id="panelOverlay">
+    <div id="shop">
+      <h2>🛒 Магазин</h2>
+      <div class="shop-card"><b>Уровень кирки</b><br><span id="shopPickInfo"></span><br><button id="upgradePickBtn" class="btn warn" style="width:100%;margin-top:10px;">Улучшить кирку</button></div>
+      <div class="shop-card"><b>Нефтяная вышка</b><br>Покупка вышки — 10 000 монет.<br><button id="buyPumpBtn" class="btn good" style="width:100%;margin-top:10px;">Купить вышку</button></div>
+      <div class="shop-card"><b>Прокачка вышек</b><br>Улучшает все текущие вышки на +2 нефти за цикл.<br><button id="upgradePumpsBtn" class="btn good" style="width:100%;margin-top:10px;">Прокачать все вышки (+2 нефти)</button></div>
+      <button id="closeShopBtn" class="btn red" style="width:100%;margin-top:12px;">Закрыть</button>
+    </div>
+
+    <div id="guide">
+      <h2>📖 Справочник</h2>
+      <div style="line-height:2.1;">
+        ⬛ Уголь — 25 монет<br>
+        ⬜ Железо — 100 монет<br>
+        🟨 Золото — 60 монет<br>
+        🔷 Алмаз — 1000 монет<br>
+        🛢 Нефть — 400 монет<br>
+        ⚡ Газ — 850 монет
+      </div>
+      <p class="small-note" style="margin-top:15px;">
+        Деревянная кирка — только уголь.<br>
+        Каменная кирка — открывает железо.<br>
+        Железная кирка — открывает золото, алмаз и газ.<br>
+        Ночью вне дома и во время грозы герой получает урон.
+      </p>
+      <button id="closeGuideBtn" class="btn red" style="width:100%;margin-top:12px;">Закрыть</button>
+    </div>
+
+    <div id="gameOver">
+      <h2>ИГРА ОКОНЧЕНА</h2>
+      <div style="font-size:22px;margin:15px 0;text-align:center;">День: <span id="finalDay">1</span></div>
+      <button id="restartBtn" class="btn good" style="width:100%;">Начать заново</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const VIEW_W = 1280;
+  const VIEW_H = 720;
+  const WORLD_W = 1200;
+  const WORLD_H = 600;
+  const PLAYER_SPEED = 250;
+  const ORE_RESPAWN_TIME = 20;
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const miniCanvas = document.getElementById('mini');
+  const miniCtx = miniCanvas.getContext('2d');
+  const hud = document.getElementById('hud');
+  const message = document.getElementById('message');
+  const joystick = document.getElementById('joystick');
+  const innerJoy = document.getElementById('innerJoy');
+  const openShopBtn = document.getElementById('openShopBtn');
+  const openGuideBtn = document.getElementById('openGuideBtn');
+  const sleepBtn = document.getElementById('sleepBtn');
+  const placeBtn = document.getElementById('placeBtn');
+  const mineBtn = document.getElementById('mineBtn');
+  const shopBtnMobile = document.getElementById('shopBtnMobile');
+  const panelOverlay = document.getElementById('panelOverlay');
+  const shopDiv = document.getElementById('shop');
+  const guideDiv = document.getElementById('guide');
+  const gameOverDiv = document.getElementById('gameOver');
+  const closeShopBtn = document.getElementById('closeShopBtn');
+  const closeGuideBtn = document.getElementById('closeGuideBtn');
+  const upgradePickBtn = document.getElementById('upgradePickBtn');
+  const buyPumpBtn = document.getElementById('buyPumpBtn');
+  const upgradePumpsBtn = document.getElementById('upgradePumpsBtn');
+  const shopPickInfo = document.getElementById('shopPickInfo');
+  const finalDay = document.getElementById('finalDay');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  const keys = { up: false, down: false, left: false, right: false };
+
+  const oreTypes = {
+    coal:    { name: 'Уголь', color: '#222', symbol: '⬛', value: 25, requiredPick: 1 },
+    iron:    { name: 'Железо', color: '#9ea4aa', symbol: '⬜', value: 100, requiredPick: 2 },
+    gold:    { name: 'Золото', color: '#f3c128', symbol: '🟨', value: 60, requiredPick: 3 },
+    diamond: { name: 'Алмаз', color: '#3fe7ff', symbol: '🔷', value: 1000, requiredPick: 3 },
+    gas:     { name: 'Газ', color: '#d952ff', symbol: '⚡', value: 850, requiredPick: 3 }
+  };
+
+  const hitsRequired = [10, 8, 5, 4];
+  const upgradeCosts = [250, 500, 2000];
+  const pickNames = ['Деревянная', 'Каменная', 'Железная', 'Алмазная'];
+
+  const state = {
+    lastTime: performance.now(),
+    cameraX: 0,
+    cameraY: 0,
+    day: 1,
+    timeOfDay: 0,
+    isNight: false,
+    weather: 0,
+    weatherTimer: 0,
+    level: 1,
+    pickLevel: 1,
+    coins: 0,
+    totalMined: 0,
+    oil: 0,
+    respawnTimer: 0,
+    placingPump: false,
+    miningProgress: 0,
+    miningTarget: null,
+    messageTimer: 0,
+    gameOver: false,
+    paused: false
+  };
+
+  const player = {
+    x: 400,
+    y: 300,
+    size: 18,
+    hp: 100,
+    maxHp: 100,
+    speed: PLAYER_SPEED,
+    facingX: 1,
+    facingY: 0,
+    walk: 0
+  };
+
+  const house = { x: 180, y: 420, w: 110, h: 90 };
+  const crusher = { x: 140, y: 110 };
+  const shopBuilding = { x: 720, y: 380, w: 110, h: 95 };
+  const oreField = { x: 320, y: 90, w: 750, h: 370 };
+
+  let oreNodes = [];
+  let droppedLoot = [];
+  let spiders = [];
+  let carried = [];
+  let pumps = [];
+  let joyActive = false;
+  let joyPointerId = null;
+  let joyCX = 0;
+  let joyCY = 0;
+  let velX = 0;
+  let velY = 0;
+
+  function setViewportUnits() {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vh', `${Math.max(1, h) * 0.01}px`);
+  }
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function rand(min, max) { return min + Math.random() * (max - min); }
+
+  function showMessage(text, duration = 1.35) {
+    message.textContent = text;
+    message.style.display = 'block';
+    state.messageTimer = duration;
+  }
+
+  function hideMessage() {
+    message.style.display = 'none';
+    state.messageTimer = 0;
+  }
+
+  function worldToScreen(x, y) {
+    return { x: x - state.cameraX, y: y - state.cameraY };
+  }
+
+  function openPanel(which) {
+    panelOverlay.style.display = 'flex';
+    shopDiv.style.display = which === 'shop' ? 'block' : 'none';
+    guideDiv.style.display = which === 'guide' ? 'block' : 'none';
+    gameOverDiv.style.display = which === 'gameOver' ? 'block' : 'none';
+    state.paused = which !== null;
+  }
+
+  function closePanels() {
+    panelOverlay.style.display = 'none';
+    shopDiv.style.display = 'none';
+    guideDiv.style.display = 'none';
+    gameOverDiv.style.display = 'none';
+    if (!state.gameOver) state.paused = false;
+  }
+
+  function spawnNewOres() {
+    oreNodes = [];
+    const types = ['coal', 'coal', 'iron', 'iron', 'gold', 'diamond', 'gas'];
+    for (let i = 0; i < 10; i++) {
+      const type = types[Math.floor(Math.random() * types.length)];
+      const strong = type === 'diamond' || type === 'gas';
+      oreNodes.push({
+        x: oreField.x + 20 + Math.random() * (oreField.w - 40),
+        y: oreField.y + 20 + Math.random() * (oreField.h - 40),
+        type,
+        hp: strong ? 8 : 12,
+        maxHp: strong ? 8 : 12
+      });
+    }
+    state.respawnTimer = 0;
+  }
+
+  function spawnSpider() {
+    const side = Math.floor(Math.random() * 4);
+    let x = 0, y = 0;
+    if (side === 0) { x = rand(0, WORLD_W); y = -20; }
+    if (side === 1) { x = WORLD_W + 20; y = rand(0, WORLD_H); }
+    if (side === 2) { x = rand(0, WORLD_W); y = WORLD_H + 20; }
+    if (side === 3) { x = -20; y = rand(0, WORLD_H); }
+    spiders.push({ x, y, size: 16, speed: 52 + state.level * 2 });
+  }
+
+  function createWorld() {
+    state.day = 1;
+    state.timeOfDay = 0;
+    state.isNight = false;
+    state.weather = 0;
+    state.weatherTimer = 0;
+    state.level = 1;
+    state.pickLevel = 1;
+    state.coins = 0;
+    state.totalMined = 0;
+    state.oil = 0;
+    state.respawnTimer = 0;
+    state.placingPump = false;
+    state.miningProgress = 0;
+    state.miningTarget = null;
+    state.messageTimer = 0;
+    state.gameOver = false;
+    state.paused = false;
+    player.x = 400;
+    player.y = 300;
+    player.hp = player.maxHp;
+    player.facingX = 1;
+    player.facingY = 0;
+    player.walk = 0;
+    oreNodes = [];
+    droppedLoot = [];
+    spiders = [];
+    carried = [];
+    pumps = [];
+    velX = 0;
+    velY = 0;
+    clearJoystick();
+    placeBtn.style.display = 'none';
+    sleepBtn.style.display = 'none';
+    hideMessage();
+    spawnNewOres();
+    updateHUD();
+  }
+
+  function updateHUD() {
+    const weatherNames = ['Солнечно', 'Дождь', 'Гроза'];
+    const weatherIcons = ['☀️', '🌧', '⛈'];
+    const timeLabel = state.isNight ? 'Ночь' : 'День';
+    hud.textContent = `📆 День: ${state.day} | ${timeLabel} | ${weatherIcons[state.weather]} ${weatherNames[state.weather]}\n❤️ HP: ${Math.max(0, Math.floor(player.hp))}/${player.maxHp} | ⛏ Кирка: ${pickNames[state.pickLevel - 1]} | Удары: ${hitsRequired[state.pickLevel - 1]}\n🎒 Руда: ${carried.length} | 🛢 Нефть: ${state.oil} | 💰 Монеты: ${state.coins}`;
+    shopPickInfo.textContent = `${pickNames[state.pickLevel - 1]} кирка. Следующее улучшение: ${state.pickLevel < 4 ? upgradeCosts[state.pickLevel - 1] + ' монет' : 'максимум'}.`;
+  }
+
+  function toggleShop() {
+    if (state.gameOver) return;
+    if (shopDiv.style.display === 'block') closePanels();
+    else openPanel('shop');
+  }
+
+  function toggleGuide() {
+    if (state.gameOver) return;
+    if (guideDiv.style.display === 'block') closePanels();
+    else openPanel('guide');
+  }
+
+  function upgradePickaxe() {
+    if (state.pickLevel >= 4) return showMessage('Кирка уже максимальная.', 1.0);
+    const cost = upgradeCosts[state.pickLevel - 1];
+    if (state.coins < cost) return showMessage('Недостаточно монет для улучшения.', 1.0);
+    state.coins -= cost;
+    state.pickLevel++;
+    updateHUD();
+    showMessage('Кирка улучшена.', 0.9);
+  }
+
+  function buyPump() {
+    if (state.coins < 10000) return showMessage('Нужно 10 000 монет!', 1.0);
+    state.coins -= 10000;
+    state.placingPump = true;
+    placeBtn.style.display = 'inline-block';
+    updateHUD();
+    showMessage('Вышка куплена. Подойди к месту и нажми «Поставить вышку».', 1.3);
+  }
+
+  function placePump() {
+    if (!state.placingPump) return;
+    pumps.push({ x: player.x, y: player.y, level: 1, lastExtract: Date.now() });
+    state.placingPump = false;
+    placeBtn.style.display = 'none';
+    updateHUD();
+    showMessage('Нефтяная вышка установлена.', 1.0);
+  }
+
+  function upgradePumps() {
+    if (pumps.length === 0) return showMessage('Сначала купи хотя бы одну вышку.', 1.0);
+    const maxLvl = Math.max(...pumps.map(p => p.level));
+    const cost = 3000 + (maxLvl - 1) * 1500;
+    if (state.coins < cost) return showMessage(`Нужно ${cost} монет.`, 1.0);
+    state.coins -= cost;
+    pumps.forEach(p => { if (p.level < 5) p.level++; });
+    updateHUD();
+    showMessage('Все вышки прокачаны.', 1.0);
+  }
+
+  function sleepInHouse() {
+    const inHouse = Math.hypot(player.x - (house.x + 55), player.y - (house.y + 45)) < 82;
+    if (!inHouse || !state.isNight) return showMessage('Спать можно только ночью и только дома.', 1.0);
+    state.isNight = false;
+    state.timeOfDay = 0;
+    state.day += 1;
+    player.hp = clamp(player.hp + 35, 0, player.maxHp);
+    sleepBtn.style.display = 'none';
+    updateHUD();
+    showMessage(`Герой выспался. Наступил день ${state.day}.`, 1.4);
+  }
+
+  function processInteraction() {
+    const inHouse = Math.hypot(player.x - (house.x + 55), player.y - (house.y + 45)) < 85;
+    const nearShop = Math.hypot(player.x - (shopBuilding.x + 55), player.y - (shopBuilding.y + 48)) < 95;
+    const nearCrusher = Math.hypot(player.x - crusher.x, player.y - crusher.y) < 78;
+
+    if (state.isNight && inHouse) {
+      sleepInHouse();
+      return;
+    }
+    if (nearShop) {
+      toggleShop();
+      return;
+    }
+    if (nearCrusher) {
+      let earned = 0;
+      if (carried.length > 0) {
+        for (const item of carried) earned += item.value;
+        carried = [];
+      }
+      if (state.oil > 0) {
+        earned += state.oil * 400;
+        state.oil = 0;
+      }
+      if (earned > 0) {
+        state.coins += earned;
+        updateHUD();
+        showMessage(`Продано ресурсов на ${earned} монет.`, 1.0);
+      } else {
+        showMessage('Нечего продавать.', 0.9);
+      }
+    }
+  }
+
+  function updatePlayer(dt) {
+    let mx = 0;
+    let my = 0;
+    if (keys.left) mx -= 1;
+    if (keys.right) mx += 1;
+    if (keys.up) my -= 1;
+    if (keys.down) my += 1;
+    if (joyActive) {
+      mx += velX;
+      my += velY;
+    }
+    const len = Math.hypot(mx, my);
+    if (len > 0.001) {
+      const dirX = mx / len;
+      const dirY = my / len;
+      player.facingX = dirX;
+      player.facingY = dirY;
+      player.walk += dt * 8;
+      player.x = clamp(player.x + dirX * player.speed * dt, 24, WORLD_W - 24);
+      player.y = clamp(player.y + dirY * player.speed * dt, 24, WORLD_H - 24);
+    } else {
+      player.walk *= 0.86;
+    }
+  }
+
+  function updateDayWeather(dt) {
+    state.timeOfDay += dt * 0.05;
+    if (state.timeOfDay >= 1) {
+      state.timeOfDay = 0;
+      state.isNight = !state.isNight;
+      if (state.isNight) state.day++;
+      updateHUD();
+      showMessage(state.isNight ? 'Наступила ночь.' : `Наступил день ${state.day}.`, 1.1);
+    }
+
+    state.weatherTimer += dt;
+    if (state.weatherTimer > 12) {
+      state.weatherTimer = 0;
+      state.weather = (state.weather + 1) % 3;
+      updateHUD();
+    }
+  }
+
+  function updateEnvironmentDamage(dt, inHouse) {
+    if (state.isNight && !inHouse) player.hp -= 7.2 * dt;
+    if (state.weather === 2 && !inHouse) player.hp -= 4.8 * dt;
+    player.hp = clamp(player.hp, 0, player.maxHp);
+    if (player.hp <= 0) gameOver();
+  }
+
+  function updateMining(dt) {
+    let miningSpeed = 0.28;
+    if (state.weather === 1) miningSpeed = 0.19;
+    if (state.weather === 2) miningSpeed = 0.13;
+
+    state.miningTarget = null;
+    let closest = Infinity;
+    for (const node of oreNodes) {
+      if (node.hp <= 0) continue;
+      const d = Math.hypot(player.x - node.x, player.y - node.y);
+      if (d < 58 && d < closest) {
+        closest = d;
+        state.miningTarget = node;
+      }
+    }
+
+    if (state.miningTarget) {
+      const req = oreTypes[state.miningTarget.type].requiredPick;
+      if (state.pickLevel >= req) {
+        state.miningProgress += miningSpeed * dt * 60;
+        if (state.miningProgress >= hitsRequired[state.pickLevel - 1]) {
+          const info = oreTypes[state.miningTarget.type];
+          if (state.miningTarget.hp <= 1) {
+            droppedLoot.push({ x: state.miningTarget.x, y: state.miningTarget.y, type: state.miningTarget.type, value: info.value });
+            state.miningTarget.hp = 0;
+          } else {
+            state.miningTarget.hp--;
+          }
+          state.totalMined++;
+          if (state.totalMined % 28 === 0) state.level++;
+          state.miningProgress = 0;
+          updateHUD();
+        }
+      }
+    } else {
+      state.miningProgress = 0;
+    }
+
+    const aliveOres = oreNodes.filter(n => n.hp > 0).length;
+    if (aliveOres === 0 && state.respawnTimer === 0) state.respawnTimer = ORE_RESPAWN_TIME;
+    if (state.respawnTimer > 0) {
+      state.respawnTimer -= dt;
+      if (state.respawnTimer <= 0) spawnNewOres();
+    }
+  }
+
+  function updateLootPickup() {
+    for (let i = droppedLoot.length - 1; i >= 0; i--) {
+      const l = droppedLoot[i];
+      if (Math.hypot(player.x - l.x, player.y - l.y) < 50) {
+        carried.push({ type: l.type, value: l.value });
+        droppedLoot.splice(i, 1);
+        updateHUD();
+      }
+    }
+  }
+
+  function updatePumps() {
+    const now = Date.now();
+    const weatherMult = state.weather === 0 ? 1 : (state.weather === 1 ? 0.7 : 0.5);
+    pumps.forEach(p => {
+      if (now - p.lastExtract > 120000 / weatherMult) {
+        const amount = 1 + (p.level - 1) * 2;
+        state.oil += amount;
+        p.lastExtract = now;
+        updateHUD();
+      }
+    });
+  }
+
+  function updateSpiders(dt) {
+    if (state.level >= 12 && Math.random() < 0.02 * dt * 60) spawnSpider();
+    for (const s of spiders) {
+      const dx = player.x - s.x;
+      const dy = player.y - s.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      s.x += (dx / dist) * s.speed * dt;
+      s.y += (dy / dist) * s.speed * dt;
+      if (dist < 32) {
+        player.hp -= 52 * dt;
+        if (player.hp <= 0) return gameOver();
+      }
+    }
+  }
+
+  function updateCamera() {
+    state.cameraX = clamp(player.x - VIEW_W / 2, 0, WORLD_W - VIEW_W);
+    state.cameraY = clamp(player.y - VIEW_H / 2, 0, WORLD_H - VIEW_H);
+  }
+
+  function update(dt) {
+    if (state.gameOver) return;
+    if (state.paused) {
+      if (state.messageTimer > 0) {
+        state.messageTimer -= dt;
+        if (state.messageTimer <= 0) hideMessage();
+      }
+      return;
+    }
+
+    if (state.messageTimer > 0) {
+      state.messageTimer -= dt;
+      if (state.messageTimer <= 0) hideMessage();
+    }
+
+    updatePlayer(dt);
+    updateDayWeather(dt);
+
+    const inHouse = Math.hypot(player.x - (house.x + 55), player.y - (house.y + 45)) < 80;
+    sleepBtn.style.display = state.isNight && inHouse ? 'inline-block' : 'none';
+
+    updateEnvironmentDamage(dt, inHouse);
+    updateMining(dt);
+    updateLootPickup();
+    updatePumps();
+    updateSpiders(dt);
+    updateCamera();
+  }
+
+  function drawGround() {
+    const g = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+    if (state.weather === 0) {
+      g.addColorStop(0, '#355d2f');
+      g.addColorStop(1, '#263d22');
+    } else if (state.weather === 1) {
+      g.addColorStop(0, '#2a4338');
+      g.addColorStop(1, '#1d2f28');
+    } else {
+      g.addColorStop(0, '#1a2236');
+      g.addColorStop(1, '#101520');
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for (let x = -state.cameraX % 80; x < VIEW_W; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, VIEW_H);
+      ctx.stroke();
+    }
+    for (let y = -state.cameraY % 80; y < VIEW_H; y += 80) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(VIEW_W, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawWorld() {
+    ctx.save();
+    ctx.translate(-state.cameraX, -state.cameraY);
+
+    ctx.fillStyle = '#2a4a24';
+    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+    ctx.fillStyle = '#3a3025';
+    ctx.fillRect(0, 76, WORLD_W, 44);
+    ctx.fillRect(0, 486, WORLD_W, 44);
+    ctx.fillRect(112, 0, 44, WORLD_H);
+    ctx.fillRect(740, 0, 44, WORLD_H);
+
+    ctx.fillStyle = '#2f3b23';
+    ctx.fillRect(oreField.x, oreField.y, oreField.w, oreField.h);
+    ctx.strokeStyle = '#766948';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(oreField.x, oreField.y, oreField.w, oreField.h);
+
+    ctx.fillStyle = '#704628';
+    ctx.fillRect(house.x, house.y, house.w, house.h);
+    ctx.fillStyle = '#432414';
+    ctx.fillRect(house.x + 42, house.y + 40, 24, 50);
+    ctx.fillStyle = '#f8e36a';
+    ctx.fillRect(house.x + 16, house.y + 20, 24, 20);
+    ctx.fillRect(house.x + 72, house.y + 20, 24, 20);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 30px Arial';
+    ctx.fillText('🏠', house.x + 38, house.y + 28);
+
+    ctx.fillStyle = '#c63a3a';
+    ctx.beginPath();
+    ctx.moveTo(crusher.x, crusher.y - 38);
+    ctx.lineTo(crusher.x - 34, crusher.y + 22);
+    ctx.lineTo(crusher.x + 34, crusher.y + 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 34px Arial';
+    ctx.fillText('▲', crusher.x - 17, crusher.y + 8);
+    ctx.fillStyle = '#ffd868';
+    ctx.font = 'bold 13px Arial';
+    ctx.fillText('ДРОБИЛКА', crusher.x - 40, crusher.y + 48);
+
+    ctx.fillStyle = '#86603e';
+    ctx.fillRect(shopBuilding.x, shopBuilding.y, shopBuilding.w, shopBuilding.h);
+    ctx.fillStyle = '#f4fbff';
+    ctx.font = 'bold 32px Arial';
+    ctx.fillText('🛒', shopBuilding.x + 38, shopBuilding.y + 24);
+    ctx.font = 'bold 13px Arial';
+    ctx.fillText('МАГАЗИН', shopBuilding.x + 20, shopBuilding.y + 76);
+
+    for (const node of oreNodes) {
+      if (node.hp <= 0) continue;
+      const info = oreTypes[node.type];
+      const fullness = node.hp / node.maxHp;
+      ctx.fillStyle = info.color;
+      ctx.fillRect(node.x - 26, node.y - 26, 52, 52);
+      ctx.strokeStyle = '#f9f4c2';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(node.x - 26, node.y - 26, 52, 52);
+      ctx.fillStyle = '#ffe36d';
+      ctx.fillRect(node.x - 20, node.y - 20, 40 * fullness, 9);
+      ctx.fillStyle = '#fff';
+      ctx.font = '22px Arial';
+      ctx.fillText(info.symbol, node.x - 11, node.y + 10);
+    }
+
+    for (const l of droppedLoot) {
+      const info = oreTypes[l.type];
+      ctx.fillStyle = info.color;
+      ctx.fillRect(l.x - 10, l.y - 10, 20, 20);
+      ctx.strokeStyle = '#fff';
+      ctx.strokeRect(l.x - 10, l.y - 10, 20, 20);
+      ctx.fillStyle = '#fff';
+      ctx.font = '18px Arial';
+      ctx.fillText(info.symbol, l.x - 8, l.y + 6);
+    }
+
+    for (const p of pumps) {
+      ctx.fillStyle = '#aa0';
+      ctx.fillRect(p.x - 22, p.y - 22, 44, 44);
+      ctx.fillStyle = '#222';
+      ctx.fillRect(p.x - 12, p.y - 12, 24, 8);
+      ctx.fillStyle = '#ff0';
+      ctx.font = 'bold 22px Arial';
+      ctx.fillText('🛢', p.x - 11, p.y + 8);
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('Lv.' + p.level, p.x - 12, p.y - 28);
+    }
+
+    for (const s of spiders) {
+      ctx.fillStyle = '#50325d';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ff5a5a';
+      ctx.fillRect(s.x - 8, s.y - 6, 5, 5);
+      ctx.fillRect(s.x + 3, s.y - 6, 5, 5);
+      ctx.strokeStyle = '#2f1836';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(s.x - 16, s.y);
+      ctx.lineTo(s.x + 16, s.y);
+      ctx.moveTo(s.x, s.y - 16);
+      ctx.lineTo(s.x, s.y + 16);
+      ctx.stroke();
+    }
+
+    drawPlayer();
+
+    ctx.restore();
+  }
+
+  function drawPlayer() {
+    const step = Math.sin(player.walk) * 3;
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    const angle = Math.atan2(player.facingY || 0, player.facingX || 1) + Math.PI / 2;
+    ctx.rotate(angle);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 18, 18, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#2d3038';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-7, 8);
+    ctx.lineTo(-7 + step, 24);
+    ctx.moveTo(7, 8);
+    ctx.lineTo(7 - step, 24);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#4f3422';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-12, -2);
+    ctx.lineTo(-18, 8 + step * 0.4);
+    ctx.moveTo(12, -2);
+    ctx.lineTo(18, 8 - step * 0.4);
+    ctx.stroke();
+
+    ctx.fillStyle = '#2d89ff';
+    ctx.fillRect(-11, 9, 22, 12);
+    ctx.fillStyle = '#f6d14a';
+    ctx.fillRect(-11, -12, 22, 22);
+    ctx.strokeStyle = '#fff2b2';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-11, -12, 22, 22);
+
+    ctx.fillStyle = '#f3c8a0';
+    ctx.beginPath();
+    ctx.arc(0, -21, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f2c400';
+    ctx.fillRect(-10, -30, 20, 6);
+    ctx.fillStyle = '#484848';
+    ctx.fillRect(7, -6, 15, 5);
+    ctx.fillStyle = '#bfc8cf';
+    ctx.fillRect(19, -5, 7, 4);
+
+    if (carried.length > 0) {
+      const item = carried[carried.length - 1];
+      const info = oreTypes[item.type];
+      ctx.fillStyle = info.color;
+      ctx.fillRect(17, 2, 12, 12);
+      ctx.strokeStyle = '#fff';
+      ctx.strokeRect(17, 2, 12, 12);
+    }
+
+    ctx.restore();
+  }
+
+  function drawMinimap() {
+    miniCtx.fillStyle = '#112';
+    miniCtx.fillRect(0, 0, miniCanvas.width, miniCanvas.height);
+    const scale = miniCanvas.width / WORLD_W;
+
+    miniCtx.fillStyle = '#3a3025';
+    miniCtx.fillRect(0, 76 * scale, miniCanvas.width, 44 * scale);
+    miniCtx.fillRect(0, 486 * scale, miniCanvas.width, 44 * scale);
+    miniCtx.fillRect(112 * scale, 0, 44 * scale, miniCanvas.height);
+    miniCtx.fillRect(740 * scale, 0, 44 * scale, miniCanvas.height);
+
+    miniCtx.fillStyle = '#4a5e33';
+    miniCtx.fillRect(oreField.x * scale, oreField.y * scale, oreField.w * scale, oreField.h * scale);
+    miniCtx.fillStyle = '#864';
+    miniCtx.fillRect(house.x * scale, house.y * scale, house.w * scale, house.h * scale);
+    miniCtx.fillStyle = '#f33';
+    miniCtx.fillRect(crusher.x * scale - 3, crusher.y * scale - 3, 6, 6);
+    miniCtx.fillStyle = '#fff';
+    miniCtx.fillRect(shopBuilding.x * scale, shopBuilding.y * scale, shopBuilding.w * scale, shopBuilding.h * scale);
+
+    miniCtx.fillStyle = '#ff7070';
+    for (const s of spiders) miniCtx.fillRect(s.x * scale - 1, s.y * scale - 1, 3, 3);
+    miniCtx.fillStyle = '#ffd16b';
+    for (const p of pumps) miniCtx.fillRect(p.x * scale - 1, p.y * scale - 1, 3, 3);
+    miniCtx.fillStyle = '#0ff';
+    miniCtx.fillRect(player.x * scale - 4, player.y * scale - 4, 8, 8);
+  }
+
+  function render() {
+    drawGround();
+    drawWorld();
+    drawMinimap();
+
+    if (state.paused && !state.gameOver) {
+      ctx.fillStyle = 'rgba(0,0,0,0.42)';
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      ctx.fillStyle = '#effcff';
+      ctx.font = 'bold 42px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('ПАУЗА', VIEW_W / 2, VIEW_H / 2 - 10);
+    }
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.033, (now - state.lastTime) / 1000);
+    state.lastTime = now;
+    update(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  function clearJoystick() {
+    joyActive = false;
+    joyPointerId = null;
+    velX = 0;
+    velY = 0;
+    joystick.style.display = isTouch && !state.paused && !state.gameOver ? 'block' : 'none';
+    const center = (joystick.offsetWidth || 140) / 2 - (innerJoy.offsetWidth || 44) / 2;
+    innerJoy.style.left = center + 'px';
+    innerJoy.style.top = center + 'px';
+  }
+
+  function beginJoystick(pointerId = null) {
+    joyActive = true;
+    joyPointerId = pointerId;
+    joystick.style.display = 'block';
+    const rect = joystick.getBoundingClientRect();
+    joyCX = rect.left + rect.width / 2;
+    joyCY = rect.top + rect.height / 2;
+  }
+
+  function moveJoystick(clientX, clientY) {
+    if (!joyActive) return;
+    let dx = (clientX - joyCX) / 44;
+    let dy = (clientY - joyCY) / 44;
+    const len = Math.hypot(dx, dy);
+    if (len > 1) { dx /= len; dy /= len; }
+    velX = dx;
+    velY = dy;
+    const center = (joystick.offsetWidth || 140) / 2 - (innerJoy.offsetWidth || 44) / 2;
+    innerJoy.style.left = (center + dx * 28) + 'px';
+    innerJoy.style.top = (center + dy * 28) + 'px';
+  }
+
+  function gameOver() {
+    state.gameOver = true;
+    state.paused = true;
+    finalDay.textContent = state.day;
+    openPanel('gameOver');
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (state.gameOver || state.paused) return;
+    if (e.pointerType === 'touch') {
+      if (e.clientX < window.innerWidth * 0.38 && !joyActive) {
+        beginJoystick(e.pointerId);
+      }
+      e.preventDefault();
+    }
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!joyActive) return;
+    if (joyPointerId !== null && e.pointerId !== joyPointerId) return;
+    moveJoystick(e.clientX, e.clientY);
+  }, { passive: false });
+  window.addEventListener('pointerup', (e) => {
+    if (joyPointerId !== null && e.pointerId !== joyPointerId) return;
+    clearJoystick();
+  });
+  window.addEventListener('pointercancel', () => clearJoystick());
+
+  openShopBtn.addEventListener('click', toggleShop);
+  openGuideBtn.addEventListener('click', toggleGuide);
+  closeShopBtn.addEventListener('click', closePanels);
+  closeGuideBtn.addEventListener('click', closePanels);
+  upgradePickBtn.addEventListener('click', upgradePickaxe);
+  buyPumpBtn.addEventListener('click', buyPump);
+  upgradePumpsBtn.addEventListener('click', upgradePumps);
+  sleepBtn.addEventListener('click', sleepInHouse);
+  placeBtn.addEventListener('click', placePump);
+  mineBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); processInteraction(); });
+  shopBtnMobile.addEventListener('pointerdown', (e) => { e.preventDefault(); toggleShop(); });
+  restartBtn.addEventListener('click', () => { closePanels(); createWorld(); });
+
+  window.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    if (["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright","e","q","p"].includes(key)) e.preventDefault();
+    if (key === 'a' || key === 'arrowleft') keys.left = true;
+    if (key === 'd' || key === 'arrowright') keys.right = true;
+    if (key === 'w' || key === 'arrowup') keys.up = true;
+    if (key === 's' || key === 'arrowdown') keys.down = true;
+    if (key === 'e') processInteraction();
+    if (key === 'q') placePump();
+    if (key === 'p' && !state.gameOver) state.paused = !state.paused;
+  });
+  window.addEventListener('keyup', (e) => {
+    const key = e.key.toLowerCase();
+    if (key === 'a' || key === 'arrowleft') keys.left = false;
+    if (key === 'd' || key === 'arrowright') keys.right = false;
+    if (key === 'w' || key === 'arrowup') keys.up = false;
+    if (key === 's' || key === 'arrowdown') keys.down = false;
+  });
+
+  window.addEventListener('blur', () => {
+    keys.up = keys.down = keys.left = keys.right = false;
+    clearJoystick();
+    if (!state.gameOver) state.paused = true;
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && !state.gameOver) state.paused = true;
+  });
+
+  function resize() { setViewportUnits(); }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resize, { passive: true });
+    window.visualViewport.addEventListener('scroll', resize, { passive: true });
+  }
+
+  createWorld();
+  clearJoystick();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

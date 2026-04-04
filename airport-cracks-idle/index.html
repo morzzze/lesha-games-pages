@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Airport Cracks Idle — File Edition</title>
+<style>
+  :root {
+    --bg: #091119;
+    --panel: rgba(8, 17, 28, 0.82);
+    --line: rgba(107, 216, 255, 0.28);
+    --text: #eefbff;
+    --muted: #b6d6df;
+    --accent: #67d8ff;
+    --good: #7bff9d;
+    --warn: #ffd46c;
+    --bad: #ff8a8a;
+    --vh: 1vh;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    min-height: calc(var(--vh) * 100);
+    overflow: hidden;
+    background: #02060b;
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+    overscroll-behavior: none;
+  }
+  #wrap {
+    position: relative;
+    width: 100vw;
+    height: calc(var(--vh) * 100);
+    overflow: hidden;
+    background: radial-gradient(circle at top, #122235 0%, #07111c 55%, #03070b 100%);
+  }
+  #game {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #1e2633;
+  }
+  .panel {
+    position: absolute;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 18px rgba(0,0,0,0.25);
+    border-radius: 16px;
+    z-index: 20;
+  }
+  #hud {
+    left: max(12px, env(safe-area-inset-left));
+    top: max(12px, env(safe-area-inset-top));
+    min-width: min(420px, calc(100vw - 24px));
+    max-width: min(560px, calc(100vw - 24px));
+    padding: 12px 14px;
+    white-space: pre-line;
+    line-height: 1.42;
+    text-shadow: 0 0 8px rgba(103, 216, 255, 0.16);
+  }
+  #controls {
+    position: absolute;
+    right: max(12px, env(safe-area-inset-right));
+    top: max(12px, env(safe-area-inset-top));
+    z-index: 24;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(220px, calc(100vw - 24px));
+  }
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #08131b;
+    background: linear-gradient(180deg, #90f2ff 0%, #47d4ff 100%);
+    box-shadow: 0 0 16px rgba(71, 212, 255, 0.22);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn.good { background: linear-gradient(180deg, #a6ff9b 0%, #5add6e 100%); color: #0d210f; }
+  .btn.warn { background: linear-gradient(180deg, #ffd88b 0%, #ffb24b 100%); color: #2c1600; }
+  .btn.secondary { background: linear-gradient(180deg, #d7e6ef 0%, #a9c0cf 100%); color: #10202d; }
+  #message {
+    position: absolute;
+    left: 50%;
+    top: calc(max(82px, env(safe-area-inset-top)) + 6px);
+    transform: translateX(-50%);
+    z-index: 30;
+    display: none;
+    width: min(560px, calc(100vw - 24px));
+    padding: 10px 14px;
+    text-align: center;
+    border-radius: 12px;
+    background: rgba(3, 9, 16, 0.88);
+    border: 1px solid rgba(103, 216, 255, 0.18);
+    white-space: pre-line;
+    pointer-events: none;
+  }
+  #infoCard {
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(460px, calc(100vw - 24px));
+    padding: 12px 14px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .title {
+    color: var(--accent);
+    font-weight: 800;
+  }
+  @media (max-width: 760px) {
+    #hud {
+      max-width: calc(100vw - 24px);
+      min-width: auto;
+      width: calc(100vw - 24px);
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+    #controls {
+      top: auto;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: calc(max(12px, env(safe-area-inset-bottom)) + 110px);
+      width: min(200px, calc(100vw - 24px));
+    }
+    .btn {
+      font-size: 14px;
+      padding: 11px 12px;
+    }
+    #infoCard {
+      font-size: 13px;
+      padding: 10px 12px;
+      width: calc(100vw - 24px);
+    }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="900" height="600"></canvas>
+
+  <div id="hud" class="panel"></div>
+
+  <div id="controls">
+    <button id="travelBtn" class="btn warn">✈️ AIRPORT / Путешествие</button>
+    <button id="hireBtn" class="btn good">👷 Нанять NPC (120)</button>
+    <button id="refreshBtn" class="btn secondary">🔧 Обновить трещины (80)</button>
+  </div>
+
+  <div id="message"></div>
+
+  <div id="infoCard" class="panel">
+    <div class="title">Как играть</div>
+    Это idle-менеджмент по мотивам твоего Pygame-кода.<br>
+    • NPC сами работают и строят<br>
+    • трещины дают деньги, пока не иссякнут<br>
+    • кнопка <b>AIRPORT</b> меняет страну и создаёт новые трещины<br>
+    • можно кликать по трещинам и NPC, чтобы смотреть инфо
+  </div>
+</div>
+
+<script>
+(() => {
+  const WIDTH = 900;
+  const HEIGHT = 600;
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const hud = document.getElementById('hud');
+  const message = document.getElementById('message');
+  const travelBtn = document.getElementById('travelBtn');
+  const hireBtn = document.getElementById('hireBtn');
+  const refreshBtn = document.getElementById('refreshBtn');
+
+  const names = ['Alex', 'Mira', 'Leo', 'Nova', 'Kai', 'Luna', 'Ivy', 'Niko'];
+  const countries = ['Home', 'USA', 'Japan', 'Brazil', 'Mars'];
+  const countryThemes = {
+    Home:   { sky: '#273f62', ground: '#35556f', accent: '#7ed2ff', label: 'Домашняя страна' },
+    USA:    { sky: '#5b7bb3', ground: '#517b58', accent: '#ffffff', label: 'США' },
+    Japan:  { sky: '#a65d79', ground: '#55754e', accent: '#ffe6ef', label: 'Япония' },
+    Brazil: { sky: '#568c4e', ground: '#41673f', accent: '#ffe86f', label: 'Бразилия' },
+    Mars:   { sky: '#7a4939', ground: '#6d3f32', accent: '#ffca8d', label: 'Марс' }
+  };
+  const crackRates = { oil: 2.8, gas: 4.2 };
+  const crackColors = { oil: '#ffc84a', gas: '#60ff9d' };
+
+  let money = 100;
+  let country = 'Home';
+  let npcs = [];
+  let buildings = [];
+  let cracks = [];
+  let selectedInfo = '';
+  let messageTimer = 0;
+  let travelCooldown = 0;
+  let lastTime = performance.now();
+
+  function setViewportUnits() {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vh', `${Math.max(1, h) * 0.01}px`);
+  }
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function rand(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function showMessage(text, duration = 1.4) {
+    message.textContent = text;
+    message.style.display = 'block';
+    messageTimer = duration;
+  }
+
+  function hideMessage() {
+    message.style.display = 'none';
+    messageTimer = 0;
+  }
+
+  function dist(ax, ay, bx, by) {
+    return Math.hypot(ax - bx, ay - by);
+  }
+
+  function buildingTooClose(x, y) {
+    return buildings.some(b => dist(x, y, b.x + 10, b.y + 10) < 40);
+  }
+
+  class NPC {
+    constructor() {
+      this.x = rand(60, WIDTH - 60);
+      this.y = rand(70, HEIGHT - 70);
+      this.name = names[Math.floor(Math.random() * names.length)];
+      this.task = 'idle';
+      this.taskTimer = rand(1.0, 2.4);
+      this.buildDone = false;
+      this.targetX = this.x;
+      this.targetY = this.y;
+      this.color = `hsl(${Math.floor(rand(180, 220))} 85% 58%)`;
+    }
+
+    chooseTask() {
+      this.task = Math.random() < 0.62 ? 'work' : 'build';
+      this.taskTimer = rand(2.6, 5.2);
+      this.buildDone = false;
+      this.targetX = clamp(this.x + rand(-110, 110), 40, WIDTH - 40);
+      this.targetY = clamp(this.y + rand(-80, 80), 50, HEIGHT - 40);
+    }
+
+    update(dt) {
+      if (this.task === 'idle') {
+        this.taskTimer -= dt;
+        if (this.taskTimer <= 0) this.chooseTask();
+      }
+
+      if (this.task === 'work') {
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const len = Math.hypot(dx, dy) || 1;
+        this.x += (dx / len) * 28 * dt;
+        this.y += (dy / len) * 28 * dt;
+        money += 1.0 * dt;
+        this.taskTimer -= dt;
+        if (len < 8 || this.taskTimer <= 0) {
+          this.task = 'idle';
+          this.taskTimer = rand(0.8, 1.8);
+        }
+      }
+
+      if (this.task === 'build') {
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const len = Math.hypot(dx, dy) || 1;
+        this.x += (dx / len) * 20 * dt;
+        this.y += (dy / len) * 20 * dt;
+        this.taskTimer -= dt;
+
+        if (!this.buildDone && (len < 14 || this.taskTimer < 1.1)) {
+          if (!buildingTooClose(this.x, this.y) && buildings.length < 44) {
+            buildings.push(new Building(this.x - 10, this.y - 10));
+            this.buildDone = true;
+            showMessage(`${this.name} построил новое здание.`, 0.9);
+          }
+        }
+
+        if (this.taskTimer <= 0) {
+          this.task = 'idle';
+          this.taskTimer = rand(1.0, 2.2);
+        }
+      }
+
+      this.x = clamp(this.x, 30, WIDTH - 30);
+      this.y = clamp(this.y, 45, HEIGHT - 30);
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f2ceb0';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y - 10, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(this.name, this.x, this.y - 22);
+
+      ctx.fillStyle = this.task === 'work' ? '#7bff9d' : this.task === 'build' ? '#ffd46c' : '#d0e8ef';
+      ctx.font = '11px Arial';
+      ctx.fillText(this.task.toUpperCase(), this.x, this.y + 22);
+    }
+  }
+
+  class Building {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.h = rand(18, 34);
+      this.color = `hsl(${Math.floor(rand(210, 250))} 68% ${Math.floor(rand(60, 74))}%)`;
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, 20, this.h);
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.fillRect(this.x + 4, this.y + 4, 4, 4);
+      ctx.fillRect(this.x + 12, this.y + 4, 4, 4);
+    }
+  }
+
+  class Crack {
+    constructor() {
+      this.x = Math.floor(rand(60, WIDTH - 60));
+      this.y = Math.floor(rand(80, HEIGHT - 50));
+      this.resource = rand(50, 150);
+      this.maxResource = this.resource;
+      this.type = Math.random() < 0.5 ? 'oil' : 'gas';
+      this.pulse = rand(0, Math.PI * 2);
+    }
+
+    update(dt) {
+      if (this.resource <= 0) return;
+      const rate = crackRates[this.type];
+      this.resource = Math.max(0, this.resource - rate * dt);
+      money += rate * dt;
+      this.pulse += dt * 4;
+    }
+
+    draw() {
+      const color = crackColors[this.type];
+      const bob = Math.sin(this.pulse) * 1.8;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y + bob, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.fillRect(this.x - 18, this.y + 14, 36, 5);
+      ctx.fillStyle = this.resource > 0 ? color : '#ff6a6a';
+      ctx.fillRect(this.x - 18, this.y + 14, 36 * (this.resource / this.maxResource), 5);
+
+      if (this.resource <= 0) {
+        ctx.fillStyle = '#ff7f7f';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('EMPTY', this.x, this.y - 16);
+      } else {
+        ctx.fillStyle = '#f4fbff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.type.toUpperCase(), this.x, this.y - 15);
+      }
+    }
+  }
+
+  function spawnNPCs(count = 5) {
+    npcs = Array.from({ length: count }, () => new NPC());
+  }
+
+  function spawnCracks(count = 5) {
+    cracks = Array.from({ length: count }, () => new Crack());
+  }
+
+  function travel() {
+    if (travelCooldown > 0) return;
+    const nextCountries = countries.filter(c => c !== country);
+    country = nextCountries[Math.floor(Math.random() * nextCountries.length)];
+    spawnCracks(5);
+    travelCooldown = 1.2;
+    showMessage(`Перелёт завершён. Текущая страна: ${countryThemes[country].label}`, 1.5);
+  }
+
+  function hireNPC() {
+    if (money < 120) return showMessage('Нужно 120 денег, чтобы нанять NPC.', 1.0);
+    money -= 120;
+    npcs.push(new NPC());
+    showMessage('Новый NPC присоединился к твоей стране.', 1.0);
+  }
+
+  function refreshCracks() {
+    if (money < 80) return showMessage('Нужно 80 денег, чтобы обновить трещины.', 1.0);
+    money -= 80;
+    spawnCracks(5);
+    showMessage('Все трещины обновлены.', 0.9);
+  }
+
+  function updateHUD() {
+    const activeCracks = cracks.filter(c => c.resource > 0).length;
+    hud.textContent = `💰 Деньги: ${Math.floor(money)}\n🌍 Страна: ${countryThemes[country].label}\n👥 NPC: ${npcs.length} | 🏢 Здания: ${buildings.length}\n🕳 Активные трещины: ${activeCracks}/${cracks.length}`;
+  }
+
+  function drawBackground() {
+    const theme = countryThemes[country];
+    const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    sky.addColorStop(0, theme.sky);
+    sky.addColorStop(1, theme.ground);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    for (let i = 0; i < 28; i++) {
+      const x = (i * 71 + Math.sin(i + performance.now() * 0.00015) * 30) % WIDTH;
+      const y = (i * 43) % HEIGHT;
+      ctx.beginPath();
+      ctx.arc(x, y, 1 + (i % 3), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    for (let i = 0; i < 4; i++) {
+      ctx.fillRect(i * 240 + 50, 380 + (i % 2) * 20, 120, 120);
+    }
+  }
+
+  function drawAirport() {
+    const rect = { x: 730, y: 20, w: 140, h: 48 };
+    ctx.fillStyle = '#d885ff';
+    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    ctx.strokeStyle = '#fff0ff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    ctx.fillStyle = '#120716';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('AIRPORT', rect.x + rect.w / 2, rect.y + 30);
+    return rect;
+  }
+
+  function update(dt) {
+    if (messageTimer > 0) {
+      messageTimer -= dt;
+      if (messageTimer <= 0) hideMessage();
+    }
+    if (travelCooldown > 0) travelCooldown -= dt;
+
+    for (const npc of npcs) npc.update(dt);
+    for (const crack of cracks) crack.update(dt);
+
+    updateHUD();
+  }
+
+  function draw() {
+    drawBackground();
+
+    // ground stripes
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    for (let i = 0; i < 6; i++) ctx.fillRect(i * 150, 455 + (i % 2) * 8, 100, 80);
+
+    for (const b of buildings) b.draw();
+    for (const crack of cracks) crack.draw();
+    for (const npc of npcs) npc.draw();
+
+    drawAirport();
+
+    if (selectedInfo) {
+      ctx.fillStyle = 'rgba(2, 7, 12, 0.78)';
+      ctx.fillRect(20, HEIGHT - 78, 360, 42);
+      ctx.strokeStyle = 'rgba(103,216,255,0.2)';
+      ctx.strokeRect(20, HEIGHT - 78, 360, 42);
+      ctx.fillStyle = '#effcff';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(selectedInfo, 32, HEIGHT - 52);
+    }
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.033, (now - lastTime) / 1000);
+    lastTime = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function getPointerPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) * (WIDTH / rect.width),
+      y: (e.clientY - rect.top) * (HEIGHT / rect.height)
+    };
+  }
+
+  function handleCanvasPointer(e) {
+    const p = getPointerPos(e);
+    const airport = { x: 730, y: 20, w: 140, h: 48 };
+    if (p.x >= airport.x && p.x <= airport.x + airport.w && p.y >= airport.y && p.y <= airport.y + airport.h) {
+      travel();
+      return;
+    }
+
+    let found = false;
+    for (const crack of cracks) {
+      if (dist(p.x, p.y, crack.x, crack.y) < 18) {
+        selectedInfo = `Трещина: ${crack.type.toUpperCase()} | ресурс: ${Math.floor(crack.resource)}/${Math.floor(crack.maxResource)}`;
+        found = true;
+        break;
+      }
+    }
+    if (found) return;
+
+    for (const npc of npcs) {
+      if (dist(p.x, p.y, npc.x, npc.y) < 16) {
+        selectedInfo = `${npc.name} | задача: ${npc.task}`;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) selectedInfo = '';
+  }
+
+  travelBtn.addEventListener('click', travel);
+  hireBtn.addEventListener('click', hireNPC);
+  refreshBtn.addEventListener('click', refreshCracks);
+  canvas.addEventListener('pointerdown', handleCanvasPointer);
+
+  function resize() {
+    setViewportUnits();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resize, { passive: true });
+    window.visualViewport.addEventListener('scroll', resize, { passive: true });
+  }
+
+  spawnNPCs(5);
+  spawnCracks(5);
+  updateHUD();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
