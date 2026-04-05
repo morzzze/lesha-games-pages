@@ -291,7 +291,7 @@
         <div class="bar"><div id="player-fill" class="fill"></div></div>
       </div>
       <div class="panel bar-card">
-        <div class="label-row"><span id="boss-name-label">Дух Храма</span><strong id="boss-hp-text">1200 / 1200</strong></div>
+        <div class="label-row"><span>Дух Храма</span><strong id="boss-hp-text">1200 / 1200</strong></div>
         <div class="bar"><div id="boss-fill" class="fill"></div></div>
       </div>
     </div>
@@ -299,7 +299,6 @@
       <div class="chip">Комбо: <strong id="combo-text">0</strong></div>
       <div class="chip">Счёт: <strong id="score-text">0</strong></div>
       <div class="chip">Лучший: <strong id="best-text">0</strong></div>
-      <div class="chip">Щиты: <strong id="shield-text">0</strong></div>
       <div class="chip">Управление: <strong>← → / A D / Space</strong></div>
     </div>
   </div>
@@ -323,8 +322,8 @@
     </div>
 
     <div id="shake-screen" class="screen">
-      <h2 id="shake-title">Храм шепчет…</h2>
-      <p id="shake-text">Печать сорвана. Дух выходит из тумана.</p>
+      <h2>Храм шепчет…</h2>
+      <p>Печать сорвана. Дух выходит из тумана.</p>
     </div>
 
     <div id="victory-screen" class="screen">
@@ -360,16 +359,11 @@
   const bossFill = document.getElementById('boss-fill');
   const playerHpText = document.getElementById('player-hp-text');
   const bossHpText = document.getElementById('boss-hp-text');
-  const bossNameLabel = document.getElementById('boss-name-label');
   const comboText = document.getElementById('combo-text');
   const scoreText = document.getElementById('score-text');
   const bestText = document.getElementById('best-text');
-  const shieldText = document.getElementById('shield-text');
   const victoryText = document.getElementById('victory-text');
   const defeatText = document.getElementById('defeat-text');
-  const shakeTitle = document.getElementById('shake-title');
-  const shakeText = document.getElementById('shake-text');
-  const playAgainBtn = document.getElementById('play-again-btn');
 
   const screens = {
     start: document.getElementById('start-screen'),
@@ -397,7 +391,6 @@
   const particles = [];
   const rocks = [];
   const bullets = [];
-  const pickups = [];
   const warnings = [];
   const torchPulse = [0, 1, 2, 3, 4, 5].map((n) => n * 0.6);
 
@@ -411,9 +404,7 @@
     cooldown: 0,
     invuln: 0,
     combo: 0,
-    comboTimer: 0,
-    shieldCharges: 0,
-    shieldFlash: 0
+    comboTimer: 0
   };
 
   const boss = {
@@ -424,14 +415,10 @@
     maxHp: 1200,
     hp: 1200,
     rage: false,
-    phase: 1,
-    trueForm: false,
     attackTimer: 1.15,
     hitFlash: 0,
     aura: 0
   };
-
-  let victoryAction = 'restart';
 
   function loadBestScore() {
     try {
@@ -483,16 +470,10 @@
     mobileControls.classList.toggle('visible', mode === 'fight' && state.isTouch);
   }
 
-  function configureVictoryScreen(mode) {
-    victoryAction = mode;
-    playAgainBtn.textContent = mode === 'trueBoss' ? 'СТАРТ БОСС' : 'Играть снова';
-  }
-
   function resetFight() {
     particles.length = 0;
     rocks.length = 0;
     bullets.length = 0;
-    pickups.length = 0;
     warnings.length = 0;
     state.score = 0;
     player.x = state.width * 0.5;
@@ -502,13 +483,7 @@
     player.invuln = 0;
     player.combo = 0;
     player.comboTimer = 0;
-    player.shieldCharges = 0;
-    player.shieldFlash = 0;
     boss.active = true;
-    boss.phase = 1;
-    boss.trueForm = false;
-    boss.r = 56;
-    boss.maxHp = 1200;
     boss.hp = boss.maxHp;
     boss.rage = false;
     boss.attackTimer = 1.05;
@@ -516,10 +491,6 @@
     boss.aura = 0;
     state.shakeTime = 0;
     state.shakePower = 0;
-    bossNameLabel.textContent = 'Дух Храма';
-    shakeTitle.textContent = 'Храм шепчет…';
-    shakeText.textContent = 'Печать сорвана. Дух выходит из тумана.';
-    configureVictoryScreen('restart');
     updateHud();
   }
 
@@ -534,38 +505,6 @@
     state.shakeTime = 1.15;
     state.shakePower = 11;
     setScreen('shake');
-  }
-
-  function startTrueBoss() {
-    particles.length = 0;
-    rocks.length = 0;
-    bullets.length = 0;
-    pickups.length = 0;
-    warnings.length = 0;
-    player.hp = player.maxHp;
-    player.invuln = 0.9;
-    player.combo = 0;
-    player.comboTimer = 0;
-    player.shieldCharges = 1;
-    player.shieldFlash = 1.2;
-    player.cooldown = 0;
-    boss.active = true;
-    boss.phase = 2;
-    boss.trueForm = true;
-    boss.r = 84;
-    boss.maxHp = 2600;
-    boss.hp = boss.maxHp;
-    boss.rage = true;
-    boss.attackTimer = 1.0;
-    boss.hitFlash = 0;
-    boss.aura = 0.8;
-    state.shakeTime = 1.05;
-    state.shakePower = 14;
-    bossNameLabel.textContent = 'Истинный босс';
-    shakeTitle.textContent = 'Истинный босс пробуждается…';
-    shakeText.textContent = 'Дух превращается в гигантское смертельное существо: книги, молнии, стрелы и щиты уже летят на арену.';
-    setScreen('shake');
-    updateHud();
   }
 
   function beginFight() {
@@ -584,11 +523,9 @@
     bossFill.style.width = (bossRatio * 100).toFixed(1) + '%';
     playerHpText.textContent = Math.max(0, Math.ceil(player.hp)) + ' / ' + player.maxHp;
     bossHpText.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
-    bossNameLabel.textContent = boss.phase === 2 ? 'Истинный босс' : 'Дух Храма';
     comboText.textContent = String(player.combo);
     scoreText.textContent = String(Math.floor(state.score));
     bestText.textContent = String(Math.floor(state.bestScore));
-    shieldText.textContent = String(player.shieldCharges);
   }
 
   function addScore(amount) {
@@ -643,7 +580,7 @@
     state.shakePower = Math.max(state.shakePower, 6);
     addScore(amount * 2);
 
-    if (boss.phase === 1 && !boss.rage && boss.hp <= boss.maxHp * 0.4) {
+    if (!boss.rage && boss.hp <= boss.maxHp * 0.4) {
       boss.rage = true;
       spawnParticles(boss.x, boss.y, '#b47cff', 28, 150, 8);
       state.shakeTime = Math.max(state.shakeTime, 0.4);
@@ -652,27 +589,12 @@
 
     if (boss.hp <= 0) {
       boss.hp = 0;
-      addScore(boss.phase === 2 ? 900 : 400);
-      if (boss.phase === 1) {
-        victoryText.textContent = 'Первая форма пала. Нажми кнопку и начни бой с истинным боссом.';
-        configureVictoryScreen('trueBoss');
-      } else {
-        victoryText.textContent = 'Истинный босс повержен. Итоговый счёт: ' + Math.floor(state.score) + '.';
-        configureVictoryScreen('restart');
-      }
+      addScore(400);
+      victoryText.textContent = 'Дух повержен. Итоговый счёт: ' + Math.floor(state.score) + '.';
       setScreen('victory');
     }
 
     updateHud();
-  }
-
-  function consumeShield() {
-    if (player.shieldCharges <= 0) return false;
-    player.shieldCharges -= 1;
-    player.shieldFlash = 0.75;
-    spawnParticles(player.x, player.y - 28, '#9fdfff', 16, 130, 6);
-    updateHud();
-    return true;
   }
 
   function damagePlayer(amount) {
@@ -694,108 +616,32 @@
     updateHud();
   }
 
-  function spawnBookVolley() {
-    const count = 4;
-    for (let i = 0; i < count; i++) {
-      const aimX = player.x + (i - (count - 1) / 2) * 42;
-      const aimY = player.y - 34;
-      const dx = aimX - boss.x;
-      const dy = aimY - boss.y;
-      const len = Math.max(1, Math.hypot(dx, dy));
-      const speed = rand(320, 390);
-      bullets.push({
-        x: boss.x,
-        y: boss.y + 10,
-        vx: dx / len * speed,
-        vy: dy / len * speed,
-        r: 13,
-        damage: 20,
-        color: '#d8a66e',
-        type: 'book',
-        angle: Math.atan2(dy, dx),
-        spin: rand(-7.5, 7.5)
-      });
-    }
-  }
-
-  function spawnLightningVolley() {
-    const count = 4;
-    for (let i = 0; i < count; i++) {
-      const x = clamp(player.x + (i - 1.5) * 58 + rand(-24, 24), state.width * 0.14, state.width * 0.86);
-      warnings.push({ x, life: 0.6, type: 'lightning' });
-      bullets.push({
-        x,
-        y: -40 - i * 24,
-        vx: rand(-12, 12),
-        vy: rand(540, 620),
-        r: 12,
-        damage: 18,
-        color: '#d8f0ff',
-        type: 'lightning',
-        delayed: 0.42
-      });
-    }
-  }
-
-  function spawnArrowVolley() {
-    const count = 3;
-    for (let i = 0; i < count; i++) {
-      const aimX = player.x + (i - 1) * 18;
-      const aimY = player.y - 16;
-      const dx = aimX - boss.x;
-      const dy = aimY - boss.y;
-      const len = Math.max(1, Math.hypot(dx, dy));
-      const speed = 430 + i * 26;
-      bullets.push({
-        x: boss.x,
-        y: boss.y + 8,
-        vx: dx / len * speed,
-        vy: dy / len * speed,
-        r: 12,
-        damage: 16,
-        color: '#ffd8a5',
-        type: 'arrow',
-        reflectable: true,
-        angle: Math.atan2(dy, dx)
-      });
-    }
-  }
-
-  function spawnShieldDrop() {
-    const count = 2;
-    for (let i = 0; i < count; i++) {
-      pickups.push({
-        x: clamp(player.x + (i === 0 ? -90 : 90) + rand(-28, 28), state.width * 0.12, state.width * 0.88),
-        y: boss.y + 20,
-        vy: 110 + i * 18,
-        r: 16,
-        type: 'shield',
-        life: 8,
-        bob: rand(0, Math.PI * 2)
-      });
-    }
-  }
-
   function spawnBossAttack() {
     if (state.mode !== 'fight' || !boss.active) return;
 
-    if (boss.phase === 2) {
-      const patternRoll = Math.random();
-      if (patternRoll < 0.34) {
-        spawnBookVolley();
-      } else if (patternRoll < 0.62) {
-        spawnLightningVolley();
-      } else if (patternRoll < 0.86) {
-        spawnArrowVolley();
-      } else {
-        spawnShieldDrop();
-      }
-      return;
-    }
-
     const patternRoll = Math.random();
     if (boss.rage && patternRoll > 0.76) {
-      spawnBookVolley();
+      const count = 4;
+      for (let i = 0; i < count; i++) {
+        const aimX = player.x + (i - (count - 1) / 2) * 42;
+        const aimY = player.y - 34;
+        const dx = aimX - boss.x;
+        const dy = aimY - boss.y;
+        const len = Math.max(1, Math.hypot(dx, dy));
+        const speed = rand(320, 390);
+        bullets.push({
+          x: boss.x,
+          y: boss.y + 10,
+          vx: dx / len * speed,
+          vy: dy / len * speed,
+          r: 13,
+          damage: 20,
+          color: '#d8a66e',
+          type: 'book',
+          angle: Math.atan2(dy, dx),
+          spin: rand(-7.5, 7.5)
+        });
+      }
     } else if (patternRoll < 0.34) {
       const count = boss.rage ? 7 : 5;
       for (let i = 0; i < count; i++) {
@@ -879,25 +725,20 @@
 
     if (player.cooldown > 0) player.cooldown -= dt;
     if (player.invuln > 0) player.invuln -= dt;
-    if (player.shieldFlash > 0) player.shieldFlash -= dt;
     if (player.comboTimer > 0) {
       player.comboTimer -= dt;
       if (player.comboTimer <= 0) player.combo = 0;
     }
 
-    const bossRange = boss.phase === 2 ? 0.26 : (boss.rage ? 0.21 : 0.16);
-    const bossSpeed = boss.phase === 2 ? 2.7 : (boss.rage ? 2.2 : 1.35);
-    const bossBaseY = boss.phase === 2 ? 0.19 : 0.21;
-    const bossWave = boss.phase === 2 ? 5.2 : (boss.rage ? 3.8 : 2.2);
-    boss.x = state.width * 0.5 + Math.sin(state.time * bossSpeed) * state.width * bossRange;
-    boss.y = state.height * bossBaseY + Math.sin(state.time * bossWave) * (boss.phase === 2 ? 20 : 16);
+    boss.x = state.width * 0.5 + Math.sin(state.time * (boss.rage ? 2.2 : 1.35)) * state.width * (boss.rage ? 0.21 : 0.16);
+    boss.y = state.height * 0.21 + Math.sin(state.time * (boss.rage ? 3.8 : 2.2)) * 16;
     boss.attackTimer -= dt;
     boss.hitFlash = Math.max(0, boss.hitFlash - dt);
     boss.aura += dt * (boss.rage ? 2.4 : 1.2);
 
     if (boss.attackTimer <= 0) {
       spawnBossAttack();
-      boss.attackTimer = boss.phase === 2 ? rand(0.42, 0.7) : (boss.rage ? rand(0.55, 0.82) : rand(0.95, 1.28));
+      boss.attackTimer = boss.rage ? rand(0.55, 0.82) : rand(0.95, 1.28);
     }
 
     for (let i = rocks.length - 1; i >= 0; i--) {
@@ -937,72 +778,17 @@
       bullet.y += bullet.vy * dt;
       if (bullet.type === 'book') {
         bullet.angle += (bullet.spin || 0) * dt;
-      } else if (bullet.type === 'arrow' || bullet.type === 'reflectedArrow') {
-        bullet.angle = Math.atan2(bullet.vy, bullet.vx);
-      }
-
-      if (bullet.reflected && dist(bullet.x, bullet.y, boss.x, boss.y) <= boss.r + bullet.r) {
-        damageBoss(bullet.damage || 90);
-        spawnParticles(bullet.x, bullet.y, '#ffe8a8', 14, 92, 6);
-        bullets.splice(i, 1);
-        continue;
       }
 
       if (dist(bullet.x, bullet.y, player.x, player.y - 18) <= bullet.r + player.r) {
-        if (player.shieldCharges > 0) {
-          consumeShield();
-          if (bullet.reflectable) {
-            const dx = boss.x - bullet.x;
-            const dy = boss.y - bullet.y;
-            const len = Math.max(1, Math.hypot(dx, dy));
-            bullets.push({
-              x: bullet.x,
-              y: bullet.y,
-              vx: dx / len * 520,
-              vy: dy / len * 520,
-              r: 12,
-              damage: 130,
-              color: '#ffe6a3',
-              type: 'reflectedArrow',
-              reflected: true,
-              angle: Math.atan2(dy, dx)
-            });
-            spawnParticles(bullet.x, bullet.y, '#fff1c8', 16, 120, 6);
-          } else {
-            spawnParticles(bullet.x, bullet.y, '#9fdfff', 12, 90, 5);
-          }
-        } else {
-          damagePlayer(bullet.damage);
-          spawnParticles(bullet.x, bullet.y, bullet.color, 10, 88, 5);
-        }
+        damagePlayer(bullet.damage);
+        spawnParticles(bullet.x, bullet.y, bullet.color, 10, 88, 5);
         bullets.splice(i, 1);
         continue;
       }
 
       if (bullet.y > state.height + 60 || bullet.x < -60 || bullet.x > state.width + 60) {
         bullets.splice(i, 1);
-      }
-    }
-
-    for (let i = pickups.length - 1; i >= 0; i--) {
-      const pickup = pickups[i];
-      pickup.life -= dt;
-      pickup.y += pickup.vy * dt;
-      if (pickup.y > state.height * 0.78) {
-        pickup.y = state.height * 0.78 + Math.sin(state.time * 4 + pickup.bob) * 6;
-        pickup.vy = 0;
-      }
-      if (dist(pickup.x, pickup.y, player.x, player.y - 18) <= pickup.r + player.r) {
-        player.shieldCharges = Math.min(3, player.shieldCharges + 1);
-        player.shieldFlash = 1.1;
-        addScore(60);
-        spawnParticles(pickup.x, pickup.y, '#9fdfff', 18, 120, 6);
-        pickups.splice(i, 1);
-        updateHud();
-        continue;
-      }
-      if (pickup.life <= 0) {
-        pickups.splice(i, 1);
       }
     }
 
@@ -1049,7 +835,6 @@
       drawBoss();
     }
 
-    drawPickups();
     drawProjectiles();
     drawParticlesLayer();
     drawAtmosphericOverlay();
@@ -1472,18 +1257,6 @@
     const sway = Math.sin(state.time * 5.2 + player.x * 0.01) * 3;
     ellipse(player.x, player.y + 20, 34, 14, true, 'rgba(0,0,0,0.4)');
 
-    if (player.shieldCharges > 0) {
-      const shieldAlpha = 0.18 + Math.max(0, player.shieldFlash) * 0.18;
-      ctx.strokeStyle = 'rgba(159, 223, 255, ' + shieldAlpha.toFixed(3) + ')';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y - 20, 34, Math.PI * 0.18, Math.PI * 0.82);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(player.x, player.y - 20, 38, Math.PI * 0.22, Math.PI * 0.78);
-      ctx.stroke();
-    }
-
     ctx.strokeStyle = 'rgba(10, 15, 22, 0.55)';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -1599,15 +1372,15 @@
   function drawBoss() {
     if (!boss.active) return;
 
-    const auraRadius = boss.r + (boss.phase === 2 ? 86 : 58) + Math.sin(boss.aura * 3) * (boss.phase === 2 ? 18 : 12);
+    const auraRadius = boss.r + 58 + Math.sin(boss.aura * 3) * 12;
     const eyeOpen = boss.rage
       ? 0.44 + Math.abs(Math.sin(state.time * 6.2)) * 0.42
       : 0.76 + Math.sin(state.time * 2.4) * 0.1;
     const headDrift = Math.sin(state.time * 1.9) * 3;
 
     const aura = ctx.createRadialGradient(boss.x, boss.y, 12, boss.x, boss.y, auraRadius);
-    aura.addColorStop(0, boss.phase === 2 ? 'rgba(255, 210, 164, 0.22)' : (boss.rage ? 'rgba(255, 225, 178, 0.18)' : 'rgba(206, 235, 255, 0.14)'));
-    aura.addColorStop(0.32, boss.phase === 2 ? 'rgba(214, 106, 80, 0.34)' : (boss.rage ? 'rgba(184, 97, 168, 0.3)' : 'rgba(110, 138, 208, 0.22)'));
+    aura.addColorStop(0, boss.rage ? 'rgba(255, 225, 178, 0.18)' : 'rgba(206, 235, 255, 0.14)');
+    aura.addColorStop(0.32, boss.rage ? 'rgba(184, 97, 168, 0.3)' : 'rgba(110, 138, 208, 0.22)');
     aura.addColorStop(1, 'rgba(30, 30, 52, 0)');
     ctx.fillStyle = aura;
     ctx.beginPath();
@@ -1648,9 +1421,9 @@
       const orbitR = boss.r + 28 + Math.sin(state.time * 2.2 + i) * 10;
       const ox = boss.x + Math.cos(angle) * orbitR;
       const oy = boss.y + Math.sin(angle * 1.4) * 20 - 4;
-      const orb = ctx.createRadialGradient(ox, oy, 1, ox, oy, boss.phase === 2 ? 22 : (boss.rage ? 18 : 14));
-      orb.addColorStop(0, boss.phase === 2 ? 'rgba(255, 226, 182, 0.96)' : (boss.rage ? 'rgba(255, 224, 202, 0.94)' : 'rgba(228, 245, 255, 0.92)'));
-      orb.addColorStop(1, boss.phase === 2 ? 'rgba(255, 120, 83, 0)' : (boss.rage ? 'rgba(210, 126, 255, 0)' : 'rgba(134, 184, 255, 0)'));
+      const orb = ctx.createRadialGradient(ox, oy, 1, ox, oy, boss.rage ? 18 : 14);
+      orb.addColorStop(0, boss.rage ? 'rgba(255, 224, 202, 0.94)' : 'rgba(228, 245, 255, 0.92)');
+      orb.addColorStop(1, boss.rage ? 'rgba(210, 126, 255, 0)' : 'rgba(134, 184, 255, 0)');
       ctx.fillStyle = orb;
       ctx.beginPath();
       ctx.arc(ox, oy, boss.rage ? 18 : 14, 0, Math.PI * 2);
@@ -1686,9 +1459,9 @@
 
     const face = ctx.createRadialGradient(boss.x - 12, boss.y - 18, 8, boss.x, boss.y, boss.r + 12);
     face.addColorStop(0, boss.hitFlash > 0 ? '#fffbe8' : '#f4efdd');
-    face.addColorStop(0.42, boss.phase === 2 ? '#dca56e' : (boss.rage ? '#dcb083' : '#d6c9a7'));
-    face.addColorStop(0.72, boss.phase === 2 ? '#8a4b34' : (boss.rage ? '#91614d' : '#7e7463'));
-    face.addColorStop(1, boss.phase === 2 ? '#261114' : (boss.rage ? '#33222f' : '#263245'));
+    face.addColorStop(0.42, boss.rage ? '#dcb083' : '#d6c9a7');
+    face.addColorStop(0.72, boss.rage ? '#91614d' : '#7e7463');
+    face.addColorStop(1, boss.rage ? '#33222f' : '#263245');
     ctx.fillStyle = face;
     ctx.beginPath();
     ctx.ellipse(boss.x, boss.y + headDrift, boss.r * 0.84, boss.r * 1.02, 0, 0, Math.PI * 2);
@@ -1715,13 +1488,13 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = boss.phase === 2 ? 'rgba(255, 170, 110, 0.62)' : (boss.rage ? 'rgba(224, 144, 255, 0.62)' : 'rgba(159, 215, 255, 0.48)');
+    ctx.strokeStyle = boss.rage ? 'rgba(224, 144, 255, 0.62)' : 'rgba(159, 215, 255, 0.48)';
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.arc(boss.x, boss.y, boss.r + 16 + Math.sin(boss.aura * 2) * 4, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.strokeStyle = boss.phase === 2 ? '#ffd28c' : (boss.rage ? '#dab0ff' : '#abdfff');
+    ctx.strokeStyle = boss.rage ? '#dab0ff' : '#abdfff';
     ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -1748,15 +1521,15 @@
     ctx.stroke();
 
     const eyeGlowL = ctx.createRadialGradient(boss.x - 18, boss.y - 8 + headDrift, 1, boss.x - 18, boss.y - 8 + headDrift, 17);
-    eyeGlowL.addColorStop(0, boss.phase === 2 ? 'rgba(255, 239, 210, 0.98)' : (boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)'));
-    eyeGlowL.addColorStop(1, boss.phase === 2 ? 'rgba(255, 138, 86, 0)' : (boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)'));
+    eyeGlowL.addColorStop(0, boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)');
+    eyeGlowL.addColorStop(1, boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)');
     ctx.fillStyle = eyeGlowL;
     ctx.beginPath();
     ctx.arc(boss.x - 18, boss.y - 8 + headDrift, 17, 0, Math.PI * 2);
     ctx.fill();
     const eyeGlowR = ctx.createRadialGradient(boss.x + 18, boss.y - 8 + headDrift, 1, boss.x + 18, boss.y - 8 + headDrift, 17);
-    eyeGlowR.addColorStop(0, boss.phase === 2 ? 'rgba(255, 239, 210, 0.98)' : (boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)'));
-    eyeGlowR.addColorStop(1, boss.phase === 2 ? 'rgba(255, 138, 86, 0)' : (boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)'));
+    eyeGlowR.addColorStop(0, boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)');
+    eyeGlowR.addColorStop(1, boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)');
     ctx.fillStyle = eyeGlowR;
     ctx.beginPath();
     ctx.arc(boss.x + 18, boss.y - 8 + headDrift, 17, 0, Math.PI * 2);
@@ -1796,39 +1569,6 @@
     ctx.moveTo(boss.x, boss.y + 31 + headDrift);
     ctx.lineTo(boss.x, boss.y + 53 + headDrift);
     ctx.stroke();
-  }
-
-  function drawPickups() {
-    pickups.forEach((pickup) => {
-      if (pickup.type !== 'shield') return;
-      const glow = ctx.createRadialGradient(pickup.x, pickup.y, 2, pickup.x, pickup.y, pickup.r * 2.2);
-      glow.addColorStop(0, 'rgba(200, 238, 255, 0.65)');
-      glow.addColorStop(1, 'rgba(200, 238, 255, 0)');
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(pickup.x, pickup.y, pickup.r * 2.2, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#85c7e8';
-      ctx.beginPath();
-      ctx.moveTo(pickup.x, pickup.y - pickup.r);
-      ctx.lineTo(pickup.x + pickup.r * 0.85, pickup.y - pickup.r * 0.25);
-      ctx.lineTo(pickup.x + pickup.r * 0.62, pickup.y + pickup.r * 0.95);
-      ctx.lineTo(pickup.x - pickup.r * 0.62, pickup.y + pickup.r * 0.95);
-      ctx.lineTo(pickup.x - pickup.r * 0.85, pickup.y - pickup.r * 0.25);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#eaf8ff';
-      ctx.beginPath();
-      ctx.moveTo(pickup.x, pickup.y - pickup.r * 0.58);
-      ctx.lineTo(pickup.x + pickup.r * 0.42, pickup.y - pickup.r * 0.1);
-      ctx.lineTo(pickup.x + pickup.r * 0.26, pickup.y + pickup.r * 0.56);
-      ctx.lineTo(pickup.x - pickup.r * 0.26, pickup.y + pickup.r * 0.56);
-      ctx.lineTo(pickup.x - pickup.r * 0.42, pickup.y - pickup.r * 0.1);
-      ctx.closePath();
-      ctx.fill();
-    });
   }
 
   function drawProjectiles() {
@@ -1898,49 +1638,6 @@
         return;
       }
 
-      if (bullet.type === 'arrow' || bullet.type === 'reflectedArrow') {
-        ctx.save();
-        ctx.translate(bullet.x, bullet.y);
-        ctx.rotate(bullet.angle || 0);
-        const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, bullet.r * 2.4);
-        glow.addColorStop(0, toRgba(bullet.reflected ? '#fff0ad' : '#ffd0a6', 0.55 * alpha));
-        glow.addColorStop(1, toRgba(bullet.reflected ? '#fff0ad' : '#ffd0a6', 0));
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(0, 0, bullet.r * 2.4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = toRgba(bullet.reflected ? '#fff7d5' : '#f6d7b0', alpha);
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(-bullet.r * 1.1, 0);
-        ctx.lineTo(bullet.r * 0.78, 0);
-        ctx.stroke();
-        ctx.fillStyle = toRgba(bullet.reflected ? '#ffe792' : '#a66b40', alpha);
-        ctx.beginPath();
-        ctx.moveTo(bullet.r * 1.05, 0);
-        ctx.lineTo(bullet.r * 0.25, -bullet.r * 0.42);
-        ctx.lineTo(bullet.r * 0.25, bullet.r * 0.42);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-        return;
-      }
-
-      if (bullet.type === 'lightning') {
-        ctx.save();
-        ctx.translate(bullet.x, bullet.y);
-        ctx.strokeStyle = toRgba('#dff8ff', alpha);
-        ctx.lineWidth = 3.2;
-        ctx.beginPath();
-        ctx.moveTo(0, -bullet.r * 1.1);
-        ctx.lineTo(bullet.r * 0.22, -bullet.r * 0.22);
-        ctx.lineTo(-bullet.r * 0.1, bullet.r * 0.18);
-        ctx.lineTo(bullet.r * 0.28, bullet.r * 0.98);
-        ctx.stroke();
-        ctx.restore();
-        return;
-      }
-
       const glow = ctx.createRadialGradient(bullet.x, bullet.y, 2, bullet.x, bullet.y, bullet.r * 2.4);
       glow.addColorStop(0, toRgba(bullet.color, 0.95 * alpha));
       glow.addColorStop(1, toRgba(bullet.color, 0));
@@ -1968,11 +1665,8 @@
   function drawWarnings() {
     warnings.forEach((warning) => {
       const alpha = Math.max(0, warning.life / 0.55);
-      const warningColor = warning.type === 'lightning'
-        ? 'rgba(220, 244, 255, ' + (alpha * 0.95).toFixed(3) + ')'
-        : 'rgba(131, 201, 255, ' + (alpha * 0.8).toFixed(3) + ')';
-      ctx.strokeStyle = warningColor;
-      ctx.lineWidth = warning.type === 'lightning' ? 3.6 : 2.2;
+      ctx.strokeStyle = 'rgba(131, 201, 255, ' + (alpha * 0.8).toFixed(3) + ')';
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(warning.x, state.height * 0.64);
       ctx.lineTo(warning.x, state.height * 0.92);
@@ -2152,13 +1846,7 @@
 
     document.getElementById('start-btn').addEventListener('click', startTemple);
     document.getElementById('altar-btn').addEventListener('click', pressAltarButton);
-    document.getElementById('play-again-btn').addEventListener('click', () => {
-      if (victoryAction === 'trueBoss') {
-        startTrueBoss();
-      } else {
-        restartGame();
-      }
-    });
+    document.getElementById('play-again-btn').addEventListener('click', restartGame);
     document.getElementById('retry-btn').addEventListener('click', restartGame);
 
     const joystick = document.getElementById('joystick');
