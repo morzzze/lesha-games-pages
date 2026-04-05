@@ -226,7 +226,7 @@ button:active{transform:scale(0.97);}
   <div id="joy-base"><div id="joy-stick"></div></div>
 </div>
 
-<div id="attack-btn">БРОСИТЬ<br>ВАЛУН</div>
+<div id="attack-btn" onclick="throwRock()">БРОСИТЬ<br>ВАЛУН</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
@@ -253,27 +253,16 @@ const bossFill=()=>document.getElementById('boss-fill');
 const comboText=()=>document.getElementById('combo-text');
 const comboFill=()=>document.getElementById('combo-fill');
 
-function unlockAudio(){
-    if(audioCtx && audioCtx.state==='suspended'){
-        audioCtx.resume().catch(()=>{});
-    }
-}
-
 function playTone(freq,time=0.08){
-    try{
-        unlockAudio();
-        const o=audioCtx.createOscillator();
-        const g=audioCtx.createGain();
-        o.frequency.value=freq;
-        o.type='sine';
-        g.gain.value=0.05;
-        o.connect(g).connect(audioCtx.destination);
-        o.start();
-        g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+time);
-        o.stop(audioCtx.currentTime+time);
-    }catch(_){
-        // ignore audio failures on restricted mobile browsers
-    }
+    const o=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    o.frequency.value=freq;
+    o.type='sine';
+    g.gain.value=0.05;
+    o.connect(g).connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+time);
+    o.stop(audioCtx.currentTime+time);
 }
 
 function updateHud(){
@@ -779,13 +768,7 @@ if(e.key===' '&&gameState==='fight')throwRock();
 });
 
 renderer.domElement.addEventListener('click',()=>{
-unlockAudio();
 if(gameState==='fight')throwRock();
-});
-
-renderer.domElement.addEventListener('pointerdown',e=>{
-unlockAudio();
-    if(gameState==='fight' && e.pointerType!=='mouse') throwRock();
 });
 }
 
@@ -923,7 +906,6 @@ return group;
 }
 
 function startTemple(){
-unlockAudio();
 document.getElementById('start-screen').classList.remove('visible');
 document.getElementById('altar-screen').classList.add('visible');
 initScene();
@@ -932,7 +914,6 @@ if(isMobile)setupMobileControls();
 }
 
 function pressAltarButton(){
-unlockAudio();
 document.getElementById('altar-screen').classList.remove('visible');
 gameState='shake';
 
@@ -983,8 +964,6 @@ particles.push(p);
 
 function throwRock(){
 if(gameState!=='fight'||!boss)return;
-
-unlockAudio();
 
 playTone(220+combo*8);
 
@@ -1123,60 +1102,27 @@ document.getElementById('attack-btn').style.display='flex';
 
 const base=document.getElementById('joy-base');
 const stick=document.getElementById('joy-stick');
-const attackBtn=document.getElementById('attack-btn');
-
-function resetJoystick(){
-joystick.active=false;
-joystick.dx=0;
-stick.style.transform='translateX(0px)';
-}
-
-function moveJoystickFromTouch(touch){
-const rect=base.getBoundingClientRect();
-let dx=touch.clientX-(rect.left+78);
-const dist=Math.min(75,Math.hypot(dx,0));
-joystick.dx=(dx/75)*(dist/75);
-stick.style.transform=`translateX(${dx*0.9}px)`;
-}
 
 base.addEventListener('touchstart',e=>{
 e.preventDefault();
-unlockAudio();
 joystick.active=true;
-if(e.changedTouches && e.changedTouches[0]) moveJoystickFromTouch(e.changedTouches[0]);
-},{passive:false});
+});
 
 base.addEventListener('touchmove',e=>{
 e.preventDefault();
 if(!joystick.active)return;
 
-if(e.touches && e.touches[0]) moveJoystickFromTouch(e.touches[0]);
-},{passive:false});
-
-base.addEventListener('touchend',()=>{
-resetJoystick();
-},{passive:false});
-
-base.addEventListener('touchcancel',()=>{
-resetJoystick();
-},{passive:false});
-
-attackBtn.addEventListener('touchstart',e=>{
-e.preventDefault();
-unlockAudio();
-throwRock();
-},{passive:false});
-
-attackBtn.addEventListener('pointerdown',e=>{
-e.preventDefault();
-unlockAudio();
-throwRock();
+const rect=base.getBoundingClientRect();
+let dx=e.touches[0].clientX-(rect.left+78);
+const dist=Math.min(75,Math.hypot(dx,0));
+joystick.dx=(dx/75)*(dist/75);
+stick.style.transform=`translateX(${dx*0.9}px)`;
 });
 
-attackBtn.addEventListener('click',e=>{
-e.preventDefault();
-unlockAudio();
-throwRock();
+base.addEventListener('touchend',()=>{
+joystick.active=false;
+joystick.dx=0;
+stick.style.transform='translateX(0px)';
 });
 }
 
