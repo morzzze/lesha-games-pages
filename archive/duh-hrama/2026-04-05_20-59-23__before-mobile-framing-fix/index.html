@@ -245,7 +245,6 @@ let joystick={active:false,dx:0};
 let combo=0;
 let comboTimer=0;
 let rage=false;
-const cameraTarget=new THREE.Vector3(0,4.2,0);
 
 const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 const bossHpText=()=>document.getElementById('boss-hp-text');
@@ -273,27 +272,6 @@ function updateHud(){
     comboText().textContent=String(combo);
     const comboRatio=Math.max(0,Math.min(1,combo/20));
     comboFill().style.width=(comboRatio*100).toFixed(1)+'%';
-}
-
-function resetGameplayCamera(){
-    if(!camera) return;
-    const portrait=window.innerHeight>window.innerWidth;
-    if(portrait){
-        camera.fov=58;
-        camera.position.set(0,8.8,30);
-        cameraTarget.set(0,4.1,1.6);
-    }else{
-        camera.fov=70;
-        camera.position.set(0,9,22);
-        cameraTarget.set(0,4.2,0);
-    }
-    camera.updateProjectionMatrix();
-    camera.lookAt(cameraTarget);
-}
-
-function aimGameplayCamera(){
-    if(!camera) return;
-    camera.lookAt(cameraTarget);
 }
 
 function applyShadow(obj){
@@ -709,7 +687,7 @@ scene.fog=new THREE.Fog(0x0b0d15,18,72);
 scene.background=new THREE.Color(0x05070d);
 
 camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,0.1,1000);
-resetGameplayCamera();
+camera.position.set(0,9,22);
 
 renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
@@ -748,7 +726,7 @@ updateHud();
 
 window.addEventListener('resize',()=>{
 camera.aspect=window.innerWidth/window.innerHeight;
-resetGameplayCamera();
+camera.updateProjectionMatrix();
 renderer.setSize(window.innerWidth,window.innerHeight);
 });
 
@@ -887,7 +865,7 @@ camera.position.y=9+(Math.random()-0.5)*1.2;
 
 if(count>70){
 clearInterval(shake);
-resetGameplayCamera();
+camera.position.set(0,9,22);
 spawnBoss();
 }
 },25);
@@ -978,7 +956,6 @@ bossHP-=dmg;
 
 spawnParticles(boss.position);
 playTone(440+combo*5,0.05);camera.position.x=(Math.random()-0.5)*0.6;
-camera.position.z=(window.innerHeight>window.innerWidth)?30:22;
 updateHud();
 
 scene.remove(r);
@@ -1054,7 +1031,6 @@ updateHud();
 function animate(){
 requestAnimationFrame(animate);
 update();
-aimGameplayCamera();
 renderer.render(scene,camera);
 }
 

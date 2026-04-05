@@ -1,0 +1,4 @@
+Archived published page: duh-hrama
+Snapshot: 2026-04-05_20-59-23__before-mobile-framing-fix
+Meaning: published version before applying mobile-framing-fix
+Created at: Sun Apr  5 20:59:23 EET 2026
