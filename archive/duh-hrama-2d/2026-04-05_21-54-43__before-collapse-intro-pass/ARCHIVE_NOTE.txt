@@ -1,0 +1,4 @@
+Archived published page: duh-hrama-2d
+Snapshot: 2026-04-05_21-54-43__before-collapse-intro-pass
+Meaning: published version before applying collapse-intro-pass
+Created at: Sun Apr  5 21:54:43 EET 2026

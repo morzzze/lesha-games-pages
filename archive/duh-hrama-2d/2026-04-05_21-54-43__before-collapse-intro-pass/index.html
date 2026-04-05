@@ -389,10 +389,6 @@
     shakePower: 0,
     score: 0,
     bestScore: loadBestScore(),
-    sequence: 'none',
-    sequenceDuration: 0,
-    debrisTimer: 0,
-    collapseProgress: 0,
     isTouch: matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
     joystick: { active: false, valueX: 0, valueY: 0 }
   };
@@ -520,10 +516,6 @@
     boss.aura = 0;
     state.shakeTime = 0;
     state.shakePower = 0;
-    state.sequence = 'none';
-    state.sequenceDuration = 0;
-    state.debrisTimer = 0;
-    state.collapseProgress = 0;
     bossNameLabel.textContent = 'Дух Храма';
     shakeTitle.textContent = 'Храм шепчет…';
     shakeText.textContent = 'Печать сорвана. Дух выходит из тумана.';
@@ -567,34 +559,11 @@
     boss.attackTimer = 1.0;
     boss.hitFlash = 0;
     boss.aura = 0.8;
-    state.sequence = 'trueBossIntro';
-    state.sequenceDuration = 1.05;
     state.shakeTime = 1.05;
     state.shakePower = 14;
-    state.collapseProgress = 1;
     bossNameLabel.textContent = 'Истинный босс';
     shakeTitle.textContent = 'Истинный босс пробуждается…';
     shakeText.textContent = 'Дух превращается в гигантское смертельное существо: книги, молнии, стрелы и щиты уже летят на арену.';
-    setScreen('shake');
-    updateHud();
-  }
-
-  function startTempleCollapseSequence() {
-    particles.length = 0;
-    bullets.length = 0;
-    pickups.length = 0;
-    warnings.length = 0;
-    player.invuln = 2.4;
-    player.combo = 0;
-    player.comboTimer = 0;
-    state.sequence = 'bossAscend';
-    state.sequenceDuration = 2.2;
-    state.debrisTimer = 0;
-    state.shakeTime = 2.2;
-    state.shakePower = 15;
-    boss.rage = true;
-    shakeTitle.textContent = 'Дух взлетает…';
-    shakeText.textContent = 'После победы храм рушится, и из него вырывается гигантская смертельная форма.';
     setScreen('shake');
     updateHud();
   }
@@ -685,12 +654,13 @@
       boss.hp = 0;
       addScore(boss.phase === 2 ? 900 : 400);
       if (boss.phase === 1) {
-        startTempleCollapseSequence();
+        victoryText.textContent = 'Первая форма пала. Нажми кнопку и начни бой с истинным боссом.';
+        configureVictoryScreen('trueBoss');
       } else {
         victoryText.textContent = 'Истинный босс повержен. Итоговый счёт: ' + Math.floor(state.score) + '.';
         configureVictoryScreen('restart');
-        setScreen('victory');
       }
+      setScreen('victory');
     }
 
     updateHud();
@@ -885,27 +855,7 @@
 
     if (state.shakeTime > 0) {
       state.shakeTime -= dt;
-      if (state.mode === 'shake' && state.sequence === 'bossAscend') {
-        state.collapseProgress = clamp(1 - (state.shakeTime / Math.max(0.001, state.sequenceDuration)), 0, 1);
-        boss.y -= dt * 88;
-        boss.aura += dt * 4.5;
-        state.debrisTimer -= dt;
-        if (state.debrisTimer <= 0) {
-          state.debrisTimer = 0.08;
-          spawnParticles(state.width * 0.5 + rand(-130, 130), state.height * 0.29 + rand(-40, 70), '#9d8d76', 10, 170, 7);
-          spawnParticles(state.width * 0.5 + rand(-180, 180), state.height * 0.58 + rand(-10, 40), '#756454', 8, 140, 6);
-        }
-        if (state.shakeTime <= 0) {
-          startTrueBoss();
-          return;
-        }
-      } else if (state.mode === 'shake' && state.sequence === 'trueBossIntro') {
-        state.collapseProgress = 1;
-        boss.aura += dt * 6;
-        boss.r = Math.min(102, boss.r + dt * 18);
-      }
       if (state.mode === 'shake' && state.shakeTime <= 0) {
-        state.sequence = 'none';
         beginFight();
       }
     }
@@ -1172,7 +1122,6 @@
     const altarY = state.height * 0.64;
     const altarPulse = 0.56 + 0.44 * Math.sin(state.time * 2.4);
     const playerShift = (((player.x || state.width * 0.5) - state.width * 0.5) / (state.width * 0.5));
-    const collapse = state.collapseProgress || 0;
 
     const wall = ctx.createLinearGradient(0, state.height * 0.14, 0, floorY);
     wall.addColorStop(0, '#121728');
@@ -1205,19 +1154,19 @@
 
     ctx.fillStyle = 'rgba(10, 14, 25, 0.82)';
     ctx.beginPath();
-    ctx.moveTo(state.width * 0.08 - collapse * 22, state.height * 0.2 + collapse * 6);
-    ctx.quadraticCurveTo(state.width * 0.5, state.height * (0.01 + collapse * 0.11), state.width * 0.92 + collapse * 22, state.height * 0.2 + collapse * 10);
-    ctx.lineTo(state.width * 0.92 + collapse * 12, state.height * 0.3 + collapse * 20);
-    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.12 + collapse * 30, state.width * 0.08 - collapse * 12, state.height * 0.3 + collapse * 10);
+    ctx.moveTo(state.width * 0.08, state.height * 0.2);
+    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.01, state.width * 0.92, state.height * 0.2);
+    ctx.lineTo(state.width * 0.92, state.height * 0.3);
+    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.12, state.width * 0.08, state.height * 0.3);
     ctx.closePath();
     ctx.fill();
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
     ctx.beginPath();
-    ctx.moveTo(state.width * 0.16 - collapse * 14, state.height * 0.18 + collapse * 4);
-    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.08 + collapse * 0.08 * state.height, state.width * 0.84 + collapse * 14, state.height * 0.18 + collapse * 8);
-    ctx.lineTo(state.width * 0.82 + collapse * 8, state.height * 0.27 + collapse * 14);
-    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.14 + collapse * 24, state.width * 0.18 - collapse * 8, state.height * 0.27 + collapse * 10);
+    ctx.moveTo(state.width * 0.16, state.height * 0.18);
+    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.08, state.width * 0.84, state.height * 0.18);
+    ctx.lineTo(state.width * 0.82, state.height * 0.27);
+    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.14, state.width * 0.18, state.height * 0.27);
     ctx.closePath();
     ctx.fill();
 
@@ -1227,8 +1176,8 @@
     ctx.fillStyle = innerDoor;
     ctx.beginPath();
     ctx.moveTo(state.width * 0.29, floorY);
-    ctx.lineTo(state.width * 0.33 - collapse * 10, state.height * 0.26 + collapse * 16);
-    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.08 + collapse * 36, state.width * 0.67 + collapse * 10, state.height * 0.26 + collapse * 8);
+    ctx.lineTo(state.width * 0.33, state.height * 0.26);
+    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.08, state.width * 0.67, state.height * 0.26);
     ctx.lineTo(state.width * 0.71, floorY);
     ctx.closePath();
     ctx.fill();
@@ -1254,7 +1203,7 @@
     [[0.21, 0.26], [0.79, 0.26]].forEach(([rx, ry], idx) => {
       const x = state.width * rx;
       const y = state.height * ry;
-      const sway = Math.sin(state.time * 0.9 + idx * 1.9) * 5 + (idx === 0 ? -collapse * 18 : collapse * 18);
+      const sway = Math.sin(state.time * 0.9 + idx * 1.9) * 5;
       ctx.fillStyle = bannerColors[idx % 2];
       ctx.beginPath();
       ctx.moveTo(x - 20, y);
@@ -1271,28 +1220,6 @@
       ctx.lineTo(x + sway * 0.4, y + 126);
       ctx.stroke();
     });
-
-    if (collapse > 0) {
-      ctx.strokeStyle = 'rgba(222, 208, 176, ' + (0.18 + collapse * 0.22).toFixed(3) + ')';
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(state.width * 0.38, state.height * 0.2 + collapse * 18);
-      ctx.lineTo(state.width * 0.44, state.height * 0.34 + collapse * 26);
-      ctx.lineTo(state.width * 0.4, state.height * 0.48 + collapse * 22);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(state.width * 0.62, state.height * 0.18 + collapse * 16);
-      ctx.lineTo(state.width * 0.56, state.height * 0.32 + collapse * 24);
-      ctx.lineTo(state.width * 0.6, state.height * 0.5 + collapse * 18);
-      ctx.stroke();
-
-      for (let i = 0; i < 8; i++) {
-        const rx = state.width * (0.23 + i * 0.07);
-        const ry = floorY + 14 + (i % 3) * 10 + collapse * 22;
-        ctx.fillStyle = i % 2 ? 'rgba(92, 76, 61, 0.75)' : 'rgba(121, 101, 81, 0.78)';
-        ctx.fillRect(rx + Math.sin(i + state.time * 4) * collapse * 8, ry, 16 + (i % 2) * 7, 8 + (i % 3) * 2);
-      }
-    }
 
     drawMistLayer(state.height * 0.51, 34, 0.045, '112, 138, 178', 0.12, 0.18);
 
