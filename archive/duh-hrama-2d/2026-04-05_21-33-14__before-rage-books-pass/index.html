@@ -620,29 +620,7 @@
     if (state.mode !== 'fight' || !boss.active) return;
 
     const patternRoll = Math.random();
-    if (boss.rage && patternRoll > 0.76) {
-      const count = 4;
-      for (let i = 0; i < count; i++) {
-        const aimX = player.x + (i - (count - 1) / 2) * 42;
-        const aimY = player.y - 34;
-        const dx = aimX - boss.x;
-        const dy = aimY - boss.y;
-        const len = Math.max(1, Math.hypot(dx, dy));
-        const speed = rand(320, 390);
-        bullets.push({
-          x: boss.x,
-          y: boss.y + 10,
-          vx: dx / len * speed,
-          vy: dy / len * speed,
-          r: 13,
-          damage: 20,
-          color: '#d8a66e',
-          type: 'book',
-          angle: Math.atan2(dy, dx),
-          spin: rand(-7.5, 7.5)
-        });
-      }
-    } else if (patternRoll < 0.34) {
+    if (patternRoll < 0.34) {
       const count = boss.rage ? 7 : 5;
       for (let i = 0; i < count; i++) {
         const spread = (i - (count - 1) / 2) * (boss.rage ? 0.18 : 0.22);
@@ -776,9 +754,6 @@
       }
       bullet.x += bullet.vx * dt;
       bullet.y += bullet.vy * dt;
-      if (bullet.type === 'book') {
-        bullet.angle += (bullet.spin || 0) * dt;
-      }
 
       if (dist(bullet.x, bullet.y, player.x, player.y - 18) <= bullet.r + player.r) {
         damagePlayer(bullet.damage);
@@ -1602,42 +1577,6 @@
 
     bullets.forEach((bullet) => {
       const alpha = bullet.delayed && bullet.delayed > 0 ? 0.35 : 1;
-      if (bullet.type === 'book') {
-        ctx.save();
-        ctx.translate(bullet.x, bullet.y);
-        ctx.rotate(bullet.angle || 0);
-
-        const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, bullet.r * 2.6);
-        glow.addColorStop(0, toRgba('#ffd8ad', 0.34 * alpha));
-        glow.addColorStop(1, toRgba('#ffd8ad', 0));
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(0, 0, bullet.r * 2.6, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = toRgba('#6b3a23', alpha);
-        ctx.fillRect(-bullet.r * 0.86, -bullet.r * 0.66, bullet.r * 1.72, bullet.r * 1.32);
-        ctx.fillStyle = toRgba('#dca86a', alpha);
-        ctx.fillRect(-bullet.r * 0.72, -bullet.r * 0.54, bullet.r * 1.44, bullet.r * 1.08);
-        ctx.fillStyle = toRgba('#f6e7c8', alpha);
-        ctx.fillRect(-bullet.r * 0.38, -bullet.r * 0.44, bullet.r * 0.96, bullet.r * 0.88);
-        ctx.strokeStyle = toRgba('#4a2417', alpha * 0.8);
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.moveTo(-bullet.r * 0.18, -bullet.r * 0.42);
-        ctx.lineTo(-bullet.r * 0.18, bullet.r * 0.42);
-        ctx.stroke();
-        ctx.strokeStyle = toRgba('#fff7eb', alpha * 0.42);
-        ctx.beginPath();
-        ctx.moveTo(-bullet.r * 0.55, -bullet.r * 0.14);
-        ctx.lineTo(bullet.r * 0.4, -bullet.r * 0.14);
-        ctx.moveTo(-bullet.r * 0.55, bullet.r * 0.1);
-        ctx.lineTo(bullet.r * 0.34, bullet.r * 0.1);
-        ctx.stroke();
-        ctx.restore();
-        return;
-      }
-
       const glow = ctx.createRadialGradient(bullet.x, bullet.y, 2, bullet.x, bullet.y, bullet.r * 2.4);
       glow.addColorStop(0, toRgba(bullet.color, 0.95 * alpha));
       glow.addColorStop(1, toRgba(bullet.color, 0));
