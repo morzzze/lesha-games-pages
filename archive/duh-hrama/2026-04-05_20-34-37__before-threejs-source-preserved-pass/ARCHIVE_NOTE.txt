@@ -1,0 +1,4 @@
+Archived published page: duh-hrama
+Snapshot: 2026-04-05_20-34-37__before-threejs-source-preserved-pass
+Meaning: published version before applying threejs-source-preserved-pass
+Created at: Sun Apr  5 20:34:37 EET 2026
