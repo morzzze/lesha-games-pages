@@ -279,13 +279,13 @@ function resetGameplayCamera(){
     if(!camera) return;
     const portrait=window.innerHeight>window.innerWidth;
     if(portrait){
-        camera.fov=54;
-        camera.position.set(0,12.2,34);
-        cameraTarget.set(0,6.2,-11.5);
+        camera.fov=58;
+        camera.position.set(0,8.8,30);
+        cameraTarget.set(0,4.1,1.6);
     }else{
-        camera.fov=68;
-        camera.position.set(0,10.4,24.5);
-        cameraTarget.set(0,5.4,-7.5);
+        camera.fov=70;
+        camera.position.set(0,9,22);
+        cameraTarget.set(0,4.2,0);
     }
     camera.updateProjectionMatrix();
     camera.lookAt(cameraTarget);
@@ -293,14 +293,6 @@ function resetGameplayCamera(){
 
 function aimGameplayCamera(){
     if(!camera) return;
-    const portrait=window.innerHeight>window.innerWidth;
-    if(gameState==='fight' && boss){
-        const targetY=portrait?6.2:5.4;
-        const targetZ=portrait?-11.5:-7.5;
-        cameraTarget.x+=(boss.position.x*0.18-cameraTarget.x)*0.08;
-        cameraTarget.y+=(targetY-cameraTarget.y)*0.08;
-        cameraTarget.z+=(targetZ-cameraTarget.z)*0.08;
-    }
     camera.lookAt(cameraTarget);
 }
 
@@ -986,7 +978,7 @@ bossHP-=dmg;
 
 spawnParticles(boss.position);
 playTone(440+combo*5,0.05);camera.position.x=(Math.random()-0.5)*0.6;
-camera.position.z=(window.innerHeight>window.innerWidth)?34:24.5;
+camera.position.z=(window.innerHeight>window.innerWidth)?30:22;
 updateHud();
 
 scene.remove(r);
