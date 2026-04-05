@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-05_22-21-31__before-spell-pass
+Created at: Sun Apr  5 22:21:31 EET 2026
+Purpose: metadata-only snapshot created during failed spell-pass publication; no index.html survived
