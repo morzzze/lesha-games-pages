@@ -393,11 +393,6 @@
     sequenceDuration: 0,
     debrisTimer: 0,
     collapseProgress: 0,
-    whiteFlash: 0,
-    minionWave: 0,
-    minionWaveDelay: 0,
-    minionWaveMax: 2,
-    minionWaveCount: 0,
     isTouch: matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
     joystick: { active: false, valueX: 0, valueY: 0 }
   };
@@ -408,7 +403,6 @@
   const bullets = [];
   const pickups = [];
   const warnings = [];
-  const minions = [];
   const torchPulse = [0, 1, 2, 3, 4, 5].map((n) => n * 0.6);
 
   const player = {
@@ -514,7 +508,6 @@
     player.comboTimer = 0;
     player.shieldCharges = 0;
     player.shieldFlash = 0;
-    minions.length = 0;
     boss.active = true;
     boss.phase = 1;
     boss.trueForm = false;
@@ -531,10 +524,6 @@
     state.sequenceDuration = 0;
     state.debrisTimer = 0;
     state.collapseProgress = 0;
-    state.whiteFlash = 0;
-    state.minionWave = 0;
-    state.minionWaveDelay = 0;
-    state.minionWaveCount = 0;
     bossNameLabel.textContent = 'Дух Храма';
     shakeTitle.textContent = 'Храм шепчет…';
     shakeText.textContent = 'Печать сорвана. Дух выходит из тумана.';
@@ -560,7 +549,6 @@
     rocks.length = 0;
     bullets.length = 0;
     pickups.length = 0;
-    minions.length = 0;
     warnings.length = 0;
     player.hp = player.maxHp;
     player.invuln = 0.9;
@@ -584,7 +572,6 @@
     state.shakeTime = 1.05;
     state.shakePower = 14;
     state.collapseProgress = 1;
-    state.whiteFlash = 1;
     bossNameLabel.textContent = 'Истинный босс';
     shakeTitle.textContent = 'Истинный босс пробуждается…';
     shakeText.textContent = 'Дух превращается в гигантское смертельное существо: книги, молнии, стрелы и щиты уже летят на арену.';
@@ -612,45 +599,6 @@
     updateHud();
   }
 
-  function spawnBookMinionWave(wave) {
-    minions.length = 0;
-    state.minionWave = wave;
-    state.minionWaveCount = wave === 1 ? 6 : 8;
-    for (let i = 0; i < state.minionWaveCount; i++) {
-      minions.push({
-        x: state.width * (0.14 + (i % 4) * 0.18) + rand(-18, 18),
-        y: -40 - Math.floor(i / 4) * 72 - rand(0, 24),
-        r: wave === 1 ? 20 : 24,
-        hp: wave === 1 ? 1 : 2,
-        speed: wave === 1 ? rand(56, 72) : rand(74, 92),
-        bob: rand(0, Math.PI * 2),
-        drift: rand(18, 34),
-        damage: wave === 1 ? 10 : 14,
-        color: wave === 1 ? '#a55c3a' : '#8b3242'
-      });
-    }
-    updateHud();
-  }
-
-  function startMinionWaves() {
-    bullets.length = 0;
-    pickups.length = 0;
-    warnings.length = 0;
-    boss.active = false;
-    state.sequence = 'minionWaves';
-    state.minionWave = 0;
-    state.minionWaveDelay = 0.65;
-    state.collapseProgress = 1;
-    state.whiteFlash = 0.95;
-    player.invuln = 1.3;
-    player.combo = 0;
-    player.comboTimer = 0;
-    shakeTitle.textContent = 'Книжные монстры ползут из руин…';
-    shakeText.textContent = 'Отбей две волны мелких книжных чудовищ, и тогда из руин появится гигантская форма.';
-    setScreen('fight');
-    updateHud();
-  }
-
   function beginFight() {
     setScreen('fight');
   }
@@ -662,20 +610,12 @@
 
   function updateHud() {
     const playerRatio = clamp(player.hp / player.maxHp, 0, 1);
-    let bossRatio = clamp(boss.hp / boss.maxHp, 0, 1);
+    const bossRatio = clamp(boss.hp / boss.maxHp, 0, 1);
     playerFill.style.width = (playerRatio * 100).toFixed(1) + '%';
-    playerHpText.textContent = Math.max(0, Math.ceil(player.hp)) + ' / ' + player.maxHp;
-    if (state.sequence === 'minionWaves') {
-      const remaining = minions.filter((m) => m.hp > 0).length;
-      const total = Math.max(1, state.minionWaveCount || remaining);
-      bossRatio = remaining / total;
-      bossHpText.textContent = remaining + ' / ' + total;
-      bossNameLabel.textContent = 'Книжные монстры · Волна ' + state.minionWave + '/' + state.minionWaveMax;
-    } else {
-      bossHpText.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
-      bossNameLabel.textContent = boss.phase === 2 ? 'Истинный босс' : 'Дух Храма';
-    }
     bossFill.style.width = (bossRatio * 100).toFixed(1) + '%';
+    playerHpText.textContent = Math.max(0, Math.ceil(player.hp)) + ' / ' + player.maxHp;
+    bossHpText.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
+    bossNameLabel.textContent = boss.phase === 2 ? 'Истинный босс' : 'Дух Храма';
     comboText.textContent = String(player.combo);
     scoreText.textContent = String(Math.floor(state.score));
     bestText.textContent = String(Math.floor(state.bestScore));
@@ -709,11 +649,8 @@
     if (state.mode !== 'fight') return;
     if (player.cooldown > 0) return;
 
-    player.cooldown = state.sequence === 'minionWaves' ? 0.18 : (boss.rage ? 0.16 : 0.2);
-    const targetMinion = state.sequence === 'minionWaves'
-      ? minions.slice().sort((a, b) => dist(a.x, a.y, player.x, player.y) - dist(b.x, b.y, player.x, player.y))[0]
-      : null;
-    const aimX = targetMinion ? targetMinion.x : (boss.x || state.width * 0.5);
+    player.cooldown = boss.rage ? 0.16 : 0.2;
+    const aimX = boss.x || state.width * 0.5;
     const dx = clamp((aimX - player.x) * 0.9, -220, 220);
     rocks.push({
       x: player.x,
@@ -831,7 +768,7 @@
   }
 
   function spawnArrowVolley() {
-    const count = 4;
+    const count = 3;
     for (let i = 0; i < count; i++) {
       const aimX = player.x + (i - 1) * 18;
       const aimY = player.y - 16;
@@ -945,7 +882,6 @@
 
   function update(dt) {
     state.time += dt;
-    if (state.whiteFlash > 0) state.whiteFlash = Math.max(0, state.whiteFlash - dt * 1.35);
 
     if (state.shakeTime > 0) {
       state.shakeTime -= dt;
@@ -960,7 +896,7 @@
           spawnParticles(state.width * 0.5 + rand(-180, 180), state.height * 0.58 + rand(-10, 40), '#756454', 8, 140, 6);
         }
         if (state.shakeTime <= 0) {
-          startMinionWaves();
+          startTrueBoss();
           return;
         }
       } else if (state.mode === 'shake' && state.sequence === 'trueBossIntro') {
@@ -999,35 +935,19 @@
       if (player.comboTimer <= 0) player.combo = 0;
     }
 
-    if (state.sequence === 'minionWaves') {
-      state.minionWaveDelay -= dt;
-      if (minions.length === 0) {
-        if (state.minionWave < state.minionWaveMax) {
-          if (state.minionWaveDelay <= 0) {
-            state.whiteFlash = Math.max(state.whiteFlash, 0.55);
-            spawnBookMinionWave(state.minionWave + 1);
-            state.minionWaveDelay = 0.85;
-          }
-        } else if (state.minionWaveDelay <= 0) {
-          startTrueBoss();
-          return;
-        }
-      }
-    } else {
-      const bossRange = boss.phase === 2 ? 0.26 : (boss.rage ? 0.21 : 0.16);
-      const bossSpeed = boss.phase === 2 ? 2.7 : (boss.rage ? 2.2 : 1.35);
-      const bossBaseY = boss.phase === 2 ? 0.19 : 0.21;
-      const bossWave = boss.phase === 2 ? 5.2 : (boss.rage ? 3.8 : 2.2);
-      boss.x = state.width * 0.5 + Math.sin(state.time * bossSpeed) * state.width * bossRange;
-      boss.y = state.height * bossBaseY + Math.sin(state.time * bossWave) * (boss.phase === 2 ? 20 : 16);
-      boss.attackTimer -= dt;
-      boss.hitFlash = Math.max(0, boss.hitFlash - dt);
-      boss.aura += dt * (boss.rage ? 2.4 : 1.2);
+    const bossRange = boss.phase === 2 ? 0.26 : (boss.rage ? 0.21 : 0.16);
+    const bossSpeed = boss.phase === 2 ? 2.7 : (boss.rage ? 2.2 : 1.35);
+    const bossBaseY = boss.phase === 2 ? 0.19 : 0.21;
+    const bossWave = boss.phase === 2 ? 5.2 : (boss.rage ? 3.8 : 2.2);
+    boss.x = state.width * 0.5 + Math.sin(state.time * bossSpeed) * state.width * bossRange;
+    boss.y = state.height * bossBaseY + Math.sin(state.time * bossWave) * (boss.phase === 2 ? 20 : 16);
+    boss.attackTimer -= dt;
+    boss.hitFlash = Math.max(0, boss.hitFlash - dt);
+    boss.aura += dt * (boss.rage ? 2.4 : 1.2);
 
-      if (boss.attackTimer <= 0) {
-        spawnBossAttack();
-        boss.attackTimer = boss.phase === 2 ? rand(0.42, 0.7) : (boss.rage ? rand(0.55, 0.82) : rand(0.95, 1.28));
-      }
+    if (boss.attackTimer <= 0) {
+      spawnBossAttack();
+      boss.attackTimer = boss.phase === 2 ? rand(0.42, 0.7) : (boss.rage ? rand(0.55, 0.82) : rand(0.95, 1.28));
     }
 
     for (let i = rocks.length - 1; i >= 0; i--) {
@@ -1042,28 +962,7 @@
         spawnParticles(rock.x, rock.y, '#9bb0bf', 2, 24, 3.5);
       }
 
-      let hitMinion = false;
-      for (let j = minions.length - 1; j >= 0; j--) {
-        const minion = minions[j];
-        if (dist(rock.x, rock.y, minion.x, minion.y) <= minion.r + rock.r) {
-          player.combo += 1;
-          player.comboTimer = 1.4;
-          minion.hp -= 1;
-          addScore(45);
-          spawnParticles(minion.x, minion.y, '#d9a472', 14, 96, 5.5);
-          if (minion.hp <= 0) {
-            minions.splice(j, 1);
-            addScore(80);
-          }
-          rocks.splice(i, 1);
-          hitMinion = true;
-          updateHud();
-          break;
-        }
-      }
-      if (hitMinion) continue;
-
-      if (boss.active && dist(rock.x, rock.y, boss.x, boss.y) <= boss.r + rock.r) {
+      if (dist(rock.x, rock.y, boss.x, boss.y) <= boss.r + rock.r) {
         player.combo += 1;
         player.comboTimer = 1.4;
         const damage = 22 + Math.min(28, player.combo * 2.2);
@@ -1157,24 +1056,6 @@
       }
     }
 
-    for (let i = minions.length - 1; i >= 0; i--) {
-      const minion = minions[i];
-      minion.y += minion.speed * dt;
-      minion.x += Math.sin(state.time * 4 + minion.bob) * dt * minion.drift;
-      minion.x = clamp(minion.x, state.width * 0.08, state.width * 0.92);
-      if (dist(minion.x, minion.y, player.x, player.y - 14) <= minion.r + player.r) {
-        damagePlayer(minion.damage);
-        spawnParticles(minion.x, minion.y, minion.color, 16, 110, 6);
-        minions.splice(i, 1);
-        updateHud();
-        continue;
-      }
-      if (minion.y > state.height + 50) {
-        minions.splice(i, 1);
-        damagePlayer(minion.damage);
-      }
-    }
-
     updateParticles(dt);
     updateWarnings(dt);
     updateHud();
@@ -1206,15 +1087,6 @@
       ctx.translate((Math.random() - 0.5) * shakeFactor, (Math.random() - 0.5) * shakeFactor);
     }
 
-    const templeSpin = state.sequence === 'bossAscend'
-      ? Math.sin(state.time * 24) * 0.018 + state.collapseProgress * 0.04
-      : 0;
-    if (templeSpin !== 0) {
-      ctx.translate(state.width * 0.5, state.height * 0.5);
-      ctx.rotate(templeSpin);
-      ctx.translate(-state.width * 0.5, -state.height * 0.5);
-    }
-
     drawBackground();
     drawTemple();
     drawWarnings();
@@ -1227,7 +1099,6 @@
       drawBoss();
     }
 
-    drawMinions();
     drawPickups();
     drawProjectiles();
     drawParticlesLayer();
@@ -2033,38 +1904,6 @@
     });
   }
 
-  function drawMinions() {
-    minions.forEach((minion) => {
-      const bob = Math.sin(state.time * 6 + minion.bob) * 4;
-      ellipse(minion.x, minion.y + minion.r * 0.9, minion.r * 0.9, minion.r * 0.34, true, 'rgba(0,0,0,0.28)');
-      ctx.save();
-      ctx.translate(minion.x, minion.y + bob);
-      ctx.rotate(Math.sin(state.time * 3 + minion.bob) * 0.08);
-      ctx.fillStyle = '#5a301d';
-      ctx.fillRect(-minion.r * 0.86, -minion.r * 0.66, minion.r * 1.72, minion.r * 1.32);
-      ctx.fillStyle = minion.color;
-      ctx.fillRect(-minion.r * 0.72, -minion.r * 0.54, minion.r * 1.44, minion.r * 1.08);
-      ctx.fillStyle = '#f6e8c8';
-      ctx.fillRect(-minion.r * 0.44, -minion.r * 0.42, minion.r * 0.98, minion.r * 0.82);
-      ctx.fillStyle = '#0f1118';
-      ctx.beginPath();
-      ctx.arc(-minion.r * 0.18, -minion.r * 0.04, minion.r * 0.1, 0, Math.PI * 2);
-      ctx.arc(minion.r * 0.18, -minion.r * 0.04, minion.r * 0.1, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#33190e';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(-minion.r * 0.5, minion.r * 0.74);
-      ctx.lineTo(-minion.r * 0.26, minion.r * 1.12);
-      ctx.moveTo(-minion.r * 0.06, minion.r * 0.74);
-      ctx.lineTo(minion.r * 0.08, minion.r * 1.16);
-      ctx.moveTo(minion.r * 0.34, minion.r * 0.74);
-      ctx.lineTo(minion.r * 0.54, minion.r * 1.12);
-      ctx.stroke();
-      ctx.restore();
-    });
-  }
-
   function drawProjectiles() {
     rocks.forEach((rock) => {
       ctx.save();
@@ -2334,11 +2173,6 @@
       ctx.quadraticCurveTo(rx + 22, state.height * (0.33 + i * 0.055), rx + 10, state.height * (0.39 + i * 0.055));
       ctx.quadraticCurveTo(rx - 8, state.height * (0.35 + i * 0.055), rx, state.height * (0.3 + i * 0.055));
       ctx.fill();
-    }
-
-    if (state.whiteFlash > 0) {
-      ctx.fillStyle = 'rgba(255,255,255,' + Math.min(0.92, state.whiteFlash).toFixed(3) + ')';
-      ctx.fillRect(0, 0, state.width, state.height);
     }
   }
 
