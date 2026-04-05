@@ -6,14 +6,14 @@
 <title>Дух Храма — single file</title>
 <style>
   :root {
-    --gold: #dfc17d;
-    --gold-2: #8fcde8;
-    --bg: #030610;
-    --panel: rgba(6, 12, 24, 0.82);
-    --panel-border: rgba(146, 190, 222, 0.22);
-    --danger: #d96b7f;
-    --ok: #5cc8a4;
-    --text: #eef2ff;
+    --gold: #ffd45a;
+    --gold-2: #ffb300;
+    --bg: #05060d;
+    --panel: rgba(8, 10, 18, 0.84);
+    --panel-border: rgba(255, 212, 90, 0.24);
+    --danger: #ff5c4d;
+    --ok: #35d48b;
+    --text: #fff7dc;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -22,7 +22,7 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: radial-gradient(circle at top, #1a2237 0%, #0a1120 42%, #03050d 100%);
+    background: radial-gradient(circle at top, #191107 0%, #090a12 45%, #03040a 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     color: var(--text);
     touch-action: none;
@@ -91,13 +91,13 @@
   }
 
   #player-fill {
-    background: linear-gradient(90deg, #5bc7b0 0%, #8fe6cf 100%);
-    box-shadow: 0 0 18px rgba(99,216,190,.45);
+    background: linear-gradient(90deg, #2ae38f 0%, #7cffb0 100%);
+    box-shadow: 0 0 18px rgba(66,255,162,.5);
   }
 
   #boss-fill {
-    background: linear-gradient(90deg, #86b8ff 0%, #d171b4 100%);
-    box-shadow: 0 0 20px rgba(161,141,255,.45);
+    background: linear-gradient(90deg, #ffb347 0%, #ff5f5f 100%);
+    box-shadow: 0 0 20px rgba(255,116,94,.55);
   }
 
   #stats {
@@ -130,9 +130,9 @@
     width: min(92vw, 560px);
     padding: 26px 24px;
     border-radius: 24px;
-    background: linear-gradient(180deg, rgba(14, 18, 34, .95), rgba(5, 8, 17, .96));
-    border: 1px solid rgba(143, 205, 232, .2);
-    box-shadow: 0 24px 60px rgba(0,0,0,.52), 0 0 48px rgba(129, 174, 255, .08);
+    background: linear-gradient(180deg, rgba(19, 14, 7, .94), rgba(7, 9, 18, .94));
+    border: 1px solid rgba(255, 212, 90, .22);
+    box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 0 40px rgba(255, 187, 40, .08);
     text-align: center;
     pointer-events: auto;
     display: none;
@@ -181,16 +181,16 @@
     font-weight: 800;
     font-size: clamp(16px, 2.7vw, 22px);
     cursor: pointer;
-    color: #edf3ff;
-    background: linear-gradient(180deg, #50679f 0%, #2d3e6d 100%);
-    box-shadow: 0 10px 26px rgba(84, 111, 185, .26), inset 0 1px 0 rgba(255,255,255,.18);
+    color: #1c1203;
+    background: linear-gradient(180deg, #ffe184 0%, #ffcb3b 100%);
+    box-shadow: 0 10px 26px rgba(255, 190, 40, .28), inset 0 1px 0 rgba(255,255,255,.45);
     min-width: 200px;
   }
 
   button.secondary {
     color: white;
-    background: linear-gradient(180deg, #6b8bcf 0%, #3e568c 100%);
-    box-shadow: 0 10px 26px rgba(79, 102, 184, .24), inset 0 1px 0 rgba(255,255,255,.18);
+    background: linear-gradient(180deg, #3ddf9c 0%, #179d67 100%);
+    box-shadow: 0 10px 26px rgba(33, 185, 118, .28), inset 0 1px 0 rgba(255,255,255,.25);
   }
 
   button:active { transform: scale(.98); }
@@ -212,9 +212,9 @@
     width: 148px;
     height: 148px;
     border-radius: 50%;
-    background: rgba(114,160,214,.10);
-    border: 2px solid rgba(143,205,232,.32);
-    box-shadow: inset 0 0 28px rgba(133,171,234,.08), 0 8px 24px rgba(0,0,0,.25);
+    background: rgba(255,212,90,.10);
+    border: 2px solid rgba(255,212,90,.38);
+    box-shadow: inset 0 0 28px rgba(255,212,90,.06), 0 8px 24px rgba(0,0,0,.25);
     pointer-events: auto;
     touch-action: none;
   }
@@ -226,7 +226,7 @@
     left: 43px;
     top: 43px;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #ecf7ff, #91b5e8 55%, #405483 100%);
+    background: radial-gradient(circle at 30% 30%, #fff4c7, #ffd45a 55%, #d08c00 100%);
     box-shadow: 0 10px 22px rgba(0,0,0,.22);
   }
 
@@ -245,8 +245,8 @@
     font-size: 21px;
     font-weight: 900;
     color: white;
-    background: radial-gradient(circle at 35% 30%, #c6d8ff, #6a7dd0 45%, #2b2d60 100%);
-    box-shadow: 0 14px 30px rgba(101, 117, 212, .26), inset 0 2px 0 rgba(255,255,255,.2);
+    background: radial-gradient(circle at 35% 30%, #ffb07d, #ff6d4b 45%, #c82914 100%);
+    box-shadow: 0 14px 30px rgba(255, 88, 58, .28), inset 0 2px 0 rgba(255,255,255,.22);
     pointer-events: auto;
     touch-action: manipulation;
     user-select: none;
@@ -284,25 +284,25 @@
 
   <div id="overlay">
     <div id="start-screen" class="screen visible">
-      <h1>🌘 Дух Храма</h1>
-      <p>Мистическая браузерная мини-игра: войти в заброшенный храм, разбудить древнего хранителя и пережить его тёмный обряд.</p>
-      <p class="muted">Открывается как обычный HTML-файл. На телефоне — виртуальный джойстик и большая кнопка атаки.</p>
+      <h1>🏛️ Дух Храма</h1>
+      <p>Однофайловая браузерная мини-игра: зайти в храм, нажать золотую кнопку и победить пробуждённого духа.</p>
+      <p class="muted">Работает как обычный HTML-файл. На телефоне — виртуальный джойстик и большая кнопка атаки.</p>
       <div class="actions">
-        <button id="start-btn">Войти в сумрак</button>
+        <button id="start-btn">Войти в храм</button>
       </div>
     </div>
 
     <div id="altar-screen" class="screen">
-      <h2>Алтарь спит под печатью</h2>
-      <p>Коснись печати, и в храме проснётся хранитель. После этого начнётся бой с HP, фазой ярости и мистическими атаками.</p>
+      <h2>Золотой алтарь найден</h2>
+      <p>Нажми кнопку и разбуди босса. После этого начнётся бой с фазой ярости, HP игрока и победой/поражением.</p>
       <div class="actions">
-        <button id="altar-btn">КОСНУТЬСЯ ПЕЧАТИ</button>
+        <button id="altar-btn">НАЖАТЬ ЗОЛОТУЮ КНОПКУ</button>
       </div>
     </div>
 
     <div id="shake-screen" class="screen">
-      <h2>Храм шепчет…</h2>
-      <p>Печать сорвана. Дух выходит из тумана.</p>
+      <h2>Храм дрожит…</h2>
+      <p>Дух пробуждается. Приготовься к бою.</p>
     </div>
 
     <div id="victory-screen" class="screen">
@@ -547,7 +547,7 @@
       angle: rand(0, Math.PI * 2),
       trailTick: 0
     });
-    spawnParticles(player.x, player.y - 22, '#9dc0cc', 5, 46, 4.5);
+    spawnParticles(player.x, player.y - 22, '#d6c4a4', 5, 46, 4.5);
   }
 
   function damageBoss(amount) {
@@ -561,7 +561,7 @@
 
     if (!boss.rage && boss.hp <= boss.maxHp * 0.4) {
       boss.rage = true;
-      spawnParticles(boss.x, boss.y, '#b47cff', 28, 150, 8);
+      spawnParticles(boss.x, boss.y, '#ff8f57', 28, 150, 8);
       state.shakeTime = Math.max(state.shakeTime, 0.4);
       state.shakePower = Math.max(state.shakePower, 10);
     }
@@ -582,7 +582,7 @@
     player.invuln = 0.8;
     player.combo = 0;
     player.comboTimer = 0;
-    spawnParticles(player.x, player.y - 28, '#d97688', 16, 140, 6);
+    spawnParticles(player.x, player.y - 28, '#ff6a5f', 16, 140, 6);
     state.shakeTime = Math.max(state.shakeTime, 0.18);
     state.shakePower = Math.max(state.shakePower, 8);
 
@@ -612,7 +612,7 @@
           vy: Math.sin(angle) * speed,
           r: boss.rage ? 10 : 9,
           damage: boss.rage ? 16 : 12,
-          color: boss.rage ? '#d07eff' : '#8fd3ff'
+          color: boss.rage ? '#ff8256' : '#ffc86a'
         });
       }
     } else if (patternRoll < 0.68) {
@@ -631,7 +631,7 @@
           vy: dy / len * speed,
           r: boss.rage ? 11 : 10,
           damage: boss.rage ? 18 : 13,
-          color: boss.rage ? '#ff9db3' : '#9ec7ff'
+          color: '#ff704f'
         });
       }
     } else {
@@ -646,7 +646,7 @@
           vy: boss.rage ? rand(350, 430) : rand(280, 360),
           r: boss.rage ? 10 : 9,
           damage: boss.rage ? 15 : 11,
-          color: boss.rage ? '#c493ff' : '#b8e2ff',
+          color: '#ffc971',
           delayed: 0.38
         });
       }
@@ -707,7 +707,7 @@
       rock.trailTick += dt;
       if (rock.trailTick >= 0.035) {
         rock.trailTick = 0;
-        spawnParticles(rock.x, rock.y, '#9bb0bf', 2, 24, 3.5);
+        spawnParticles(rock.x, rock.y, '#d5b88c', 2, 24, 3.5);
       }
 
       if (dist(rock.x, rock.y, boss.x, boss.y) <= boss.r + rock.r) {
@@ -715,7 +715,7 @@
         player.comboTimer = 1.4;
         const damage = 22 + Math.min(28, player.combo * 2.2);
         damageBoss(damage);
-        spawnParticles(boss.x, boss.y, boss.rage ? '#d58fff' : '#9ed8ff', 18, 96, 5.5);
+        spawnParticles(boss.x, boss.y, boss.rage ? '#ff8157' : '#ffd373', 18, 96, 5.5);
         rocks.splice(i, 1);
         continue;
       }
@@ -795,201 +795,90 @@
   }
 
   function drawBackground() {
-    const sky = ctx.createLinearGradient(0, 0, 0, state.height);
-    sky.addColorStop(0, '#111934');
-    sky.addColorStop(0.28, '#0d1427');
-    sky.addColorStop(0.62, '#07101a');
-    sky.addColorStop(1, '#02050b');
-    ctx.fillStyle = sky;
+    const g = ctx.createLinearGradient(0, 0, 0, state.height);
+    g.addColorStop(0, '#14110b');
+    g.addColorStop(0.35, '#090b15');
+    g.addColorStop(1, '#030409');
+    ctx.fillStyle = g;
     ctx.fillRect(0, 0, state.width, state.height);
 
-    const moonGlow = ctx.createRadialGradient(state.width * 0.74, state.height * 0.16, 16, state.width * 0.74, state.height * 0.16, state.width * 0.24);
-    moonGlow.addColorStop(0, 'rgba(208, 231, 255, 0.22)');
-    moonGlow.addColorStop(0.45, 'rgba(124, 153, 228, 0.12)');
-    moonGlow.addColorStop(1, 'rgba(124, 153, 228, 0)');
-    ctx.fillStyle = moonGlow;
+    const glow = ctx.createRadialGradient(state.width * 0.5, state.height * 0.14, 20, state.width * 0.5, state.height * 0.14, state.width * 0.44);
+    glow.addColorStop(0, 'rgba(255, 214, 94, 0.08)');
+    glow.addColorStop(1, 'rgba(255, 214, 94, 0)');
+    ctx.fillStyle = glow;
     ctx.fillRect(0, 0, state.width, state.height);
-
-    const floorMist = ctx.createRadialGradient(state.width * 0.52, state.height * 0.78, 40, state.width * 0.52, state.height * 0.78, state.width * 0.48);
-    floorMist.addColorStop(0, 'rgba(92, 126, 165, 0.12)');
-    floorMist.addColorStop(0.5, 'rgba(60, 86, 120, 0.09)');
-    floorMist.addColorStop(1, 'rgba(20, 26, 40, 0)');
-    ctx.fillStyle = floorMist;
-    ctx.fillRect(0, 0, state.width, state.height);
-
-    for (let i = 0; i < 24; i++) {
-      const x = (((i * 137.37) + Math.sin(i * 2.1) * 35 + state.time * (i % 2 ? 4 : 7)) % (state.width + 40)) - 20;
-      const y = state.height * (0.08 + (i % 7) * 0.055) + Math.sin(state.time * 0.35 + i * 1.7) * 8;
-      const size = 1.2 + (i % 3) * 0.7;
-      const alpha = 0.08 + (i % 5) * 0.025;
-      ctx.fillStyle = 'rgba(214, 232, 255, ' + alpha.toFixed(3) + ')';
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
-    }
   }
 
   function drawTemple() {
     const floorY = state.height * 0.57;
-    const altarX = state.width * 0.5;
-    const altarY = state.height * 0.64;
 
-    const wall = ctx.createLinearGradient(0, state.height * 0.14, 0, floorY);
-    wall.addColorStop(0, '#121728');
-    wall.addColorStop(0.55, '#0b0f1a');
-    wall.addColorStop(1, '#070a12');
-    ctx.fillStyle = wall;
-    ctx.fillRect(state.width * 0.05, state.height * 0.12, state.width * 0.9, floorY - state.height * 0.12);
-
-    ctx.fillStyle = 'rgba(10, 14, 25, 0.82)';
-    ctx.beginPath();
-    ctx.moveTo(state.width * 0.08, state.height * 0.2);
-    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.01, state.width * 0.92, state.height * 0.2);
-    ctx.lineTo(state.width * 0.92, state.height * 0.3);
-    ctx.quadraticCurveTo(state.width * 0.5, state.height * 0.12, state.width * 0.08, state.height * 0.3);
-    ctx.closePath();
-    ctx.fill();
-
-    const floor = ctx.createLinearGradient(0, floorY, 0, state.height);
-    floor.addColorStop(0, '#231c17');
-    floor.addColorStop(0.45, '#17110f');
-    floor.addColorStop(1, '#09090d');
-    ctx.fillStyle = floor;
+    ctx.fillStyle = '#19130d';
     ctx.beginPath();
     ctx.moveTo(state.width * 0.04, state.height);
-    ctx.lineTo(state.width * 0.21, floorY);
-    ctx.lineTo(state.width * 0.79, floorY);
+    ctx.lineTo(state.width * 0.22, floorY);
+    ctx.lineTo(state.width * 0.78, floorY);
     ctx.lineTo(state.width * 0.96, state.height);
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-    ctx.beginPath();
-    ctx.moveTo(0, state.height);
-    ctx.lineTo(state.width * 0.17, floorY);
-    ctx.lineTo(state.width * 0.21, floorY);
-    ctx.lineTo(state.width * 0.08, state.height);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(state.width, state.height);
-    ctx.lineTo(state.width * 0.83, floorY);
-    ctx.lineTo(state.width * 0.79, floorY);
-    ctx.lineTo(state.width * 0.92, state.height);
-    ctx.closePath();
-    ctx.fill();
-
-    for (let i = 0; i <= 11; i++) {
-      const x = state.width * 0.11 + (state.width * 0.78 / 11) * i;
-      ctx.strokeStyle = 'rgba(210, 199, 168, 0.05)';
-      ctx.lineWidth = i % 3 === 0 ? 1.4 : 1;
+    for (let i = 0; i <= 10; i++) {
+      const x = state.width * 0.12 + (state.width * 0.76 / 10) * i;
+      ctx.strokeStyle = 'rgba(255, 221, 142, 0.04)';
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(x, floorY);
-      ctx.lineTo(state.width * 0.5 + (x - state.width * 0.5) * 2.05, state.height);
+      ctx.lineTo(state.width * 0.5 + (x - state.width * 0.5) * 1.9, state.height);
       ctx.stroke();
     }
 
-    const pillarXs = [0.12, 0.24, 0.76, 0.88];
+    const pillarXs = [0.1, 0.2, 0.8, 0.9];
     pillarXs.forEach((ratio, index) => {
       const x = state.width * ratio;
-      const h = state.height * (0.36 + (index % 2) * 0.07);
-      const y = floorY - h + 34;
-      const pillar = ctx.createLinearGradient(x - 24, y, x + 24, y);
-      pillar.addColorStop(0, '#42392f');
-      pillar.addColorStop(0.48, '#8f7b5a');
-      pillar.addColorStop(0.7, '#bca578');
-      pillar.addColorStop(1, '#544735');
-      ctx.fillStyle = pillar;
-      ctx.fillRect(x - 24, y, 48, h);
-
-      ctx.fillStyle = 'rgba(223, 215, 188, 0.12)';
-      ctx.fillRect(x - 11, y + 10, 6, h - 20);
-      ctx.fillStyle = '#2d2621';
-      ctx.fillRect(x - 30, y - 16, 60, 16);
-      ctx.fillRect(x - 28, y + h, 56, 12);
-
-      ctx.strokeStyle = 'rgba(33, 27, 24, 0.35)';
-      ctx.lineWidth = 1.5;
-      for (let j = 0; j < 3; j++) {
-        ctx.beginPath();
-        ctx.moveTo(x + 5 + j * 7, y + 16 + j * 24);
-        ctx.lineTo(x + 1 - j * 2, y + 32 + j * 24);
-        ctx.stroke();
-      }
-
-      ctx.strokeStyle = 'rgba(76, 110, 92, 0.34)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - 18, y + 18);
-      ctx.quadraticCurveTo(x - 30, y + 54, x - 16, y + 86);
-      ctx.quadraticCurveTo(x - 4, y + 122, x - 18, y + 156);
-      ctx.stroke();
+      const h = state.height * (0.38 + (index % 2) * 0.06);
+      const y = floorY - h + 28;
+      ctx.fillStyle = '#4a3420';
+      ctx.fillRect(x - 20, y, 40, h);
+      ctx.fillStyle = 'rgba(255, 221, 150, 0.08)';
+      ctx.fillRect(x - 12, y + 8, 8, h - 16);
+      ctx.fillStyle = '#2b1f14';
+      ctx.fillRect(x - 26, y - 14, 52, 14);
     });
 
-    ellipse(altarX, altarY + 28, state.width * 0.16, 28, true, 'rgba(0,0,0,0.28)');
+    const altarX = state.width * 0.5;
+    const altarY = state.height * 0.63;
+    ctx.fillStyle = '#5c4d2c';
+    ellipse(altarX, altarY, state.width * 0.08, 22, true);
+    ctx.fillStyle = '#3b301f';
+    ellipse(altarX, altarY + 14, state.width * 0.12, 20, true);
 
-    const altarBase = ctx.createLinearGradient(altarX, altarY - 20, altarX, altarY + 42);
-    altarBase.addColorStop(0, '#5a5046');
-    altarBase.addColorStop(0.5, '#3d352f');
-    altarBase.addColorStop(1, '#241e1a');
-    ctx.fillStyle = altarBase;
-    ellipse(altarX, altarY + 10, state.width * 0.095, 24, true);
-    ctx.fillStyle = '#28221d';
-    ellipse(altarX, altarY + 28, state.width * 0.14, 22, true);
-
-    const sigilGlow = ctx.createRadialGradient(altarX, altarY - 12, 8, altarX, altarY - 12, 62);
-    sigilGlow.addColorStop(0, 'rgba(197, 223, 255, 0.36)');
-    sigilGlow.addColorStop(0.3, 'rgba(143, 205, 232, 0.22)');
-    sigilGlow.addColorStop(1, 'rgba(143, 205, 232, 0)');
-    ctx.fillStyle = sigilGlow;
+    const buttonGlow = ctx.createRadialGradient(altarX, altarY - 18, 4, altarX, altarY - 18, 42);
+    buttonGlow.addColorStop(0, 'rgba(255, 234, 121, 0.9)');
+    buttonGlow.addColorStop(1, 'rgba(255, 202, 64, 0)');
+    ctx.fillStyle = buttonGlow;
     ctx.beginPath();
-    ctx.arc(altarX, altarY - 12, 62, 0, Math.PI * 2);
+    ctx.arc(altarX, altarY - 18, 42, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(172, 214, 255, 0.6)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(altarX, altarY - 12, 30, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(altarX - 22, altarY - 12);
-    ctx.lineTo(altarX + 22, altarY - 12);
-    ctx.moveTo(altarX, altarY - 34);
-    ctx.lineTo(altarX, altarY + 10);
-    ctx.stroke();
+    ctx.fillStyle = '#ffd548';
+    ellipse(altarX, altarY - 18, 22, 11, true);
 
-    ctx.fillStyle = '#cbdfff';
-    ctx.beginPath();
-    ctx.arc(altarX, altarY - 12, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    const lanterns = [
-      [0.18, 0.46], [0.31, 0.38], [0.69, 0.38], [0.82, 0.46], [0.41, 0.32], [0.59, 0.32]
+    const torchPositions = [
+      [0.16, 0.45], [0.28, 0.39], [0.72, 0.39], [0.84, 0.45], [0.36, 0.34], [0.64, 0.34]
     ];
-    lanterns.forEach(([rx, ry], i) => {
+    torchPositions.forEach(([rx, ry], i) => {
       const x = state.width * rx;
       const y = state.height * ry;
-      const pulse = 15 + Math.sin(state.time * 3.2 + torchPulse[i]) * 5;
-      ctx.strokeStyle = 'rgba(96, 109, 138, 0.55)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x, y - 24);
-      ctx.lineTo(x, y + 2);
-      ctx.stroke();
-
-      const flame = ctx.createRadialGradient(x, y + 6, 2, x, y + 6, pulse + 8);
-      flame.addColorStop(0, 'rgba(255, 241, 198, 0.92)');
-      flame.addColorStop(0.35, 'rgba(162, 212, 255, 0.7)');
-      flame.addColorStop(1, 'rgba(79, 124, 176, 0)');
+      ctx.fillStyle = '#48372a';
+      ctx.fillRect(x - 4, y, 8, 54);
+      const pulse = 18 + Math.sin(state.time * 4 + torchPulse[i]) * 6;
+      const flame = ctx.createRadialGradient(x, y - 2, 3, x, y - 2, pulse);
+      flame.addColorStop(0, 'rgba(255, 248, 204, 0.9)');
+      flame.addColorStop(0.38, 'rgba(255, 185, 71, 0.8)');
+      flame.addColorStop(1, 'rgba(255, 110, 47, 0)');
       ctx.fillStyle = flame;
       ctx.beginPath();
-      ctx.arc(x, y + 6, pulse + 8, 0, Math.PI * 2);
+      ctx.arc(x, y - 2, pulse, 0, Math.PI * 2);
       ctx.fill();
-
-      ctx.fillStyle = '#dce8ff';
-      ellipse(x, y + 6, 5, 8, true);
-      ctx.fillStyle = '#6d85b8';
-      ellipse(x, y + 12, 8, 6, true);
     });
   }
 
@@ -997,175 +886,80 @@
     const blink = player.invuln > 0 && Math.floor(player.invuln * 18) % 2 === 0;
     if (blink) return;
 
-    ellipse(player.x, player.y + 18, 30, 12, true, 'rgba(0,0,0,0.38)');
+    ellipse(player.x, player.y + 18, 28, 11, true, 'rgba(0,0,0,0.35)');
 
-    const cloak = ctx.createLinearGradient(player.x, player.y - 56, player.x, player.y + 22);
-    cloak.addColorStop(0, '#6bd2ba');
-    cloak.addColorStop(0.32, '#246f76');
-    cloak.addColorStop(1, '#0b2131');
-    ctx.fillStyle = cloak;
+    const bodyGradient = ctx.createLinearGradient(player.x, player.y - 48, player.x, player.y + 18);
+    bodyGradient.addColorStop(0, '#5ae8b2');
+    bodyGradient.addColorStop(0.55, '#1ca070');
+    bodyGradient.addColorStop(1, '#0b5f49');
+    ctx.fillStyle = bodyGradient;
     ctx.beginPath();
-    ctx.moveTo(player.x, player.y - 58);
-    ctx.quadraticCurveTo(player.x + 30, player.y - 16, player.x + 23, player.y + 18);
-    ctx.lineTo(player.x - 23, player.y + 18);
-    ctx.quadraticCurveTo(player.x - 31, player.y - 18, player.x, player.y - 58);
+    ctx.moveTo(player.x, player.y - 54);
+    ctx.quadraticCurveTo(player.x + 28, player.y - 20, player.x + 20, player.y + 18);
+    ctx.lineTo(player.x - 20, player.y + 18);
+    ctx.quadraticCurveTo(player.x - 28, player.y - 20, player.x, player.y - 54);
     ctx.fill();
 
-    ctx.fillStyle = 'rgba(8, 18, 28, 0.68)';
+    ctx.fillStyle = '#e8d5b8';
     ctx.beginPath();
-    ctx.moveTo(player.x, player.y - 51);
-    ctx.quadraticCurveTo(player.x + 15, player.y - 18, player.x + 10, player.y + 6);
-    ctx.lineTo(player.x - 10, player.y + 6);
-    ctx.quadraticCurveTo(player.x - 15, player.y - 18, player.x, player.y - 51);
+    ctx.arc(player.x, player.y - 64, 12, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#dbc8ac';
-    ctx.beginPath();
-    ctx.arc(player.x, player.y - 64, 11, 0, Math.PI * 2);
-    ctx.fill();
-
-    const hood = ctx.createLinearGradient(player.x, player.y - 79, player.x, player.y - 30);
-    hood.addColorStop(0, '#24384c');
-    hood.addColorStop(1, '#0b1824');
-    ctx.fillStyle = hood;
-    ctx.beginPath();
-    ctx.moveTo(player.x - 15, player.y - 59);
-    ctx.quadraticCurveTo(player.x, player.y - 86, player.x + 15, player.y - 59);
-    ctx.quadraticCurveTo(player.x + 13, player.y - 39, player.x, player.y - 28);
-    ctx.quadraticCurveTo(player.x - 13, player.y - 39, player.x - 15, player.y - 59);
-    ctx.fill();
-
-    ctx.strokeStyle = '#5e4637';
-    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#e7c261';
+    ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(player.x + 10, player.y - 18);
-    ctx.lineTo(player.x + 24, player.y - 41);
+    ctx.moveTo(player.x + 12, player.y - 20);
+    ctx.lineTo(player.x + 26, player.y - 46);
     ctx.stroke();
 
-    const lanternGlow = ctx.createRadialGradient(player.x + 29, player.y - 49, 4, player.x + 29, player.y - 49, 26);
-    lanternGlow.addColorStop(0, 'rgba(255, 236, 183, 0.9)');
-    lanternGlow.addColorStop(0.35, 'rgba(255, 190, 122, 0.45)');
-    lanternGlow.addColorStop(1, 'rgba(255, 190, 122, 0)');
-    ctx.fillStyle = lanternGlow;
+    ctx.fillStyle = '#93846b';
     ctx.beginPath();
-    ctx.arc(player.x + 29, player.y - 49, 26, 0, Math.PI * 2);
+    ctx.arc(player.x + 31, player.y - 54, 9, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.fillStyle = '#f4e0b4';
-    ctx.beginPath();
-    ctx.arc(player.x + 29, player.y - 49, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#8e704f';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(player.x + 29, player.y - 49, 10, 0, Math.PI * 2);
-    ctx.stroke();
   }
 
   function drawBoss() {
     if (!boss.active) return;
 
-    const auraRadius = boss.r + 48 + Math.sin(boss.aura * 3) * 10;
-    const aura = ctx.createRadialGradient(boss.x, boss.y, 10, boss.x, boss.y, auraRadius);
-    aura.addColorStop(0, boss.rage ? 'rgba(255, 225, 178, 0.2)' : 'rgba(206, 235, 255, 0.16)');
-    aura.addColorStop(0.32, boss.rage ? 'rgba(184, 97, 168, 0.28)' : 'rgba(110, 138, 208, 0.22)');
-    aura.addColorStop(1, 'rgba(30, 30, 52, 0)');
+    const auraRadius = boss.r + 34 + Math.sin(boss.aura * 3) * 8;
+    const aura = ctx.createRadialGradient(boss.x, boss.y, 8, boss.x, boss.y, auraRadius);
+    aura.addColorStop(0, boss.rage ? 'rgba(255, 220, 110, 0.7)' : 'rgba(255, 245, 180, 0.62)');
+    aura.addColorStop(0.45, boss.rage ? 'rgba(255, 135, 90, 0.4)' : 'rgba(255, 205, 110, 0.25)');
+    aura.addColorStop(1, 'rgba(255, 140, 70, 0)');
     ctx.fillStyle = aura;
     ctx.beginPath();
     ctx.arc(boss.x, boss.y, auraRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    for (let i = 0; i < 6; i++) {
-      const angle = state.time * (boss.rage ? 1.45 : 0.9) + i * (Math.PI * 2 / 6);
-      const orbitR = boss.r + 26 + Math.sin(state.time * 2 + i) * 8;
-      const ox = boss.x + Math.cos(angle) * orbitR;
-      const oy = boss.y + Math.sin(angle * 1.4) * 18 - 6;
-      const orb = ctx.createRadialGradient(ox, oy, 1, ox, oy, boss.rage ? 16 : 13);
-      orb.addColorStop(0, boss.rage ? 'rgba(255, 223, 196, 0.9)' : 'rgba(224, 244, 255, 0.9)');
-      orb.addColorStop(1, boss.rage ? 'rgba(210, 126, 255, 0)' : 'rgba(134, 184, 255, 0)');
-      ctx.fillStyle = orb;
-      ctx.beginPath();
-      ctx.arc(ox, oy, boss.rage ? 16 : 13, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ellipse(boss.x, boss.y + 56, 42, 16, true, 'rgba(0,0,0,0.35)');
 
-    ellipse(boss.x, boss.y + 72, 46, 18, true, 'rgba(0,0,0,0.34)');
-
-    const tail = ctx.createLinearGradient(boss.x, boss.y + 6, boss.x, boss.y + 118);
-    tail.addColorStop(0, boss.rage ? 'rgba(110, 47, 104, 0.78)' : 'rgba(56, 76, 140, 0.68)');
-    tail.addColorStop(1, 'rgba(14, 18, 31, 0)');
-    ctx.fillStyle = tail;
+    const core = ctx.createRadialGradient(boss.x - 12, boss.y - 14, 8, boss.x, boss.y, boss.r + 6);
+    core.addColorStop(0, boss.hitFlash > 0 ? '#fff7d5' : '#fff0b2');
+    core.addColorStop(0.35, boss.rage ? '#ffcf66' : '#ffd76c');
+    core.addColorStop(0.7, boss.rage ? '#ff8c4c' : '#f5a642');
+    core.addColorStop(1, boss.rage ? '#8c2b10' : '#874d18');
+    ctx.fillStyle = core;
     ctx.beginPath();
-    ctx.moveTo(boss.x - boss.r * 0.72, boss.y + 4);
-    ctx.quadraticCurveTo(boss.x - boss.r * 0.92, boss.y + 62, boss.x - 18, boss.y + 116);
-    ctx.quadraticCurveTo(boss.x, boss.y + 92, boss.x + 18, boss.y + 116);
-    ctx.quadraticCurveTo(boss.x + boss.r * 0.92, boss.y + 62, boss.x + boss.r * 0.72, boss.y + 4);
-    ctx.closePath();
+    ctx.arc(boss.x, boss.y, boss.r, 0, Math.PI * 2);
     ctx.fill();
 
-    const face = ctx.createRadialGradient(boss.x - 12, boss.y - 18, 8, boss.x, boss.y, boss.r + 8);
-    face.addColorStop(0, boss.hitFlash > 0 ? '#fffbe8' : '#f4efdd');
-    face.addColorStop(0.42, boss.rage ? '#dcb083' : '#d6c9a7');
-    face.addColorStop(0.72, boss.rage ? '#91614d' : '#7e7463');
-    face.addColorStop(1, boss.rage ? '#352130' : '#283041');
-    ctx.fillStyle = face;
-    ctx.beginPath();
-    ctx.ellipse(boss.x, boss.y, boss.r * 0.84, boss.r * 0.97, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = boss.rage ? 'rgba(224, 144, 255, 0.6)' : 'rgba(159, 215, 255, 0.45)';
+    ctx.strokeStyle = boss.rage ? 'rgba(255, 106, 74, 0.55)' : 'rgba(255, 228, 150, 0.45)';
     ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.arc(boss.x, boss.y, boss.r + 14 + Math.sin(boss.aura * 2) * 3, 0, Math.PI * 2);
+    ctx.arc(boss.x, boss.y, boss.r + 12 + Math.sin(boss.aura * 2) * 3, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.strokeStyle = boss.rage ? '#d6a2ff' : '#a7d9ff';
-    ctx.lineWidth = 6;
-    ctx.lineCap = 'round';
+    ctx.fillStyle = '#2b160a';
     ctx.beginPath();
-    ctx.moveTo(boss.x - boss.r * 0.5, boss.y - boss.r * 0.5);
-    ctx.quadraticCurveTo(boss.x - boss.r * 0.98, boss.y - boss.r * 0.92, boss.x - boss.r * 0.88, boss.y - boss.r * 0.08);
-    ctx.moveTo(boss.x + boss.r * 0.5, boss.y - boss.r * 0.5);
-    ctx.quadraticCurveTo(boss.x + boss.r * 0.98, boss.y - boss.r * 0.92, boss.x + boss.r * 0.88, boss.y - boss.r * 0.08);
-    ctx.stroke();
-
-    const eyeGlowL = ctx.createRadialGradient(boss.x - 18, boss.y - 7, 1, boss.x - 18, boss.y - 7, 15);
-    eyeGlowL.addColorStop(0, boss.rage ? 'rgba(255, 230, 210, 0.9)' : 'rgba(220, 255, 250, 0.9)');
-    eyeGlowL.addColorStop(1, boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)');
-    ctx.fillStyle = eyeGlowL;
-    ctx.beginPath();
-    ctx.arc(boss.x - 18, boss.y - 7, 15, 0, Math.PI * 2);
-    ctx.fill();
-    const eyeGlowR = ctx.createRadialGradient(boss.x + 18, boss.y - 7, 1, boss.x + 18, boss.y - 7, 15);
-    eyeGlowR.addColorStop(0, boss.rage ? 'rgba(255, 230, 210, 0.9)' : 'rgba(220, 255, 250, 0.9)');
-    eyeGlowR.addColorStop(1, boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)');
-    ctx.fillStyle = eyeGlowR;
-    ctx.beginPath();
-    ctx.arc(boss.x + 18, boss.y - 7, 15, 0, Math.PI * 2);
+    ctx.arc(boss.x - 17, boss.y - 8, 7, 0, Math.PI * 2);
+    ctx.arc(boss.x + 17, boss.y - 8, 7, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#16202b';
+    ctx.strokeStyle = '#2b160a';
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.ellipse(boss.x - 18, boss.y - 7, 8, 4.5, -0.22, 0, Math.PI * 2);
-    ctx.ellipse(boss.x + 18, boss.y - 7, 8, 4.5, 0.22, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#202833';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(boss.x - 14, boss.y + 18);
-    ctx.quadraticCurveTo(boss.x, boss.y + 26, boss.x + 14, boss.y + 18);
-    ctx.stroke();
-
-    ctx.strokeStyle = boss.rage ? 'rgba(255, 211, 173, 0.7)' : 'rgba(173, 230, 255, 0.65)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(boss.x, boss.y - 26);
-    ctx.lineTo(boss.x, boss.y - 8);
-    ctx.moveTo(boss.x - 7, boss.y - 15);
-    ctx.lineTo(boss.x, boss.y - 8);
-    ctx.lineTo(boss.x + 7, boss.y - 15);
+    ctx.arc(boss.x, boss.y + 10, 20, 0.2, Math.PI - 0.2);
     ctx.stroke();
   }
 
@@ -1205,7 +999,7 @@
   function drawWarnings() {
     warnings.forEach((warning) => {
       const alpha = Math.max(0, warning.life / 0.55);
-      ctx.strokeStyle = 'rgba(131, 201, 255, ' + (alpha * 0.85).toFixed(3) + ')';
+      ctx.strokeStyle = 'rgba(255, 120, 92, ' + (alpha * 0.85).toFixed(3) + ')';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(warning.x, state.height * 0.64);
