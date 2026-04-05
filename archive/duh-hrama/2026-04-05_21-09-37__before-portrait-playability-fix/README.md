@@ -20,4 +20,3 @@
 - улучшена читаемость на телефоне
 - добавлен mobile framing fix для iPhone/portrait, чтобы бой был читаемым и босс не залезал в камеру
 - дополнительно исправлен fight-camera composition fix: камера теперь реально собирает арену и босса, а не ближний алтарь/сферу в portrait
-- добавлен portrait playability fix: boss silhouette/readability усилены, а mobile-камера переведена в более игровой oblique-angle ракурс
