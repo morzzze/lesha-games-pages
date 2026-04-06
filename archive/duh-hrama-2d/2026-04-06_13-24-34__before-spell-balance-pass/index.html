@@ -341,7 +341,7 @@
     </div>
     <div id="stats">
       <div class="chip">Комбо: <strong id="combo-text">0</strong></div>
-      <div class="chip">Обряд: <strong id="spell-text">0 / 12</strong></div>
+      <div class="chip">Обряд: <strong id="spell-text">0 / 10</strong></div>
       <div class="chip">Счёт: <strong id="score-text">0</strong></div>
       <div class="chip">Лучший: <strong id="best-text">0</strong></div>
       <div class="chip">Щиты: <strong id="shield-text">0</strong></div>
@@ -353,7 +353,7 @@
     <div id="start-screen" class="screen visible">
       <h1>🌘 Дух Храма 2D</h1>
       <p>Мистическая браузерная мини-игра: войти в заброшенный храм, разбудить древнего хранителя и пережить его тёмный обряд.</p>
-      <p class="muted">Открывается как обычный HTML-файл. На телефоне — виртуальный джойстик, большая кнопка атаки и отдельная кнопка обряда. Для spell теперь нужно 12 комбо.</p>
+      <p class="muted">Открывается как обычный HTML-файл. На телефоне — виртуальный джойстик, большая кнопка атаки и отдельная кнопка обряда.</p>
       <div class="actions">
         <button id="start-btn">Войти в сумрак</button>
       </div>
@@ -391,7 +391,7 @@
 
   <div id="mobile-controls">
     <div id="joystick"><div id="joystick-stick"></div></div>
-    <div id="spell-btn">ОБРЯД<br>12X</div>
+    <div id="spell-btn">ОБРЯД<br>10X</div>
     <div id="attack-btn">БРОСИТЬ<br>ВАЛУН</div>
   </div>
 
@@ -729,7 +729,7 @@
     }
     bossFill.style.width = (bossRatio * 100).toFixed(1) + '%';
     comboText.textContent = String(player.combo);
-    spellText.textContent = isSpellReady() ? 'ГОТОВО · F' : (Math.min(12, player.combo) + ' / 12');
+    spellText.textContent = isSpellReady() ? 'ГОТОВО · F' : (Math.min(10, player.combo) + ' / 10');
     scoreText.textContent = String(Math.floor(state.score));
     bestText.textContent = String(Math.floor(state.bestScore));
     shieldText.textContent = String(player.shieldCharges);
@@ -786,7 +786,7 @@
   }
 
   function isSpellReady() {
-    return state.mode === 'fight' && player.combo >= 12;
+    return state.mode === 'fight' && player.combo >= 10;
   }
 
   function castSpell() {
@@ -802,7 +802,7 @@
 
     player.combo = 0;
     player.comboTimer = 0;
-    player.cooldown = Math.max(player.cooldown, 0.32);
+    player.cooldown = Math.max(player.cooldown, 0.24);
     player.spellFlash = 1.15;
     state.whiteFlash = Math.max(state.whiteFlash, targetMinion ? 0.24 : 0.4);
     state.shakeTime = Math.max(state.shakeTime, targetMinion ? 0.18 : 0.32);
@@ -823,7 +823,7 @@
     spawnParticles(player.x, player.y - 26, '#f1d4ff', 20, 180, 6.5);
 
     if (targetMinion) {
-      const splashRadius = 112;
+      const splashRadius = 132;
       let cleared = 0;
       for (let i = minions.length - 1; i >= 0; i--) {
         const minion = minions[i];
@@ -838,7 +838,7 @@
         spawnParticles(targetX, targetY, '#ffd58c', 18, 130, 7);
       }
     } else {
-      damageBoss(320);
+      damageBoss(400);
       spawnParticles(targetX, targetY, boss.phase === 2 ? '#ffd59e' : '#d9a4ff', 34, 260, 9);
     }
 
