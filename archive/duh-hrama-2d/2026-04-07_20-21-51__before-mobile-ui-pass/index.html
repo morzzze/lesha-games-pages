@@ -37,11 +37,11 @@
   #hud {
     position: fixed;
     inset: 0 0 auto 0;
-    padding: max(8px, env(safe-area-inset-top)) 8px 0;
+    padding: max(10px, env(safe-area-inset-top)) 10px 0;
     z-index: 20;
     pointer-events: none;
     display: none;
-    width: min(calc(100vw - 12px), 760px);
+    width: min(96vw, 760px);
     margin: 0 auto;
   }
 
@@ -49,15 +49,15 @@
 
   .hud-row {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: stretch;
   }
 
   .panel {
     background: linear-gradient(180deg, rgba(8, 14, 28, 0.88), rgba(6, 9, 19, 0.9));
     border: 1px solid rgba(166, 194, 230, 0.14);
-    border-radius: 16px;
-    padding: 9px 11px;
+    border-radius: 18px;
+    padding: 10px 12px;
     backdrop-filter: blur(14px);
     box-shadow: 0 14px 40px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
     position: relative;
@@ -68,7 +68,7 @@
     content: "";
     position: absolute;
     inset: 1px;
-    border-radius: 15px;
+    border-radius: 17px;
     border: 1px solid rgba(255,255,255,.035);
     pointer-events: none;
   }
@@ -82,30 +82,16 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
-    font-size: 11px;
-    letter-spacing: .42px;
+    margin-bottom: 7px;
+    font-size: 12px;
+    letter-spacing: .45px;
     text-transform: uppercase;
     color: rgba(233, 240, 255, 0.86);
   }
 
-  .label-row span {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .label-row strong {
-    flex: 0 0 auto;
-    padding-left: 8px;
-    font-variant-numeric: tabular-nums;
-  }
-
   .bar {
     width: 100%;
-    height: 11px;
+    height: 12px;
     border-radius: 999px;
     overflow: hidden;
     background: rgba(255,255,255,.065);
@@ -129,75 +115,21 @@
     box-shadow: 0 0 20px rgba(161,141,255,.45);
   }
 
-  #hud-meta {
-    margin-top: 6px;
+  #stats {
+    margin-top: 8px;
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
+    font-size: 12px;
   }
 
-  .stat-pill,
   .chip {
     padding: 6px 10px;
-    border-radius: 14px;
+    border-radius: 999px;
     background: rgba(255,255,255,.045);
     border: 1px solid rgba(255,255,255,.06);
     color: rgba(237, 244, 255, 0.84);
     backdrop-filter: blur(10px);
-  }
-
-  .stat-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-  }
-
-  .stat-label,
-  .quest-label {
-    font-size: 10px;
-    letter-spacing: .36px;
-    text-transform: uppercase;
-    color: rgba(222, 231, 249, 0.6);
-    white-space: nowrap;
-  }
-
-  .stat-pill strong,
-  #quest-text {
-    color: #f4f8ff;
-  }
-
-  .stat-pill strong {
-    font-size: 13px;
-    line-height: 1;
-  }
-
-  #spell-pill.ready {
-    background: linear-gradient(180deg, rgba(111, 72, 181, 0.34), rgba(49, 28, 88, 0.4));
-    border-color: rgba(234, 213, 255, 0.22);
-    box-shadow: 0 0 24px rgba(166, 113, 255, 0.14);
-  }
-
-  #quest-panel {
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  #quest-text {
-    flex: 1;
-    min-width: 0;
-    font-size: 13px;
-    line-height: 1.2;
-  }
-
-  #help-chip {
-    margin-top: 6px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
   }
 
   #overlay {
@@ -282,21 +214,20 @@
 
   #mobile-controls {
     position: fixed;
-    inset: auto 0 calc(max(14px, env(safe-area-inset-bottom)) + 2px) 0;
+    inset: auto 0 max(20px, env(safe-area-inset-bottom)) 0;
     z-index: 25;
     display: none;
     pointer-events: none;
-    height: 188px;
   }
 
   #mobile-controls.visible { display: block; }
 
   #joystick {
     position: absolute;
-    left: 14px;
+    left: 18px;
     bottom: 0;
-    width: 132px;
-    height: 132px;
+    width: 148px;
+    height: 148px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, rgba(172,201,255,.11), rgba(62,80,114,.12) 55%, rgba(16,22,39,.18) 100%);
     border: 1px solid rgba(188,220,255,.22);
@@ -307,10 +238,10 @@
 
   #joystick-stick {
     position: absolute;
-    width: 56px;
-    height: 56px;
-    left: 38px;
-    top: 38px;
+    width: 62px;
+    height: 62px;
+    left: 43px;
+    top: 43px;
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #ecf7ff, #91b5e8 55%, #405483 100%);
     box-shadow: 0 10px 22px rgba(0,0,0,.22);
@@ -318,17 +249,17 @@
 
   #attack-btn {
     position: absolute;
-    right: 14px;
+    right: 18px;
     bottom: 0;
-    width: 118px;
-    height: 118px;
+    width: 132px;
+    height: 132px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 10px;
-    font-size: 18px;
+    padding: 12px;
+    font-size: 21px;
     font-weight: 900;
     color: white;
     background: radial-gradient(circle at 35% 30%, #eff5ff, #9baef7 32%, #5369c8 62%, #1d214e 100%);
@@ -343,18 +274,18 @@
 
   #spell-btn {
     position: absolute;
-    right: 28px;
-    bottom: 96px;
-    width: 84px;
-    height: 52px;
-    border-radius: 18px;
+    right: 34px;
+    bottom: 142px;
+    width: 94px;
+    height: 94px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 8px 10px;
-    font-size: 12px;
-    line-height: 1;
+    padding: 10px;
+    font-size: 14px;
+    line-height: 1.05;
     font-weight: 900;
     letter-spacing: .4px;
     color: #fffaf1;
@@ -364,14 +295,14 @@
     pointer-events: auto;
     touch-action: manipulation;
     user-select: none;
-    opacity: .54;
-    transform: translateY(0);
+    opacity: .46;
+    transform: scale(.95);
     transition: opacity .15s ease, transform .15s ease, box-shadow .15s ease;
   }
 
   #spell-btn.ready {
     opacity: 1;
-    transform: scale(1.02);
+    transform: scale(1);
     box-shadow: 0 16px 34px rgba(162, 109, 255, .34), inset 0 2px 0 rgba(255,255,255,.3);
   }
 
@@ -380,16 +311,16 @@
   #jump-btn {
     position: absolute;
     left: 18px;
-    bottom: 100px;
-    width: 96px;
-    height: 56px;
-    border-radius: 18px;
+    bottom: 164px;
+    width: 118px;
+    height: 72px;
+    border-radius: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 8px 10px;
-    font-size: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
     line-height: 1.05;
     font-weight: 900;
     letter-spacing: .4px;
@@ -405,103 +336,26 @@
   #jump-btn:active { transform: scale(.97); }
 
   @media (max-width: 760px) {
-    #hud {
-      width: min(calc(100vw - 8px), 520px);
-      padding: max(6px, env(safe-area-inset-top)) 6px 0;
-    }
-
-    .hud-row {
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .panel {
-      border-radius: 14px;
-      padding: 8px 10px;
-    }
-
-    .panel::before { border-radius: 13px; }
-    .label-row { font-size: 10px; margin-bottom: 5px; }
-    .bar { height: 10px; }
-
-    #hud-meta {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 5px;
-    }
-
-    .stat-pill {
-      padding: 6px 7px;
-      border-radius: 13px;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 2px;
-    }
-
-    .stat-label,
-    .quest-label {
-      font-size: 9px;
-      letter-spacing: .3px;
-    }
-
-    .stat-pill strong {
-      font-size: 12px;
-      line-height: 1.08;
-    }
-
-    #best-chip,
-    #help-chip {
-      display: none;
-    }
-
-    #quest-panel {
-      gap: 6px;
-      padding: 7px 9px;
-    }
-
-    #quest-text {
-      font-size: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    #mobile-controls { height: 176px; }
-
-    #joystick {
-      left: 12px;
-      width: 126px;
-      height: 126px;
-    }
-
-    #joystick-stick {
-      width: 54px;
-      height: 54px;
-      left: 36px;
-      top: 36px;
-    }
-
-    #attack-btn {
-      right: 12px;
-      width: 112px;
-      height: 112px;
-      font-size: 17px;
-    }
+    #hud { width: min(96vw, 560px); }
+    .hud-row { flex-direction: column; }
+    .bar { height: 11px; }
+    #stats { gap: 6px; }
+    .chip:last-child { display: none; }
 
     #spell-btn {
-      right: 24px;
-      bottom: 88px;
-      width: 78px;
-      height: 50px;
-      font-size: 11px;
+      right: 36px;
+      bottom: 120px;
+      width: 82px;
+      height: 82px;
+      font-size: 12px;
     }
 
     #jump-btn {
-      left: 16px;
-      bottom: 94px;
-      width: 92px;
-      height: 52px;
-      font-size: 11px;
+      left: 18px;
+      bottom: 126px;
+      width: 104px;
+      height: 66px;
+      font-size: 12px;
     }
   }
 </style>
@@ -520,15 +374,15 @@
         <div class="bar"><div id="boss-fill" class="fill"></div></div>
       </div>
     </div>
-    <div id="hud-meta">
-      <div class="stat-pill" id="combo-chip"><span class="stat-label">Комбо</span><strong id="combo-text">0</strong></div>
-      <div class="stat-pill" id="spell-pill"><span class="stat-label">Обряд</span><strong id="spell-text">0 / 12</strong></div>
-      <div class="stat-pill" id="shield-chip"><span class="stat-label">Щиты</span><strong id="shield-text">0</strong></div>
-      <div class="stat-pill" id="score-chip"><span class="stat-label">Счёт</span><strong id="score-text">0</strong></div>
-      <div class="stat-pill desktop-only" id="best-chip"><span class="stat-label">Лучший</span><strong id="best-text">0</strong></div>
+    <div id="stats">
+      <div class="chip">Комбо: <strong id="combo-text">0</strong></div>
+      <div class="chip">Обряд: <strong id="spell-text">0 / 12</strong></div>
+      <div class="chip">Задача: <strong id="quest-text">Доберись до храма</strong></div>
+      <div class="chip">Счёт: <strong id="score-text">0</strong></div>
+      <div class="chip">Лучший: <strong id="best-text">0</strong></div>
+      <div class="chip">Щиты: <strong id="shield-text">0</strong></div>
+      <div class="chip">Управление: <strong>← → / A D / W / ↑ / Space / F</strong></div>
     </div>
-    <div class="panel quest-panel" id="quest-panel"><span class="quest-label">Задача</span><strong id="quest-text">Доберись до храма</strong></div>
-    <div class="chip desktop-only" id="help-chip">Управление: <strong>← → / A D / W / ↑ / Space / F</strong></div>
   </div>
 
   <div id="overlay">
@@ -574,8 +428,8 @@
   <div id="mobile-controls">
     <div id="joystick"><div id="joystick-stick"></div></div>
     <div id="jump-btn">ПРЫЖОК</div>
-    <div id="spell-btn">ОБРЯД</div>
-    <div id="attack-btn">АТАКА</div>
+    <div id="spell-btn">ОБРЯД<br>12X</div>
+    <div id="attack-btn">БРОСИТЬ<br>ВАЛУН</div>
   </div>
 
 <script>
@@ -592,7 +446,6 @@
   const bossNameLabel = document.getElementById('boss-name-label');
   const comboText = document.getElementById('combo-text');
   const spellText = document.getElementById('spell-text');
-  const spellPill = document.getElementById('spell-pill');
   const questText = document.getElementById('quest-text');
   const scoreText = document.getElementById('score-text');
   const bestText = document.getElementById('best-text');
@@ -655,7 +508,7 @@
   const player = {
     x: 0,
     y: 0,
-    r: 22,
+    r: 24,
     maxHp: 140,
     hp: 140,
     speed: 430,
@@ -1155,7 +1008,7 @@
     comboText.textContent = String(player.combo);
     questText.textContent = state.quest;
     spellText.textContent = state.mode === 'fight'
-      ? (isSpellReady() ? (state.isTouch ? 'ГОТОВ' : 'ГОТОВО · F') : (Math.min(12, player.combo) + ' / 12'))
+      ? (isSpellReady() ? 'ГОТОВО · F' : (Math.min(12, player.combo) + ' / 12'))
       : 'ПОЗЖЕ';
     scoreText.textContent = String(Math.floor(state.score));
     bestText.textContent = String(Math.floor(state.bestScore));
@@ -1165,9 +1018,6 @@
     if (spellBtn) {
       spellBtn.style.display = state.mode === 'fight' ? 'flex' : 'none';
       spellBtn.classList.toggle('ready', isSpellReady());
-    }
-    if (spellPill) {
-      spellPill.classList.toggle('ready', state.mode === 'fight' && isSpellReady());
     }
     if (jumpBtn) {
       jumpBtn.style.display = state.mode === 'journey' ? 'flex' : 'none';
@@ -2648,12 +2498,8 @@
 
   function drawPlayer() {
     const blink = player.invuln > 0 && Math.floor(player.invuln * 18) % 2 === 0;
-    const playerScale = state.isTouch ? 0.78 : 0.88;
-    const anchorY = player.y + 22;
 
     ctx.save();
-    ctx.translate(player.x * (1 - playerScale), anchorY * (1 - playerScale));
-    ctx.scale(playerScale, playerScale);
     if (blink) {
       ctx.globalAlpha = 0.42;
     }

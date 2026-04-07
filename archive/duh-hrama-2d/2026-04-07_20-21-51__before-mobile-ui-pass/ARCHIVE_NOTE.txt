@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-07_20-21-51__before-mobile-ui-pass
+Created at: Tue Apr  7 20:21:51 EET 2026
+Purpose: snapshot before smaller hero and mobile-first HUD/UI pass
