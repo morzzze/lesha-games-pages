@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-07_17-41-34__before-player-hit-visibility-fix
+Created at: Tue Apr  7 17:41:34 EET 2026
+Purpose: snapshot of previous published current before fixing player disappearance on hit

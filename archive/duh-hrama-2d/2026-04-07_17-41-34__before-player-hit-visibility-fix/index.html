@@ -2474,11 +2474,7 @@
 
   function drawPlayer() {
     const blink = player.invuln > 0 && Math.floor(player.invuln * 18) % 2 === 0;
-
-    ctx.save();
-    if (blink) {
-      ctx.globalAlpha = 0.42;
-    }
+    if (blink) return;
 
     const sway = Math.sin(state.time * 5.2 + player.x * 0.01) * 3;
     ellipse(player.x, player.y + 20, 34, 14, true, 'rgba(0,0,0,0.4)');
@@ -2619,8 +2615,6 @@
     ctx.lineTo(player.x + 10, player.y + 6);
     ctx.closePath();
     ctx.fill();
-
-    ctx.restore();
   }
 
   function drawBoss() {
