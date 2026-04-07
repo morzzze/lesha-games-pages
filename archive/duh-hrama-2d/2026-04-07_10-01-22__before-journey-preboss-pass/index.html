@@ -308,33 +308,6 @@
 
   #spell-btn:active { transform: scale(.95); }
 
-  #jump-btn {
-    position: absolute;
-    left: 18px;
-    bottom: 164px;
-    width: 118px;
-    height: 72px;
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 10px 12px;
-    font-size: 14px;
-    line-height: 1.05;
-    font-weight: 900;
-    letter-spacing: .4px;
-    color: #f6f2ff;
-    background: linear-gradient(180deg, rgba(173, 133, 255, 0.96), rgba(74, 48, 130, 0.98));
-    border: 1px solid rgba(255, 242, 220, 0.18);
-    box-shadow: 0 12px 26px rgba(76, 47, 128, 0.26), inset 0 1px 0 rgba(255,255,255,0.2);
-    pointer-events: auto;
-    touch-action: manipulation;
-    user-select: none;
-  }
-
-  #jump-btn:active { transform: scale(.97); }
-
   @media (max-width: 760px) {
     #hud { width: min(96vw, 560px); }
     .hud-row { flex-direction: column; }
@@ -347,14 +320,6 @@
       bottom: 120px;
       width: 82px;
       height: 82px;
-      font-size: 12px;
-    }
-
-    #jump-btn {
-      left: 18px;
-      bottom: 126px;
-      width: 104px;
-      height: 66px;
       font-size: 12px;
     }
   }
@@ -377,21 +342,20 @@
     <div id="stats">
       <div class="chip">Комбо: <strong id="combo-text">0</strong></div>
       <div class="chip">Обряд: <strong id="spell-text">0 / 12</strong></div>
-      <div class="chip">Задача: <strong id="quest-text">Доберись до храма</strong></div>
       <div class="chip">Счёт: <strong id="score-text">0</strong></div>
       <div class="chip">Лучший: <strong id="best-text">0</strong></div>
       <div class="chip">Щиты: <strong id="shield-text">0</strong></div>
-      <div class="chip">Управление: <strong>← → / A D / W / ↑ / Space / F</strong></div>
+      <div class="chip">Управление: <strong>← → / A D / Space / F</strong></div>
     </div>
   </div>
 
   <div id="overlay">
     <div id="start-screen" class="screen visible">
       <h1>🌘 Дух Храма 2D</h1>
-      <p>Мистическая браузерная мини-игра: сначала приплыть на одинокий остров, пережить засаду книжных монстров, пройти ловушки и шахты, а потом уже войти в храм.</p>
-      <p class="muted">Открывается как обычный HTML-файл. На телефоне — виртуальный джойстик, прыжок, большая кнопка атаки и отдельная кнопка обряда. Для spell в храме теперь нужно 12 комбо.</p>
+      <p>Мистическая браузерная мини-игра: войти в заброшенный храм, разбудить древнего хранителя и пережить его тёмный обряд.</p>
+      <p class="muted">Открывается как обычный HTML-файл. На телефоне — виртуальный джойстик, большая кнопка атаки и отдельная кнопка обряда. Для spell теперь нужно 12 комбо.</p>
       <div class="actions">
-        <button id="start-btn">ПРИСТАТЬ К ОСТРОВУ</button>
+        <button id="start-btn">Войти в сумрак</button>
       </div>
     </div>
 
@@ -427,7 +391,6 @@
 
   <div id="mobile-controls">
     <div id="joystick"><div id="joystick-stick"></div></div>
-    <div id="jump-btn">ПРЫЖОК</div>
     <div id="spell-btn">ОБРЯД<br>12X</div>
     <div id="attack-btn">БРОСИТЬ<br>ВАЛУН</div>
   </div>
@@ -446,7 +409,6 @@
   const bossNameLabel = document.getElementById('boss-name-label');
   const comboText = document.getElementById('combo-text');
   const spellText = document.getElementById('spell-text');
-  const questText = document.getElementById('quest-text');
   const scoreText = document.getElementById('score-text');
   const bestText = document.getElementById('best-text');
   const shieldText = document.getElementById('shield-text');
@@ -483,12 +445,6 @@
     minionWaveDelay: 0,
     minionWaveMax: 2,
     minionWaveCount: 0,
-    quest: 'Доберись до храма',
-    journeyStage: 'none',
-    journeyProgress: 0,
-    journeyGoal: 0,
-    journeyTimer: 0,
-    journeyBookTotal: 0,
     isTouch: matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
     joystick: { active: false, valueX: 0, valueY: 0 }
   };
@@ -501,7 +457,6 @@
   const pickups = [];
   const warnings = [];
   const minions = [];
-  const journeyHazards = [];
   const torchPulse = [0, 1, 2, 3, 4, 5].map((n) => n * 0.6);
 
   const player = {
@@ -517,9 +472,7 @@
     comboTimer: 0,
     shieldCharges: 0,
     shieldFlash: 0,
-    spellFlash: 0,
-    groundY: 0,
-    vy: 0
+    spellFlash: 0
   };
 
   const boss = {
@@ -564,17 +517,12 @@
     canvas.style.width = state.width + 'px';
     canvas.style.height = state.height + 'px';
     ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-    player.groundY = state.height * 0.82;
-    if (!player.y || player.y > state.height) player.y = player.groundY;
+    player.y = state.height * 0.82;
     if (!player.x) player.x = state.width * 0.5;
   }
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
-  }
-
-  function lerp(from, to, alpha) {
-    return from + (to - from) * clamp(alpha, 0, 1);
   }
 
   function rand(min, max) {
@@ -590,8 +538,8 @@
     Object.entries(screens).forEach(([name, el]) => {
       el.classList.toggle('visible', name === mode);
     });
-    hud.classList.toggle('visible', mode === 'fight' || mode === 'journey');
-    mobileControls.classList.toggle('visible', (mode === 'fight' || mode === 'journey') && state.isTouch);
+    hud.classList.toggle('visible', mode === 'fight');
+    mobileControls.classList.toggle('visible', mode === 'fight' && state.isTouch);
   }
 
   function configureVictoryScreen(mode) {
@@ -603,13 +551,11 @@
     particles.length = 0;
     rocks.length = 0;
     bullets.length = 0;
-    journeyHazards.length = 0;
     pickups.length = 0;
     warnings.length = 0;
     state.score = 0;
     player.x = state.width * 0.5;
-    player.y = player.groundY;
-    player.vy = 0;
+    player.y = state.height * 0.82;
     player.hp = player.maxHp;
     player.cooldown = 0;
     player.invuln = 0;
@@ -639,12 +585,6 @@
     state.minionWave = 0;
     state.minionWaveDelay = 0;
     state.minionWaveCount = 0;
-    state.quest = 'Доберись до храма';
-    state.journeyStage = 'none';
-    state.journeyProgress = 0;
-    state.journeyGoal = 0;
-    state.journeyTimer = 0;
-    state.journeyBookTotal = 0;
     bossNameLabel.textContent = 'Дух Храма';
     shakeTitle.textContent = 'Храм шепчет…';
     shakeText.textContent = 'Печать сорвана. Дух выходит из тумана.';
@@ -653,199 +593,13 @@
   }
 
   function startTemple() {
-    resetFight();
-    startBoatArrival();
-  }
-
-  function canUseJump() {
-    return state.mode === 'journey' && state.sequence !== 'boatArrival';
-  }
-
-  function jumpPlayer() {
-    if (!canUseJump()) return;
-    if (player.y < player.groundY - 6) return;
-    player.vy = -690;
-    player.y -= 2;
-    spawnParticles(player.x, player.y - 16, '#d7bcff', 12, 130, 7);
-  }
-
-  function startBoatArrival() {
-    particles.length = 0;
-    bullets.length = 0;
-    pickups.length = 0;
-    warnings.length = 0;
-    minions.length = 0;
-    journeyHazards.length = 0;
-    boss.active = false;
-    state.sequence = 'boatArrival';
-    state.journeyStage = 'boatArrival';
-    state.journeyProgress = 0;
-    state.journeyGoal = 4.6;
-    state.journeyTimer = 0;
-    state.quest = 'Плыви к одинокому острову и высаживайся у храма.';
-    player.x = state.width * 0.22;
-    player.y = player.groundY;
-    player.vy = 0;
-    bossNameLabel.textContent = 'Путь к острову';
-    setScreen('journey');
-    updateHud();
-  }
-
-  function spawnJourneyBookAmbush() {
-    minions.length = 0;
-    state.journeyBookTotal = 6;
-    for (let i = 0; i < state.journeyBookTotal; i++) {
-      minions.push({
-        x: rand(state.width * 0.14, state.width * 0.86),
-        y: -rand(40, 240) - i * 34,
-        r: rand(20, 28),
-        hp: 3,
-        maxHp: 3,
-        vx: rand(-34, 34),
-        vy: rand(96, 150),
-        spin: rand(-2.8, 2.8),
-        angle: rand(0, Math.PI * 2)
-      });
-    }
-  }
-
-  function startIslandFight() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    journeyHazards.length = 0;
-    boss.active = false;
-    state.sequence = 'islandFight';
-    state.journeyStage = 'islandFight';
-    state.journeyTimer = 0;
-    state.journeyProgress = 0;
-    state.journeyGoal = 1;
-    state.quest = 'Отбейся от книжных монстров на берегу.';
     player.x = state.width * 0.5;
-    player.y = player.groundY;
-    player.vy = 0;
-    bossNameLabel.textContent = 'Берег острова';
-    spawnJourneyBookAmbush();
-    setScreen('journey');
-    updateHud();
-  }
-
-  function seedTrapRunHazards() {
-    journeyHazards.length = 0;
-    [
-      { kind: 'spike', worldX: 180, width: 78, damage: 14 },
-      { kind: 'pit', worldX: 360, width: 120, damage: 18 },
-      { kind: 'spike', worldX: 558, width: 86, damage: 14 },
-      { kind: 'swing', worldX: 756, width: 72, damage: 16 },
-      { kind: 'pit', worldX: 930, width: 124, damage: 18 }
-    ].forEach((hazard) => journeyHazards.push({ ...hazard, hitTimer: 0 }));
-  }
-
-  function startTrapRun() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    minions.length = 0;
-    boss.active = false;
-    state.sequence = 'trapRun';
-    state.journeyStage = 'trapRun';
-    state.journeyTimer = 0;
-    state.journeyProgress = 0;
-    state.journeyGoal = 980;
-    state.quest = 'Иди к храму, перепрыгивай ловушки и не сорвись.';
-    player.x = state.width * 0.32;
-    player.y = player.groundY;
-    player.vy = 0;
-    bossNameLabel.textContent = 'Тропа к храму';
-    seedTrapRunHazards();
-    setScreen('journey');
-    updateHud();
-  }
-
-  function startMineDescent() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    minions.length = 0;
-    journeyHazards.length = 0;
-    boss.active = false;
-    state.sequence = 'mineDescent';
-    state.journeyStage = 'mineDescent';
-    state.journeyTimer = 0;
-    state.journeyProgress = 0;
-    state.journeyGoal = 860;
-    state.quest = 'Спустись в шахты, уворачивайся от вагонеток и камней.';
-    player.x = state.width * 0.42;
-    player.y = player.groundY;
-    player.vy = 0;
-    bossNameLabel.textContent = 'Шахты под храмом';
-    setScreen('journey');
-    updateHud();
-  }
-
-  function startMineBoss() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    minions.length = 0;
-    journeyHazards.length = 0;
-    state.sequence = 'mineBoss';
-    state.journeyStage = 'mineBoss';
-    state.journeyTimer = 0;
-    state.journeyProgress = 0;
-    state.journeyGoal = 1;
-    state.quest = 'Победи хранителя шахт перед входом в храм.';
-    player.x = state.width * 0.36;
-    player.y = player.groundY;
-    player.vy = 0;
-    player.cooldown = 0;
-    boss.active = true;
-    boss.phase = 0;
-    boss.trueForm = false;
-    boss.r = 64;
-    boss.maxHp = 940;
-    boss.hp = boss.maxHp;
-    boss.rage = true;
-    boss.attackTimer = 1.1;
-    boss.hitFlash = 0;
-    boss.aura = 0.48;
-    bossNameLabel.textContent = 'Хранитель шахт';
-    setScreen('journey');
-    updateHud();
-  }
-
-  function finishJourneyPrelude() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    minions.length = 0;
-    journeyHazards.length = 0;
-    boss.active = false;
-    state.sequence = 'none';
-    state.journeyStage = 'none';
-    state.journeyProgress = 0;
-    state.journeyGoal = 0;
-    state.journeyTimer = 0;
-    state.quest = 'Коснись печати и войди в храм';
-    player.x = state.width * 0.5;
-    player.y = player.groundY;
-    player.vy = 0;
-    bossNameLabel.textContent = 'Дух Храма';
+    player.y = state.height * 0.82;
     setScreen('altar');
-    updateHud();
-  }
-
-  function hitJourneyHazard(hazard, damage) {
-    if (hazard.hitTimer > 0 || player.invuln > 0) return;
-    hazard.hitTimer = 0.42;
-    damagePlayer(damage);
-    state.journeyProgress = Math.max(0, state.journeyProgress - 52);
-    player.x = Math.max(state.width * 0.16, player.x - 58);
   }
 
   function pressAltarButton() {
     resetFight();
-    state.quest = 'Разбуди духа и переживи первый ритуал.';
     state.shakeTime = 1.15;
     state.shakePower = 11;
     setScreen('shake');
@@ -871,7 +625,6 @@
     boss.trueForm = true;
     boss.r = 84;
     boss.maxHp = 2600;
-    state.quest = 'Победи истинную форму духа храма.';
     boss.hp = boss.maxHp;
     boss.rage = true;
     boss.attackTimer = 1.0;
@@ -900,7 +653,6 @@
     player.comboTimer = 0;
     state.sequence = 'bossAscend';
     state.sequenceDuration = 2.2;
-    state.quest = 'Храм рушится. Выживи и доберись до истинной формы.';
     state.debrisTimer = 0;
     state.shakeTime = 2.2;
     state.shakePower = 15;
@@ -939,7 +691,6 @@
     state.sequence = 'minionWaves';
     state.minionWave = 0;
     state.minionWaveDelay = 0.65;
-    state.quest = 'Отрази волны книжных монстров внутри храма.';
     state.collapseProgress = 1;
     state.whiteFlash = 0.95;
     player.invuln = 1.3;
@@ -966,27 +717,7 @@
     let bossRatio = clamp(boss.hp / boss.maxHp, 0, 1);
     playerFill.style.width = (playerRatio * 100).toFixed(1) + '%';
     playerHpText.textContent = Math.max(0, Math.ceil(player.hp)) + ' / ' + player.maxHp;
-    if (state.mode === 'journey') {
-      if (state.sequence === 'boatArrival') {
-        bossRatio = clamp(state.journeyTimer / Math.max(0.001, state.journeyGoal), 0, 1);
-        bossHpText.textContent = Math.round(bossRatio * 100) + '%';
-        bossNameLabel.textContent = 'Одинокий остров';
-      } else if (state.sequence === 'islandFight') {
-        const remaining = minions.filter((m) => m.hp > 0).length;
-        const total = Math.max(1, state.journeyBookTotal || remaining);
-        bossRatio = remaining / total;
-        bossHpText.textContent = remaining + ' / ' + total;
-        bossNameLabel.textContent = 'Книжные монстры на берегу';
-      } else if (state.sequence === 'trapRun' || state.sequence === 'mineDescent') {
-        bossRatio = clamp(state.journeyProgress / Math.max(1, state.journeyGoal), 0, 1);
-        bossHpText.textContent = Math.floor(state.journeyProgress) + ' / ' + Math.floor(state.journeyGoal);
-        bossNameLabel.textContent = state.sequence === 'trapRun' ? 'Тропа к храму' : 'Спуск в шахты';
-      } else if (state.sequence === 'mineBoss') {
-        bossRatio = clamp(boss.hp / boss.maxHp, 0, 1);
-        bossHpText.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
-        bossNameLabel.textContent = 'Хранитель шахт';
-      }
-    } else if (state.sequence === 'minionWaves') {
+    if (state.sequence === 'minionWaves') {
       const remaining = minions.filter((m) => m.hp > 0).length;
       const total = Math.max(1, state.minionWaveCount || remaining);
       bossRatio = remaining / total;
@@ -998,21 +729,13 @@
     }
     bossFill.style.width = (bossRatio * 100).toFixed(1) + '%';
     comboText.textContent = String(player.combo);
-    questText.textContent = state.quest;
-    spellText.textContent = state.mode === 'fight'
-      ? (isSpellReady() ? 'ГОТОВО · F' : (Math.min(12, player.combo) + ' / 12'))
-      : 'ПОЗЖЕ';
+    spellText.textContent = isSpellReady() ? 'ГОТОВО · F' : (Math.min(12, player.combo) + ' / 12');
     scoreText.textContent = String(Math.floor(state.score));
     bestText.textContent = String(Math.floor(state.bestScore));
     shieldText.textContent = String(player.shieldCharges);
     const spellBtn = document.getElementById('spell-btn');
-    const jumpBtn = document.getElementById('jump-btn');
     if (spellBtn) {
-      spellBtn.style.display = state.mode === 'fight' ? 'flex' : 'none';
       spellBtn.classList.toggle('ready', isSpellReady());
-    }
-    if (jumpBtn) {
-      jumpBtn.style.display = state.mode === 'journey' ? 'flex' : 'none';
     }
   }
 
@@ -1040,7 +763,7 @@
   }
 
   function throwRock() {
-    if (state.mode !== 'fight' && state.mode !== 'journey') return;
+    if (state.mode !== 'fight') return;
     if (player.cooldown > 0) return;
 
     player.cooldown = state.sequence === 'minionWaves' ? 0.18 : (boss.rage ? 0.16 : 0.2);
@@ -1131,18 +854,6 @@
     state.shakePower = Math.max(state.shakePower, 6);
     addScore(amount * 2);
 
-    if (state.mode === 'journey' && state.sequence === 'mineBoss') {
-      if (boss.hp <= 0) {
-        boss.hp = 0;
-        addScore(950);
-        state.whiteFlash = Math.max(state.whiteFlash, 0.28);
-        state.shakeTime = Math.max(state.shakeTime, 0.28);
-        state.shakePower = Math.max(state.shakePower, 12);
-        finishJourneyPrelude();
-      }
-      return;
-    }
-
     if (boss.phase === 1 && !boss.rage && boss.hp <= boss.maxHp * 0.4) {
       boss.rage = true;
       spawnParticles(boss.x, boss.y, '#b47cff', 28, 150, 8);
@@ -1175,7 +886,7 @@
   }
 
   function damagePlayer(amount) {
-    if (player.invuln > 0 || (state.mode !== 'fight' && state.mode !== 'journey')) return;
+    if (player.invuln > 0 || state.mode !== 'fight') return;
     player.hp -= amount;
     player.invuln = 0.8;
     player.combo = 0;
@@ -1277,38 +988,7 @@
   }
 
   function spawnBossAttack() {
-    if ((state.mode !== 'fight' && state.mode !== 'journey') || !boss.active) return;
-
-    if (state.mode === 'journey' && state.sequence === 'mineBoss') {
-      const patternRoll = Math.random();
-      if (patternRoll < 0.38) {
-        const volley = 3;
-        for (let i = 0; i < volley; i++) {
-          const angle = Math.PI / 2 + rand(-0.4, 0.4);
-          const speed = rand(300, 380);
-          bullets.push({
-            x: boss.x + rand(-18, 18),
-            y: boss.y + 24,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            r: rand(18, 24),
-            type: 'book',
-            angle: rand(0, Math.PI * 2),
-            spin: rand(-7.6, 7.6),
-            reflected: false,
-            damage: 16
-          });
-        }
-      } else if (patternRoll < 0.72) {
-        const x = rand(state.width * 0.18, state.width * 0.82);
-        warnings.push({ x, life: 0.7, maxLife: 0.7, kind: 'mine-rock' });
-        journeyHazards.push({ kind: 'falling-rock', x, y: -48, vy: rand(360, 430), damage: 18, hitTimer: 0.24 });
-      } else {
-        journeyHazards.push({ kind: 'cart', x: -100, y: player.groundY + 8, vx: rand(300, 360), width: 94, damage: 16, hitTimer: 0.18 });
-      }
-      boss.attackTimer = rand(0.92, 1.22);
-      return;
-    }
+    if (state.mode !== 'fight' || !boss.active) return;
 
     if (boss.phase === 2) {
       const patternRoll = Math.random();
@@ -1381,119 +1061,6 @@
     }
   }
 
-  function updateJourneyHazards(dt) {
-    for (let i = journeyHazards.length - 1; i >= 0; i--) {
-      const hazard = journeyHazards[i];
-      if (hazard.hitTimer > 0) hazard.hitTimer -= dt;
-
-      if (state.sequence === 'trapRun') {
-        const screenX = state.width * 0.56 + hazard.worldX - state.journeyProgress;
-        hazard.screenX = screenX;
-        if (screenX < -220 || screenX > state.width + 220) continue;
-
-        const overlap = Math.abs(player.x - screenX) < (hazard.width * 0.5 + player.r * 0.62);
-        if (hazard.kind === 'swing') {
-          hazard.swing = (hazard.swing || 0) + dt * 4.4;
-          if (overlap && player.y > player.groundY - 56) {
-            hitJourneyHazard(hazard, hazard.damage);
-          }
-        } else if (overlap && player.y >= player.groundY - 18) {
-          hitJourneyHazard(hazard, hazard.damage);
-        }
-      } else {
-        if (hazard.kind === 'falling-rock') {
-          hazard.y += hazard.vy * dt;
-          if (dist(hazard.x, hazard.y, player.x, player.y - 18) < player.r + 20) {
-            hitJourneyHazard(hazard, hazard.damage);
-          }
-          if (hazard.y > state.height + 120) {
-            journeyHazards.splice(i, 1);
-            continue;
-          }
-        } else if (hazard.kind === 'cart') {
-          hazard.x += hazard.vx * dt;
-          if (Math.abs(player.x - hazard.x) < (hazard.width * 0.5 + player.r * 0.72) && player.y >= player.groundY - 26) {
-            hitJourneyHazard(hazard, hazard.damage);
-          }
-          if (hazard.x > state.width + 140) {
-            journeyHazards.splice(i, 1);
-            continue;
-          }
-        }
-      }
-    }
-  }
-
-  function updateJourneyStage(dt, move) {
-    if (canUseJump() || player.y < player.groundY) {
-      player.vy += 1720 * dt;
-      player.y += player.vy * dt;
-      if (player.y >= player.groundY) {
-        player.y = player.groundY;
-        player.vy = 0;
-      }
-    } else {
-      player.y = player.groundY;
-      player.vy = 0;
-    }
-
-    if (state.sequence === 'boatArrival') {
-      state.journeyTimer += dt;
-      player.x = lerp(player.x, state.width * 0.3, dt * 1.35);
-      if (state.journeyTimer >= state.journeyGoal) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.18);
-        startIslandFight();
-      }
-      return;
-    }
-
-    if (state.sequence === 'islandFight') {
-      if (minions.length === 0) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.18);
-        startTrapRun();
-      }
-      return;
-    }
-
-    if (state.sequence === 'trapRun') {
-      state.journeyProgress = clamp(state.journeyProgress + Math.max(0, move) * 296 * dt + 20 * dt, 0, state.journeyGoal);
-      updateJourneyHazards(dt);
-      if (state.journeyProgress >= state.journeyGoal) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.18);
-        startMineDescent();
-      }
-      return;
-    }
-
-    if (state.sequence === 'mineDescent') {
-      const prevTimer = state.journeyTimer;
-      state.journeyTimer += dt;
-      state.journeyProgress = clamp(state.journeyProgress + 88 * dt + Math.max(0, move) * 110 * dt, 0, state.journeyGoal);
-
-      if (Math.floor(prevTimer / 0.78) !== Math.floor(state.journeyTimer / 0.78)) {
-        const x = rand(state.width * 0.16, state.width * 0.84);
-        warnings.push({ x, life: 0.55, maxLife: 0.55, kind: 'mine-rock' });
-        journeyHazards.push({ kind: 'falling-rock', x, y: -52, vy: rand(360, 440), damage: 16, hitTimer: 0.18 });
-      }
-      if (Math.floor(prevTimer / 2.3) !== Math.floor(state.journeyTimer / 2.3)) {
-        journeyHazards.push({ kind: 'cart', x: -120, y: player.groundY + 8, vx: rand(280, 350), width: 96, damage: 18, hitTimer: 0.2 });
-      }
-
-      updateJourneyHazards(dt);
-      if (state.journeyProgress >= state.journeyGoal) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.18);
-        startMineBoss();
-      }
-      return;
-    }
-
-    if (state.sequence === 'mineBoss') {
-      boss.x = lerp(boss.x, state.width * (0.54 + Math.sin(state.time * 1.2) * 0.12), dt * 1.8);
-      boss.y = lerp(boss.y, state.height * 0.24 + Math.sin(state.time * 2.1) * 12, dt * 1.5);
-      updateJourneyHazards(dt);
-    }
-  }
-
   function update(dt) {
     state.time += dt;
     if (state.whiteFlash > 0) state.whiteFlash = Math.max(0, state.whiteFlash - dt * 1.35);
@@ -1525,7 +1092,7 @@
       }
     }
 
-    if (state.mode !== 'fight' && state.mode !== 'journey') {
+    if (state.mode !== 'fight') {
       updateParticles(dt);
       updateWarnings(dt);
       return;
@@ -1540,10 +1107,7 @@
 
     player.x += move * player.speed * dt;
     player.x = clamp(player.x, state.width * 0.12, state.width * 0.88);
-    if (state.mode !== 'journey') {
-      player.y = player.groundY;
-      player.vy = 0;
-    }
+    player.y = state.height * 0.82;
 
     if (player.cooldown > 0) player.cooldown -= dt;
     if (player.invuln > 0) player.invuln -= dt;
@@ -1552,10 +1116,6 @@
     if (player.comboTimer > 0) {
       player.comboTimer -= dt;
       if (player.comboTimer <= 0) player.combo = 0;
-    }
-
-    if (state.mode === 'journey') {
-      updateJourneyStage(dt, move);
     }
 
     if (state.sequence === 'minionWaves') {
@@ -1763,177 +1323,6 @@
     }
   }
 
-  function drawJourneyBackground() {
-    if (state.sequence === 'mineDescent' || state.sequence === 'mineBoss') {
-      const cave = ctx.createLinearGradient(0, 0, 0, state.height);
-      cave.addColorStop(0, '#120d19');
-      cave.addColorStop(0.38, '#1b1624');
-      cave.addColorStop(1, '#08060d');
-      ctx.fillStyle = cave;
-      ctx.fillRect(0, 0, state.width, state.height);
-
-      for (let i = 0; i < 10; i++) {
-        const x = (i / 9) * state.width;
-        ctx.fillStyle = i % 2 ? 'rgba(35, 27, 49, 0.88)' : 'rgba(22, 18, 31, 0.92)';
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x + 80, 0);
-        ctx.lineTo(x + 42, state.height * 0.34 + (i % 3) * 40);
-        ctx.lineTo(x + 96, state.height);
-        ctx.lineTo(x - 40, state.height);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      for (let i = 0; i < 18; i++) {
-        const x = ((i * 139) % (state.width + 120)) - 40;
-        const y = state.height * (0.12 + (i % 6) * 0.1);
-        ctx.fillStyle = i % 2 ? 'rgba(118, 207, 255, 0.18)' : 'rgba(191, 124, 255, 0.16)';
-        ctx.beginPath();
-        ctx.moveTo(x, y - 18);
-        ctx.lineTo(x + 10, y + 4);
-        ctx.lineTo(x, y + 22);
-        ctx.lineTo(x - 8, y + 6);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      drawMistLayer(state.height * 0.28, 42, 0.08, '101, 93, 141', 0.12, 0.3);
-      drawMistLayer(state.height * 0.72, 56, 0.08, '112, 88, 133', 0.16, 0.48);
-      return;
-    }
-
-    const sky = ctx.createLinearGradient(0, 0, 0, state.height);
-    sky.addColorStop(0, '#2b2340');
-    sky.addColorStop(0.34, '#1a1730');
-    sky.addColorStop(0.72, '#0d1320');
-    sky.addColorStop(1, '#060a12');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, state.width, state.height);
-
-    const sea = ctx.createLinearGradient(0, state.height * 0.58, 0, state.height);
-    sea.addColorStop(0, 'rgba(32, 61, 92, 0.92)');
-    sea.addColorStop(1, 'rgba(8, 17, 29, 0.98)');
-    ctx.fillStyle = sea;
-    ctx.fillRect(0, state.height * 0.58, state.width, state.height * 0.42);
-
-    const moonX = state.width * 0.74;
-    const moonY = state.height * 0.16 + Math.sin(state.time * 0.1) * 4;
-    ctx.fillStyle = 'rgba(240, 236, 255, 0.9)';
-    ctx.beginPath();
-    ctx.arc(moonX, moonY, 24, 0, Math.PI * 2);
-    ctx.fill();
-
-    drawRidge(state.height * 0.5, 120, '#161a29', 0, 0.94);
-    drawRidge(state.height * 0.57, 160, '#101523', 0, 1.06);
-    drawMistLayer(state.height * 0.44, 56, 0.08, '142, 164, 220', 0.12, 0.34);
-  }
-
-  function drawJourneyScenery() {
-    if (state.sequence === 'mineDescent' || state.sequence === 'mineBoss') {
-      const railY = player.groundY + 30;
-      ctx.fillStyle = 'rgba(32, 22, 36, 0.96)';
-      ctx.fillRect(0, player.groundY + 18, state.width, state.height - player.groundY - 18);
-      ctx.strokeStyle = 'rgba(127, 97, 80, 0.9)';
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(0, railY);
-      ctx.lineTo(state.width, railY);
-      ctx.moveTo(0, railY + 20);
-      ctx.lineTo(state.width, railY + 20);
-      ctx.stroke();
-      for (let i = 0; i < 16; i++) {
-        const x = (i / 15) * state.width;
-        ctx.fillStyle = 'rgba(94, 66, 53, 0.9)';
-        ctx.fillRect(x, railY - 4, 12, 28);
-      }
-      return;
-    }
-
-    const shoreY = player.groundY + 22;
-    ctx.fillStyle = state.sequence === 'boatArrival' ? 'rgba(31, 36, 56, 0.28)' : 'rgba(31, 36, 56, 0.82)';
-    ctx.fillRect(0, shoreY, state.width, state.height - shoreY);
-    ctx.fillStyle = 'rgba(60, 52, 42, 0.88)';
-    ctx.fillRect(0, player.groundY + 12, state.width, state.height - player.groundY - 12);
-
-    const templeX = state.width * 0.84;
-    const templeY = state.height * 0.45;
-    ctx.fillStyle = 'rgba(18, 22, 30, 0.95)';
-    ctx.fillRect(templeX - 84, templeY - 60, 168, 110);
-    ctx.fillRect(templeX - 48, templeY - 112, 96, 52);
-    ctx.fillStyle = 'rgba(121, 149, 206, 0.18)';
-    ctx.fillRect(templeX - 18, templeY - 8, 36, 58);
-
-    if (state.sequence === 'boatArrival') {
-      const boatX = player.x + 18;
-      const boatY = player.groundY + 8 + Math.sin(state.time * 2.6) * 5;
-      ctx.fillStyle = '#3d281f';
-      ctx.beginPath();
-      ctx.moveTo(boatX - 78, boatY);
-      ctx.lineTo(boatX + 72, boatY);
-      ctx.lineTo(boatX + 46, boatY + 22);
-      ctx.lineTo(boatX - 54, boatY + 22);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(232, 220, 188, 0.35)';
-      ctx.beginPath();
-      ctx.moveTo(boatX - 6, boatY);
-      ctx.lineTo(boatX - 6, boatY - 62);
-      ctx.lineTo(boatX + 34, boatY - 22);
-      ctx.closePath();
-      ctx.stroke();
-    }
-  }
-
-  function drawJourneyHazards() {
-    journeyHazards.forEach((hazard) => {
-      if (state.sequence === 'trapRun') {
-        const x = hazard.screenX;
-        if (x == null || x < -220 || x > state.width + 220) return;
-        if (hazard.kind === 'pit') {
-          ctx.fillStyle = 'rgba(8, 8, 12, 0.92)';
-          ctx.fillRect(x - hazard.width * 0.5, player.groundY + 12, hazard.width, state.height - player.groundY - 12);
-        } else if (hazard.kind === 'spike') {
-          ctx.fillStyle = 'rgba(205, 193, 173, 0.9)';
-          for (let i = 0; i < 5; i++) {
-            const px = x - hazard.width * 0.5 + i * (hazard.width / 4);
-            ctx.beginPath();
-            ctx.moveTo(px, player.groundY + 12);
-            ctx.lineTo(px + 12, player.groundY - 26);
-            ctx.lineTo(px + 24, player.groundY + 12);
-            ctx.closePath();
-            ctx.fill();
-          }
-        } else if (hazard.kind === 'swing') {
-          const bob = Math.sin(hazard.swing || 0) * 34;
-          ctx.strokeStyle = 'rgba(120, 116, 98, 0.85)';
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.moveTo(x, state.height * 0.28);
-          ctx.lineTo(x + bob, player.groundY - 54);
-          ctx.stroke();
-          ctx.fillStyle = 'rgba(175, 150, 122, 0.96)';
-          ctx.beginPath();
-          ctx.arc(x + bob, player.groundY - 42, 18, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } else if (hazard.kind === 'falling-rock') {
-        ctx.fillStyle = 'rgba(142, 124, 116, 0.95)';
-        ctx.beginPath();
-        ctx.arc(hazard.x, hazard.y, 18, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (hazard.kind === 'cart') {
-        ctx.fillStyle = 'rgba(90, 58, 44, 0.96)';
-        ctx.fillRect(hazard.x - hazard.width * 0.5, player.groundY - 10, hazard.width, 28);
-        ctx.fillStyle = 'rgba(35, 24, 20, 0.96)';
-        ctx.beginPath();
-        ctx.arc(hazard.x - hazard.width * 0.28, player.groundY + 18, 10, 0, Math.PI * 2);
-        ctx.arc(hazard.x + hazard.width * 0.28, player.groundY + 18, 10, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    });
-  }
-
   function draw() {
     ctx.save();
     const shakeFactor = state.shakeTime > 0 ? (state.shakePower * Math.max(0, state.shakeTime)) : 0;
@@ -1951,25 +1340,18 @@
     }
 
     drawBackground();
-    if (state.mode === 'journey') {
-      drawJourneyScenery();
-    } else {
-      drawTemple();
-    }
+    drawTemple();
     drawWarnings();
 
     if (state.mode !== 'start') {
       drawPlayer();
     }
 
-    if (state.mode === 'fight' || state.mode === 'shake' || state.mode === 'victory' || state.mode === 'defeat' || (state.mode === 'journey' && state.sequence === 'mineBoss')) {
+    if (state.mode === 'fight' || state.mode === 'shake' || state.mode === 'victory' || state.mode === 'defeat') {
       drawBoss();
     }
 
     drawMinions();
-    if (state.mode === 'journey') {
-      drawJourneyHazards();
-    }
     drawPickups();
     drawProjectiles();
     drawSpellBursts();
@@ -1979,11 +1361,6 @@
   }
 
   function drawBackground() {
-    if (state.mode === 'journey') {
-      drawJourneyBackground();
-      return;
-    }
-
     const playerShift = (((player.x || state.width * 0.5) - state.width * 0.5) / (state.width * 0.5));
     const bossShift = (((boss.x || state.width * 0.5) - state.width * 0.5) / (state.width * 0.5));
 
@@ -3182,9 +2559,6 @@
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
         throwRock();
-      } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.code === 'KeyW') {
-        e.preventDefault();
-        jumpPlayer();
       } else if (e.key === 'f' || e.key === 'F' || e.code === 'KeyF') {
         e.preventDefault();
         castSpell();
@@ -3196,7 +2570,7 @@
     });
 
     canvas.addEventListener('pointerdown', () => {
-      if (!state.isTouch && (state.mode === 'fight' || state.mode === 'journey')) throwRock();
+      if (!state.isTouch && state.mode === 'fight') throwRock();
     });
 
     document.getElementById('start-btn').addEventListener('click', startTemple);
@@ -3212,7 +2586,6 @@
 
     const joystick = document.getElementById('joystick');
     const stick = document.getElementById('joystick-stick');
-    const jumpBtn = document.getElementById('jump-btn');
     const attackBtn = document.getElementById('attack-btn');
     const spellBtn = document.getElementById('spell-btn');
 
@@ -3265,11 +2638,6 @@
       throwRock();
     }, { passive: false });
 
-    jumpBtn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      jumpPlayer();
-    }, { passive: false });
-
     spellBtn.addEventListener('touchstart', (e) => {
       e.preventDefault();
       castSpell();
@@ -3278,11 +2646,6 @@
     attackBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       throwRock();
-    });
-
-    jumpBtn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      jumpPlayer();
     });
 
     spellBtn.addEventListener('pointerdown', (e) => {
