@@ -737,11 +737,11 @@
   function seedTrapRunHazards() {
     journeyHazards.length = 0;
     [
-      { kind: 'spike', worldX: 190, width: 62, damage: 9 },
-      { kind: 'pit', worldX: 372, width: 86, damage: 10 },
-      { kind: 'spike', worldX: 546, width: 68, damage: 9 },
-      { kind: 'swing', worldX: 714, width: 60, damage: 11 },
-      { kind: 'pit', worldX: 874, width: 92, damage: 10 }
+      { kind: 'spike', worldX: 180, width: 78, damage: 14 },
+      { kind: 'pit', worldX: 360, width: 120, damage: 18 },
+      { kind: 'spike', worldX: 558, width: 86, damage: 14 },
+      { kind: 'swing', worldX: 756, width: 72, damage: 16 },
+      { kind: 'pit', worldX: 930, width: 124, damage: 18 }
     ].forEach((hazard) => journeyHazards.push({ ...hazard, hitTimer: 0 }));
   }
 
@@ -755,8 +755,8 @@
     state.journeyStage = 'trapRun';
     state.journeyTimer = 0;
     state.journeyProgress = 0;
-    state.journeyGoal = 900;
-    state.quest = 'Иди к храму вправо и прыгай через ловушки (W / ↑ / ПРЫЖОК).';
+    state.journeyGoal = 980;
+    state.quest = 'Иди к храму, перепрыгивай ловушки и не сорвись.';
     player.x = state.width * 0.32;
     player.y = player.groundY;
     player.vy = 0;
@@ -841,10 +841,10 @@
 
   function hitJourneyHazard(hazard, damage) {
     if (hazard.hitTimer > 0 || player.invuln > 0) return;
-    hazard.hitTimer = 0.55;
+    hazard.hitTimer = 0.42;
     damagePlayer(damage);
-    state.journeyProgress = Math.max(0, state.journeyProgress - 26);
-    player.x = Math.max(state.width * 0.18, player.x - 34);
+    state.journeyProgress = Math.max(0, state.journeyProgress - 52);
+    player.x = Math.max(state.width * 0.16, player.x - 58);
   }
 
   function pressAltarButton() {
@@ -1460,7 +1460,7 @@
     }
 
     if (state.sequence === 'trapRun') {
-      state.journeyProgress = clamp(state.journeyProgress + Math.max(0, move) * 256 * dt, 0, state.journeyGoal);
+      state.journeyProgress = clamp(state.journeyProgress + Math.max(0, move) * 296 * dt + 20 * dt, 0, state.journeyGoal);
       updateJourneyHazards(dt);
       if (state.journeyProgress >= state.journeyGoal) {
         state.whiteFlash = Math.max(state.whiteFlash, 0.18);
@@ -1895,18 +1895,8 @@
         const x = hazard.screenX;
         if (x == null || x < -220 || x > state.width + 220) return;
         if (hazard.kind === 'pit') {
-          ctx.fillStyle = 'rgba(34, 31, 48, 0.86)';
-          ctx.fillRect(x - hazard.width * 0.5, player.groundY + 8, hazard.width, 10);
-          ctx.fillStyle = 'rgba(9, 9, 14, 0.92)';
-          ctx.fillRect(x - hazard.width * 0.34, player.groundY + 18, hazard.width * 0.68, state.height - player.groundY - 18);
-          ctx.strokeStyle = 'rgba(132, 120, 154, 0.45)';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(x - hazard.width * 0.38, player.groundY + 16);
-          ctx.lineTo(x - hazard.width * 0.18, player.groundY + 26);
-          ctx.lineTo(x + hazard.width * 0.02, player.groundY + 14);
-          ctx.lineTo(x + hazard.width * 0.22, player.groundY + 24);
-          ctx.stroke();
+          ctx.fillStyle = 'rgba(8, 8, 12, 0.92)';
+          ctx.fillRect(x - hazard.width * 0.5, player.groundY + 12, hazard.width, state.height - player.groundY - 12);
         } else if (hazard.kind === 'spike') {
           ctx.fillStyle = 'rgba(205, 193, 173, 0.9)';
           for (let i = 0; i < 5; i++) {

@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-07_17-00-26__before-traprun-readability-fix
+Created at: Tue Apr  7 17:00:26 EET 2026
+Purpose: snapshot of previous published current before easing trap-run readability and fairness
