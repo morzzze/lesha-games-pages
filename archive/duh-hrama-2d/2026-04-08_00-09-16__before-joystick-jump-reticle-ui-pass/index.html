@@ -294,84 +294,52 @@
   #joystick {
     position: absolute;
     left: 14px;
-    bottom: 2px;
-    width: 136px;
-    height: 136px;
+    bottom: 0;
+    width: 132px;
+    height: 132px;
     border-radius: 50%;
-    background: radial-gradient(circle at 50% 50%, rgba(184, 208, 255, 0.08), rgba(84, 108, 156, 0.06) 42%, rgba(19, 27, 44, 0.14) 62%, rgba(10, 14, 24, 0.05) 100%);
-    border: 1px solid rgba(206, 224, 255, 0.16);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 10px 24px rgba(0,0,0,.18);
+    background: radial-gradient(circle at 35% 30%, rgba(172,201,255,.11), rgba(62,80,114,.12) 55%, rgba(16,22,39,.18) 100%);
+    border: 1px solid rgba(188,220,255,.22);
+    box-shadow: inset 0 0 34px rgba(133,171,234,.08), 0 14px 32px rgba(0,0,0,.28);
     pointer-events: auto;
     touch-action: none;
-    user-select: none;
   }
 
   #joystick-stick {
     position: absolute;
-    width: 58px;
-    height: 58px;
-    left: 39px;
-    top: 39px;
+    width: 56px;
+    height: 56px;
+    left: 38px;
+    top: 38px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(247, 251, 255, 0.96), rgba(168, 192, 255, 0.72) 52%, rgba(86, 104, 168, 0.78) 100%);
-    box-shadow: 0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35);
+    background: radial-gradient(circle at 30% 30%, #ecf7ff, #91b5e8 55%, #405483 100%);
+    box-shadow: 0 10px 22px rgba(0,0,0,.22);
   }
 
   #attack-btn {
     position: absolute;
     right: 14px;
     bottom: 0;
-    width: 122px;
-    height: 122px;
+    width: 118px;
+    height: 118px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    font-size: 0;
-    color: transparent;
-    background:
-      linear-gradient(rgba(243, 247, 255, 0.72), rgba(243, 247, 255, 0.72)) center / 2px 36px no-repeat,
-      linear-gradient(90deg, rgba(243, 247, 255, 0.72), rgba(243, 247, 255, 0.72)) center / 36px 2px no-repeat,
-      radial-gradient(circle at center, rgba(255,255,255,0.05) 0 29%, rgba(160,180,255,0.04) 30% 58%, rgba(255,255,255,0) 59% 100%);
-    border: 2px solid rgba(213, 224, 255, 0.28);
-    box-shadow: 0 0 0 7px rgba(133, 150, 255, 0.08), inset 0 0 0 1px rgba(255,255,255,.08);
+    text-align: center;
+    padding: 10px;
+    font-size: 18px;
+    font-weight: 900;
+    color: white;
+    background: radial-gradient(circle at 35% 30%, #eff5ff, #9baef7 32%, #5369c8 62%, #1d214e 100%);
+    border: 1px solid rgba(237, 244, 255, .28);
+    box-shadow: 0 16px 34px rgba(82, 93, 194, .28), inset 0 2px 0 rgba(255,255,255,.26);
     pointer-events: auto;
     touch-action: manipulation;
     user-select: none;
-    backdrop-filter: blur(2px);
-    overflow: hidden;
-    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
   }
 
-  #attack-btn::before {
-    content: '';
-    position: absolute;
-    inset: 21px;
-    border-radius: 50%;
-    border: 3px solid rgba(239, 244, 255, 0.82);
-    box-shadow: 0 0 18px rgba(139, 156, 255, 0.18), inset 0 0 10px rgba(255,255,255,0.08);
-  }
-
-  #attack-btn::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 16px;
-    height: 16px;
-    margin-left: -8px;
-    margin-top: -8px;
-    border-radius: 50%;
-    border: 2px solid rgba(246, 249, 255, 0.95);
-    background: rgba(255,255,255,0.04);
-  }
-
-  #attack-btn:active {
-    transform: scale(.97);
-    border-color: rgba(245, 250, 255, 0.44);
-    box-shadow: 0 0 0 9px rgba(133, 150, 255, 0.1), inset 0 0 0 1px rgba(255,255,255,.14);
-  }
+  #attack-btn:active { transform: scale(.97); }
 
   #spell-btn {
     position: absolute;
@@ -410,10 +378,32 @@
   #spell-btn:active { transform: scale(.95); }
 
   #jump-btn {
-    display: none !important;
+    position: absolute;
+    left: 18px;
+    bottom: 100px;
+    width: 96px;
+    height: 56px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: .4px;
+    color: #f6f2ff;
+    background: linear-gradient(180deg, rgba(173, 133, 255, 0.96), rgba(74, 48, 130, 0.98));
+    border: 1px solid rgba(255, 242, 220, 0.18);
+    box-shadow: 0 12px 26px rgba(76, 47, 128, 0.26), inset 0 1px 0 rgba(255,255,255,0.2);
+    pointer-events: auto;
+    touch-action: manipulation;
+    user-select: none;
   }
 
-  @media (max-width: 760px) {
+  #jump-btn:active { transform: scale(.97); }
+
   @media (max-width: 760px) {
     #hud {
       width: min(calc(100vw - 8px), 520px);
@@ -514,41 +504,6 @@
       font-size: 11px;
     }
   }
-
-  @media (max-width: 760px) {
-    #joystick {
-      left: 14px;
-      width: 132px;
-      height: 132px;
-    }
-
-    #joystick-stick {
-      width: 56px;
-      height: 56px;
-      left: 38px;
-      top: 38px;
-    }
-
-    #attack-btn {
-      right: 16px;
-      width: 118px;
-      height: 118px;
-    }
-
-    #attack-btn::before {
-      inset: 20px;
-    }
-
-    #spell-btn {
-      right: 28px;
-      bottom: 90px;
-    }
-
-    #jump-btn {
-      display: none !important;
-    }
-  }
-
 </style>
 </head>
 <body>
@@ -618,9 +573,9 @@
 
   <div id="mobile-controls">
     <div id="joystick"><div id="joystick-stick"></div></div>
-    <div id="jump-btn" aria-hidden="true"></div>
+    <div id="jump-btn">ПРЫЖОК</div>
     <div id="spell-btn">ОБРЯД</div>
-    <div id="attack-btn" aria-label="Атака"></div>
+    <div id="attack-btn">АТАКА</div>
   </div>
 
 <script>
@@ -684,7 +639,7 @@
     spellUpgrade: false,
     isTouch: matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
     lowFx: matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
-    joystick: { active: false, valueX: 0, valueY: 0, jumpReady: true }
+    joystick: { active: false, valueX: 0, valueY: 0 }
   };
 
   const keys = Object.create(null);
@@ -1365,7 +1320,7 @@
       spellPill.classList.toggle('ready', state.mode === 'fight' && isSpellReady());
     }
     if (jumpBtn) {
-      jumpBtn.style.display = 'none';
+      jumpBtn.style.display = state.mode === 'journey' && state.sequence !== 'boatArrival' ? 'flex' : 'none';
     }
   }
 
@@ -2170,7 +2125,7 @@
             damage: 9
           });
           spawnParticles(minion.x, minion.y, minion.color, 9, 90, 4.5);
-          minion.attackTimer = rand(0.72, 0.98);
+          minion.attackTimer = rand(1.1, 1.7);
         }
         minion.y = clamp(minion.y, state.height * 0.18, player.groundY - 68);
       } else {
@@ -4270,13 +4225,11 @@
     const jumpBtn = document.getElementById('jump-btn');
     const attackBtn = document.getElementById('attack-btn');
     const spellBtn = document.getElementById('spell-btn');
-    const JOYSTICK_JUMP_THRESHOLD = -0.72;
 
     function resetJoystick() {
       state.joystick.active = false;
       state.joystick.valueX = 0;
       state.joystick.valueY = 0;
-      state.joystick.jumpReady = true;
       stick.style.transform = 'translate(0px, 0px)';
     }
 
@@ -4287,7 +4240,7 @@
       let dx = clientX - cx;
       let dy = clientY - cy;
       const max = rect.width * 0.3;
-      const len = Math.hypot(dx, dy);
+      const len = Math.hypot(dx, dy) || 1;
       if (len > max) {
         dx = dx / len * max;
         dy = dy / len * max;
@@ -4295,48 +4248,51 @@
       state.joystick.active = true;
       state.joystick.valueX = clamp(dx / max, -1, 1);
       state.joystick.valueY = clamp(dy / max, -1, 1);
-      if (state.joystick.valueY <= JOYSTICK_JUMP_THRESHOLD && state.joystick.jumpReady) {
-        jumpPlayer();
-        state.joystick.jumpReady = false;
-      } else if (state.joystick.valueY > -0.26) {
-        state.joystick.jumpReady = true;
-      }
-      stick.style.transform = `translate(${dx}px, ${dy}px)`;
+      stick.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
     }
 
     joystick.addEventListener('touchstart', (e) => {
+      e.preventDefault();
       const touch = e.changedTouches[0];
       moveJoystick(touch.clientX, touch.clientY);
-    }, { passive: true });
+    }, { passive: false });
 
     joystick.addEventListener('touchmove', (e) => {
+      e.preventDefault();
       const touch = e.changedTouches[0];
       moveJoystick(touch.clientX, touch.clientY);
-    }, { passive: true });
+    }, { passive: false });
 
-    joystick.addEventListener('touchend', resetJoystick, { passive: true });
+    joystick.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      resetJoystick();
+    }, { passive: false });
+
     joystick.addEventListener('touchcancel', resetJoystick, { passive: true });
 
-    joystick.addEventListener('pointerdown', (e) => {
+    attackBtn.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      moveJoystick(e.clientX, e.clientY);
-    });
+      throwRock();
+    }, { passive: false });
 
-    document.addEventListener('pointermove', (e) => {
-      if (!state.joystick.active) return;
-      moveJoystick(e.clientX, e.clientY);
-    });
+    jumpBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      jumpPlayer();
+    }, { passive: false });
 
-    document.addEventListener('pointerup', resetJoystick);
-    document.addEventListener('pointercancel', resetJoystick);
-
-    if (jumpBtn) {
-      jumpBtn.style.display = 'none';
-    }
+    spellBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      castSpell();
+    }, { passive: false });
 
     attackBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       throwRock();
+    });
+
+    jumpBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      jumpPlayer();
     });
 
     spellBtn.addEventListener('pointerdown', (e) => {
