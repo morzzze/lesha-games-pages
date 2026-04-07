@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-07_19-23-17__before-survival-balance-fix
+Created at: Tue Apr  7 19:23:17 EET 2026
+Purpose: snapshot of previous published current before easier damage and checkpoint-heal balance fix
