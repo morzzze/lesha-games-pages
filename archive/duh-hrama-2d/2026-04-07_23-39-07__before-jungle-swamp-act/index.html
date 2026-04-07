@@ -636,7 +636,6 @@
     journeyGoal: 0,
     journeyTimer: 0,
     journeyBookTotal: 0,
-    spellUpgrade: false,
     isTouch: matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
     lowFx: matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
     joystick: { active: false, valueX: 0, valueY: 0 }
@@ -664,7 +663,6 @@
     invuln: 0,
     combo: 0,
     comboTimer: 0,
-    spellDamage: 320,
     shieldCharges: 0,
     shieldFlash: 0,
     spellFlash: 0,
@@ -704,14 +702,6 @@
     } catch (_) {
       /* ignore */
     }
-  }
-
-  function addScore(amount) {
-    state.score += amount;
-    if (state.score > state.bestScore) {
-      state.bestScore = state.score;
-    }
-    updateHud();
   }
 
   function resize() {
@@ -774,7 +764,6 @@
     player.invuln = 0;
     player.combo = 0;
     player.comboTimer = 0;
-    player.spellDamage = state.spellUpgrade ? 400 : 320;
     player.shieldCharges = 0;
     player.shieldFlash = 0;
     player.spellFlash = 0;
@@ -814,7 +803,6 @@
   }
 
   function startTemple() {
-    state.spellUpgrade = false;
     resetFight();
     startBoatArrival();
   }
@@ -989,142 +977,23 @@
     updateHud();
   }
 
-  function seedJungleHazards() {
-    journeyHazards.length = 0;
-    [
-      { kind: 'gap', worldX: 180, width: 108, damage: 8 },
-      { kind: 'vine', worldX: 348, width: 72, damage: 7, amplitude: 42, radius: 22 },
-      { kind: 'root', worldX: 520, width: 70, damage: 6 },
-      { kind: 'gap', worldX: 690, width: 116, damage: 8 },
-      { kind: 'vine', worldX: 860, width: 74, damage: 7, amplitude: 48, radius: 24 },
-      { kind: 'croc', worldX: 1010, width: 96, damage: 9, snapSpeed: 4.8 }
-    ].forEach((hazard) => journeyHazards.push(hazard));
-  }
-
-  function startJungleRun() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    minions.length = 0;
-    journeyHazards.length = 0;
-    boss.active = false;
-    state.sequence = 'jungleRun';
-    state.journeyStage = 'jungleRun';
-    state.journeyTimer = 0;
-    state.journeyProgress = 0;
-    state.journeyGoal = 1080;
-    state.quest = 'Проберись по лианам джунглей и перепрыгивай обрывы над болотом.';
-    player.x = state.width * 0.28;
-    player.y = player.groundY;
-    player.vy = 0;
-    restorePlayerCheckpoint(2);
-    bossNameLabel.textContent = 'Джунгли над болотом';
-    seedJungleHazards();
-    setScreen('journey');
-    updateHud();
-  }
-
-  function seedSwampHazards() {
-    journeyHazards.length = 0;
-    [
-      { kind: 'gap', worldX: 154, width: 120, damage: 9 },
-      { kind: 'croc', worldX: 308, width: 98, damage: 9, snapSpeed: 5.2 },
-      { kind: 'gap', worldX: 458, width: 126, damage: 9 },
-      { kind: 'root', worldX: 612, width: 64, damage: 6 },
-      { kind: 'croc', worldX: 760, width: 104, damage: 10, snapSpeed: 5.5 },
-      { kind: 'gap', worldX: 918, width: 132, damage: 9 },
-      { kind: 'croc', worldX: 1088, width: 108, damage: 10, snapSpeed: 5.8 }
-    ].forEach((hazard) => journeyHazards.push(hazard));
-  }
-
-  function startSwampRun() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    minions.length = 0;
-    journeyHazards.length = 0;
-    boss.active = false;
-    state.sequence = 'swampRun';
-    state.journeyStage = 'swampRun';
-    state.journeyTimer = 0;
-    state.journeyProgress = 0;
-    state.journeyGoal = 1180;
-    state.quest = 'Прыгай по деревяшкам в болоте и уворачивайся от крокодилов.';
-    player.x = state.width * 0.28;
-    player.y = player.groundY;
-    player.vy = 0;
-    restorePlayerCheckpoint(2);
-    bossNameLabel.textContent = 'Болотная переправа';
-    seedSwampHazards();
-    setScreen('journey');
-    updateHud();
-  }
-
-  function spawnSwampSlime(x = boss.x + rand(-90, 90), y = player.groundY - 10) {
-    if (minions.filter((m) => m.variant === 'swampSlime').length >= 5) return;
-    minions.push({
-      x,
-      y,
-      r: 18,
-      hp: 2,
-      maxHp: 2,
-      speed: rand(72, 94),
-      bob: rand(0, Math.PI * 2),
-      drift: 0,
-      damage: 6,
-      color: rand(0, 1) > 0.5 ? '#74df8e' : '#56c79b',
-      variant: 'swampSlime',
-      angle: 0,
-      spin: 0,
-      attackTimer: rand(0.8, 1.3)
-    });
-  }
-
-  function startSwampBoss() {
-    bullets.length = 0;
-    warnings.length = 0;
-    pickups.length = 0;
-    journeyHazards.length = 0;
-    minions.length = 0;
-    boss.active = true;
-    boss.kind = 'swampSpirit';
-    boss.phase = 0;
-    boss.trueForm = false;
-    boss.r = 62;
-    boss.maxHp = 1200;
-    boss.hp = boss.maxHp;
-    boss.rage = false;
-    boss.attackTimer = 0.95;
-    boss.hitFlash = 0;
-    boss.aura = 0.25;
-    state.sequence = 'swampBoss';
-    state.journeyStage = 'swampBoss';
-    state.journeyTimer = 0;
-    state.journeyProgress = 0;
-    state.journeyGoal = 1;
-    state.quest = 'Победи болотного духа и переживи его слизней.';
-    player.x = state.width * 0.28;
-    player.y = player.groundY;
-    player.vy = 0;
-    restorePlayerCheckpoint(2);
-    bossNameLabel.textContent = 'Болотный дух';
-    spawnSwampSlime(state.width * 0.18, player.groundY - 8);
-    spawnSwampSlime(state.width * 0.76, player.groundY - 8);
-    setScreen('journey');
-    updateHud();
-  }
-
   function finishJourneyPrelude() {
     bullets.length = 0;
     warnings.length = 0;
     pickups.length = 0;
-    journeyHazards.length = 0;
     minions.length = 0;
+    journeyHazards.length = 0;
     boss.active = false;
     state.sequence = 'none';
-    state.spellUpgrade = true;
-    player.spellDamage = 400;
-    state.quest = 'Заклинание усилено до 400. Коснись печати и войди в храм.';
+    state.journeyStage = 'none';
+    state.journeyProgress = 0;
+    state.journeyGoal = 0;
+    state.journeyTimer = 0;
+    state.quest = 'Коснись печати и войди в храм';
+    player.x = state.width * 0.5;
+    player.y = player.groundY;
+    player.vy = 0;
+    bossNameLabel.textContent = 'Дух Храма';
     setScreen('altar');
     updateHud();
   }
@@ -1249,7 +1118,6 @@
   }
 
   function restartGame() {
-    state.spellUpgrade = false;
     resetFight();
     setScreen('start');
   }
@@ -1270,22 +1138,14 @@
         bossRatio = remaining / total;
         bossHpText.textContent = remaining + ' / ' + total;
         bossNameLabel.textContent = 'Книжные монстры на берегу';
-      } else if (state.sequence === 'trapRun' || state.sequence === 'mineDescent' || state.sequence === 'jungleRun' || state.sequence === 'swampRun') {
+      } else if (state.sequence === 'trapRun' || state.sequence === 'mineDescent') {
         bossRatio = clamp(state.journeyProgress / Math.max(1, state.journeyGoal), 0, 1);
         bossHpText.textContent = Math.floor(state.journeyProgress) + ' / ' + Math.floor(state.journeyGoal);
-        if (state.sequence === 'trapRun') {
-          bossNameLabel.textContent = 'Тропа к храму';
-        } else if (state.sequence === 'mineDescent') {
-          bossNameLabel.textContent = 'Спуск в шахты';
-        } else if (state.sequence === 'jungleRun') {
-          bossNameLabel.textContent = 'Джунгли над болотом';
-        } else {
-          bossNameLabel.textContent = 'Болотная переправа';
-        }
-      } else if (state.sequence === 'mineBoss' || state.sequence === 'swampBoss') {
+        bossNameLabel.textContent = state.sequence === 'trapRun' ? 'Тропа к храму' : 'Спуск в шахты';
+      } else if (state.sequence === 'mineBoss') {
         bossRatio = clamp(boss.hp / boss.maxHp, 0, 1);
         bossHpText.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
-        bossNameLabel.textContent = state.sequence === 'mineBoss' ? 'Хранитель шахт' : 'Болотный дух';
+        bossNameLabel.textContent = 'Хранитель шахт';
       }
     } else if (state.sequence === 'minionWaves') {
       const remaining = minions.filter((m) => m.hp > 0).length;
@@ -1295,18 +1155,14 @@
       bossNameLabel.textContent = 'Храмовые твари · Волна ' + state.minionWave + '/' + state.minionWaveMax;
     } else {
       bossHpText.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
-      if (boss.kind === 'swampSpirit') {
-        bossNameLabel.textContent = 'Болотный дух';
-      } else {
-        bossNameLabel.textContent = boss.phase === 2 ? 'Истинный босс' : 'Дух Храма';
-      }
+      bossNameLabel.textContent = boss.phase === 2 ? 'Истинный босс' : 'Дух Храма';
     }
     bossFill.style.width = (bossRatio * 100).toFixed(1) + '%';
     comboText.textContent = String(player.combo);
     questText.textContent = state.quest;
     spellText.textContent = state.mode === 'fight'
-      ? (isSpellReady() ? (state.isTouch ? String(player.spellDamage) : ('ГОТОВО · ' + player.spellDamage)) : (Math.min(12, player.combo) + ' / 12'))
-      : (state.spellUpgrade ? '400' : 'ПОЗЖЕ');
+      ? (isSpellReady() ? (state.isTouch ? 'ГОТОВ' : 'ГОТОВО · F') : (Math.min(12, player.combo) + ' / 12'))
+      : 'ПОЗЖЕ';
     scoreText.textContent = String(Math.floor(state.score));
     bestText.textContent = String(Math.floor(state.bestScore));
     shieldText.textContent = String(player.shieldCharges);
@@ -1320,7 +1176,15 @@
       spellPill.classList.toggle('ready', state.mode === 'fight' && isSpellReady());
     }
     if (jumpBtn) {
-      jumpBtn.style.display = state.mode === 'journey' && state.sequence !== 'boatArrival' ? 'flex' : 'none';
+      jumpBtn.style.display = state.mode === 'journey' ? 'flex' : 'none';
+    }
+  }
+
+  function addScore(amount) {
+    state.score += amount;
+    if (state.score > state.bestScore) {
+      state.bestScore = Math.floor(state.score);
+      saveBestScore(state.bestScore);
     }
   }
 
@@ -1415,7 +1279,7 @@
         spawnParticles(targetX, targetY, '#ffd58c', 18, 130, 7);
       }
     } else {
-      damageBoss(player.spellDamage || 320);
+      damageBoss(320);
       spawnParticles(targetX, targetY, boss.phase === 2 ? '#ffd59e' : '#d9a4ff', 34, 260, 9);
     }
 
@@ -1429,36 +1293,40 @@
     boss.aura += 0.3;
     state.shakeTime = Math.max(state.shakeTime, 0.12);
     state.shakePower = Math.max(state.shakePower, 6);
-    updateHud();
+    addScore(amount * 2);
+
+    if (state.mode === 'journey' && state.sequence === 'mineBoss') {
+      if (boss.hp <= 0) {
+        boss.hp = 0;
+        addScore(950);
+        state.whiteFlash = Math.max(state.whiteFlash, 0.28);
+        state.shakeTime = Math.max(state.shakeTime, 0.28);
+        state.shakePower = Math.max(state.shakePower, 12);
+        finishJourneyPrelude();
+      }
+      return;
+    }
+
+    if (boss.phase === 1 && !boss.rage && boss.hp <= boss.maxHp * 0.4) {
+      boss.rage = true;
+      spawnParticles(boss.x, boss.y, '#b47cff', 28, 150, 8);
+      state.shakeTime = Math.max(state.shakeTime, 0.4);
+      state.shakePower = Math.max(state.shakePower, 10);
+    }
 
     if (boss.hp <= 0) {
       boss.hp = 0;
-      addScore(state.sequence === 'swampBoss' ? 550 : (boss.phase === 2 ? 900 : 400));
-      if (state.sequence === 'mineBoss') {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.4);
-        startJungleRun();
-      } else if (state.sequence === 'swampBoss') {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.45);
-        finishJourneyPrelude();
-      } else if (boss.phase === 1) {
+      addScore(boss.phase === 2 ? 900 : 400);
+      if (boss.phase === 1) {
         startTempleCollapseSequence();
-      } else if (boss.phase === 2) {
-        boss.active = false;
-        state.sequence = 'trueVictory';
-        state.quest = 'Истинная форма болотного и храмового мрака повержена.';
-        victoryText.textContent = 'Храм содрогнулся, истинная тварь рассыпалась, а герой вышел живым. Финальный счёт: ' + Math.floor(state.score) + '.';
-        setScreen('victory');
-        saveBestScore();
-        updateHud();
       } else {
-        boss.active = false;
-        state.sequence = 'victory';
-        state.quest = 'Победа над духом.';
-        victoryText.textContent = 'Дух повержен, обряд завершён. Финальный счёт: ' + Math.floor(state.score) + '.';
+        victoryText.textContent = 'Истинный босс повержен. Итоговый счёт: ' + Math.floor(state.score) + '.';
+        configureVictoryScreen('restart');
         setScreen('victory');
-        saveBestScore();
       }
     }
+
+    updateHud();
   }
 
   function consumeShield() {
@@ -1599,9 +1467,28 @@
     if ((state.mode !== 'fight' && state.mode !== 'journey') || !boss.active) return;
 
     if (state.mode === 'journey' && state.sequence === 'mineBoss') {
-      if (Math.random() < 0.5) {
+      const patternRoll = Math.random();
+      if (patternRoll < 0.38) {
+        const volley = 3;
+        for (let i = 0; i < volley; i++) {
+          const angle = Math.PI / 2 + rand(-0.4, 0.4);
+          const speed = rand(300, 380);
+          bullets.push({
+            x: boss.x + rand(-18, 18),
+            y: boss.y + 24,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            r: rand(18, 24),
+            type: 'book',
+            angle: rand(0, Math.PI * 2),
+            spin: rand(-7.6, 7.6),
+            reflected: false,
+            damage: 9
+          });
+        }
+      } else if (patternRoll < 0.72) {
         const x = rand(state.width * 0.18, state.width * 0.82);
-        warnings.push({ x, life: 0.5, maxLife: 0.5, kind: 'mine-rock' });
+        warnings.push({ x, life: 0.7, maxLife: 0.7, kind: 'mine-rock' });
         journeyHazards.push({ kind: 'falling-rock', x, y: -48, vy: rand(360, 430), damage: 7, hitTimer: 0.24 });
       } else {
         journeyHazards.push({ kind: 'cart', x: -100, y: player.groundY + 8, vx: rand(300, 360), width: 94, damage: 6, hitTimer: 0.18 });
@@ -1610,90 +1497,74 @@
       return;
     }
 
-    if (state.mode === 'journey' && state.sequence === 'swampBoss') {
-      const roll = Math.random();
-      if (roll < 0.48) {
-        const count = 3;
-        for (let i = 0; i < count; i++) {
-          const aimX = player.x + (i - 1) * 34;
-          const aimY = player.y - 18;
-          const dx = aimX - boss.x;
-          const dy = aimY - (boss.y + 12);
-          const len = Math.max(1, Math.hypot(dx, dy));
-          const speed = rand(250, 320);
-          bullets.push({
-            x: boss.x,
-            y: boss.y + 12,
-            vx: dx / len * speed,
-            vy: dy / len * speed,
-            r: 14,
-            damage: 8,
-            color: '#77dc8f',
-            type: 'slime'
-          });
-        }
-      } else if (roll < 0.78) {
-        spawnSwampSlime(state.width * rand(0.16, 0.84), player.groundY - 8);
-        if (Math.random() < 0.65) spawnSwampSlime(state.width * rand(0.16, 0.84), player.groundY - 8);
-      } else {
-        for (let i = 0; i < 5; i++) {
-          const angle = -0.8 + i * 0.4;
-          const speed = rand(230, 290);
-          bullets.push({
-            x: boss.x,
-            y: boss.y + 18,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed + 140,
-            r: 12,
-            damage: 7,
-            color: '#8ff0b0',
-            type: 'slime'
-          });
-        }
-      }
-      boss.attackTimer = rand(0.9, 1.3);
-      return;
-    }
-
-    if (boss.phase === 0) {
-      if (Math.random() < 0.5) {
-        const x = clamp(player.x + rand(-140, 140), state.width * 0.18, state.width * 0.82);
-        warnings.push({ x, life: 0.55, maxLife: 0.55, kind: 'mine-rock' });
-        journeyHazards.push({ kind: 'falling-rock', x, y: -52, vy: rand(360, 440), damage: 5, hitTimer: 0.18 });
-      } else {
-        journeyHazards.push({ kind: 'cart', x: -120, y: player.groundY + 8, vx: rand(280, 350), width: 96, damage: 5, hitTimer: 0.2 });
-      }
-      return;
-    }
-
     if (boss.phase === 2) {
-      const roll = Math.random();
-      if (roll < 0.34) {
+      const patternRoll = Math.random();
+      if (patternRoll < 0.34) {
         spawnBookVolley();
-      } else if (roll < 0.67) {
+      } else if (patternRoll < 0.62) {
         spawnLightningVolley();
-      } else {
+      } else if (patternRoll < 0.86) {
         spawnArrowVolley();
+      } else {
+        spawnShieldDrop();
       }
       return;
     }
 
-    if (boss.rage) {
-      const roll = Math.random();
-      if (roll < 0.4) {
-        spawnBookVolley();
-      } else if (roll < 0.72) {
-        spawnArrowVolley();
-      } else {
-        spawnLightningVolley();
-      }
-      return;
-    }
-
-    if (Math.random() < 0.55) {
+    const patternRoll = Math.random();
+    if (boss.rage && patternRoll > 0.76) {
       spawnBookVolley();
+    } else if (patternRoll < 0.34) {
+      const count = boss.rage ? 7 : 5;
+      for (let i = 0; i < count; i++) {
+        const spread = (i - (count - 1) / 2) * (boss.rage ? 0.18 : 0.22);
+        const angle = Math.PI / 2 + spread;
+        const speed = boss.rage ? 360 : 290;
+        bullets.push({
+          x: boss.x,
+          y: boss.y + 18,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: boss.rage ? 10 : 9,
+          damage: boss.rage ? 16 : 12,
+          color: boss.rage ? '#d07eff' : '#8fd3ff'
+        });
+      }
+    } else if (patternRoll < 0.68) {
+      const count = boss.rage ? 3 : 2;
+      for (let i = 0; i < count; i++) {
+        const aimX = player.x + (i - (count - 1) / 2) * 28;
+        const aimY = player.y - 22;
+        const dx = aimX - boss.x;
+        const dy = aimY - boss.y;
+        const len = Math.max(1, Math.hypot(dx, dy));
+        const speed = boss.rage ? 400 : 315;
+        bullets.push({
+          x: boss.x,
+          y: boss.y + 12,
+          vx: dx / len * speed,
+          vy: dy / len * speed,
+          r: boss.rage ? 11 : 10,
+          damage: boss.rage ? 18 : 13,
+          color: boss.rage ? '#ff9db3' : '#9ec7ff'
+        });
+      }
     } else {
-      spawnArrowVolley();
+      const count = boss.rage ? 8 : 6;
+      for (let i = 0; i < count; i++) {
+        const x = rand(state.width * 0.15, state.width * 0.85);
+        warnings.push({ x, life: 0.55 });
+        bullets.push({
+          x,
+          y: boss.y - rand(60, 120),
+          vx: rand(-30, 30),
+          vy: boss.rage ? rand(350, 430) : rand(280, 360),
+          r: boss.rage ? 10 : 9,
+          damage: boss.rage ? 15 : 11,
+          color: boss.rage ? '#c493ff' : '#b8e2ff',
+          delayed: 0.38
+        });
+      }
     }
   }
 
@@ -1714,30 +1585,6 @@
             hitJourneyHazard(hazard, hazard.damage);
           }
         } else if (hazard.kind !== 'pit' && overlap && player.y >= player.groundY - 18) {
-          hitJourneyHazard(hazard, hazard.damage);
-        }
-      } else if (state.sequence === 'jungleRun' || state.sequence === 'swampRun') {
-        const screenX = state.width * 0.56 + hazard.worldX - state.journeyProgress;
-        hazard.screenX = screenX;
-        if (screenX < -240 || screenX > state.width + 240) continue;
-        const overlap = Math.abs(player.x - screenX) < (hazard.width * 0.5 + player.r * 0.7);
-
-        if (hazard.kind === 'vine') {
-          hazard.swing = (hazard.swing || 0) + dt * 4.3;
-          const bob = Math.sin(hazard.swing) * (hazard.amplitude || 42);
-          if (Math.abs(player.x - (screenX + bob * 0.46)) < ((hazard.radius || 22) + player.r * 0.4) && player.y > player.groundY - 64) {
-            hitJourneyHazard(hazard, hazard.damage);
-          }
-        } else if (hazard.kind === 'croc') {
-          hazard.snap = (hazard.snap || 0) + dt * (hazard.snapSpeed || 4.8);
-          if (Math.sin(hazard.snap) > 0.12 && overlap && player.y >= player.groundY - 24) {
-            hitJourneyHazard(hazard, hazard.damage);
-          }
-        } else if (hazard.kind === 'gap') {
-          if (overlap && player.y >= player.groundY - 14) {
-            hitJourneyHazard(hazard, hazard.damage);
-          }
-        } else if (hazard.kind === 'root' && overlap && player.y >= player.groundY - 18) {
           hitJourneyHazard(hazard, hazard.damage);
         }
       } else {
@@ -1781,7 +1628,7 @@
       state.journeyTimer += dt;
       player.x = lerp(player.x, state.width * 0.3, dt * 1.35);
       if (state.journeyTimer >= state.journeyGoal) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.14);
+        state.whiteFlash = Math.max(state.whiteFlash, 0.18);
         startIslandFight();
       }
       return;
@@ -1796,7 +1643,7 @@
     }
 
     if (state.sequence === 'trapRun') {
-      state.journeyProgress = clamp(state.journeyProgress + Math.max(0, move) * 124 * dt, 0, state.journeyGoal);
+      state.journeyProgress = clamp(state.journeyProgress + Math.max(0, move) * 256 * dt, 0, state.journeyGoal);
       updateJourneyHazards(dt);
       if (state.journeyProgress >= state.journeyGoal) {
         state.whiteFlash = Math.max(state.whiteFlash, 0.18);
@@ -1828,33 +1675,9 @@
     }
 
     if (state.sequence === 'mineBoss') {
+      boss.x = lerp(boss.x, state.width * (0.54 + Math.sin(state.time * 1.2) * 0.12), dt * 1.8);
+      boss.y = lerp(boss.y, state.height * 0.24 + Math.sin(state.time * 2.1) * 12, dt * 1.5);
       updateJourneyHazards(dt);
-      return;
-    }
-
-    if (state.sequence === 'jungleRun') {
-      state.journeyProgress = clamp(state.journeyProgress + 82 * dt + Math.max(0, move) * 124 * dt, 0, state.journeyGoal);
-      updateJourneyHazards(dt);
-      if (state.journeyProgress >= state.journeyGoal) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.2);
-        startSwampRun();
-      }
-      return;
-    }
-
-    if (state.sequence === 'swampRun') {
-      state.journeyProgress = clamp(state.journeyProgress + 76 * dt + Math.max(0, move) * 112 * dt, 0, state.journeyGoal);
-      updateJourneyHazards(dt);
-      if (state.journeyProgress >= state.journeyGoal) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.22);
-        startSwampBoss();
-      }
-      return;
-    }
-
-    if (state.sequence === 'swampBoss') {
-      updateJourneyHazards(dt);
-      return;
     }
   }
 
@@ -2082,56 +1905,52 @@
 
     for (let i = minions.length - 1; i >= 0; i--) {
       const minion = minions[i];
-      if (minion.variant === 'swampSlime') {
-        minion.attackTimer -= dt;
-        minion.x += Math.sign(player.x - minion.x || 1) * minion.speed * dt;
-        minion.y = lerp(minion.y, player.groundY - 10 + Math.sin(state.time * 5.2 + minion.bob) * 4, dt * 5.5);
-        if (minion.attackTimer <= 0 && Math.abs(player.x - minion.x) < 110) {
-          bullets.push({
-            x: minion.x,
-            y: minion.y - 8,
-            vx: Math.sign(player.x - minion.x || 1) * rand(170, 210),
-            vy: -rand(80, 120),
-            r: 10,
-            color: minion.color,
-            type: 'slime',
-            damage: 5
-          });
-          minion.attackTimer = rand(1.2, 1.8);
-        }
-      } else if (minion.journeyHunter) {
-        minion.attackTimer -= dt;
+      if (minion.journeyHunter) {
+        const hoverTargetY = minion.hoverY + Math.sin(state.time * 2.4 + minion.bob) * 18;
         const dx = player.x - minion.x;
-        minion.x += Math.sign(dx || 1) * Math.min(Math.abs(dx), minion.speed * dt * 0.95);
-        minion.x += Math.sin(state.time * 2 + minion.bob) * dt * minion.drift * 0.18;
-        minion.hoverY = lerp(minion.hoverY || minion.y, clamp(player.y - 92 + Math.sin(minion.bob + state.time * 2.4) * 24, state.height * 0.2, state.height * 0.58), dt * 1.4);
-        minion.y = lerp(minion.y, minion.hoverY, dt * 1.8);
+        minion.x += Math.sign(dx || 1) * Math.min(Math.abs(dx), (minion.speed * 0.72 + Math.abs(Math.sin(state.time * 3 + minion.bob)) * 24) * dt);
+        minion.x += Math.sin(state.time * 4 + minion.bob) * dt * minion.drift * 0.22;
+        minion.y += (hoverTargetY - minion.y) * Math.min(1, dt * 2.2);
+        minion.attackTimer -= dt;
+
         if (minion.attackTimer <= 0) {
-          const aimY = player.y - 34;
-          const vx = player.x - minion.x;
+          const aimX = player.x + rand(-18, 18);
+          const aimY = player.y - 18 + rand(-14, 14);
+          const vx = aimX - minion.x;
           const vy = aimY - minion.y;
           const len = Math.max(1, Math.hypot(vx, vy));
-          const speed = rand(280, 340);
+          const speed = rand(240, 320);
           bullets.push({
             x: minion.x,
-            y: minion.y,
-            vx: vx / len * speed,
-            vy: vy / len * speed,
-            r: 12,
-            color: minion.color,
+            y: minion.y + 8,
+            vx: (vx / len) * speed,
+            vy: (vy / len) * speed,
+            r: rand(15, 20),
             type: 'book',
-            angle: Math.atan2(vy, vx),
-            spin: rand(-6, 6),
+            angle: rand(0, Math.PI * 2),
+            spin: rand(-7.2, 7.2),
+            reflected: false,
             damage: 9
           });
           spawnParticles(minion.x, minion.y, minion.color, 9, 90, 4.5);
-          minion.attackTimer = rand(1.1, 1.7);
+          minion.attackTimer = rand(1.05, 1.65);
         }
+
         minion.y = clamp(minion.y, state.height * 0.18, player.groundY - 68);
       } else {
         minion.y += minion.speed * dt;
+        minion.x += Math.sin(state.time * 4 + minion.bob) * dt * minion.drift;
       }
-      if (!minion.journeyHunter && minion.variant !== 'swampSlime' && minion.y > state.height + 50) {
+
+      minion.x = clamp(minion.x, state.width * 0.08, state.width * 0.92);
+      if (dist(minion.x, minion.y, player.x, player.y - 14) <= minion.r + player.r) {
+        damagePlayer(minion.damage);
+        spawnParticles(minion.x, minion.y, minion.color, 16, 110, 6);
+        minions.splice(i, 1);
+        updateHud();
+        continue;
+      }
+      if (!minion.journeyHunter && minion.y > state.height + 50) {
         minions.splice(i, 1);
         damagePlayer(minion.damage);
       }
@@ -2206,58 +2025,6 @@
       return;
     }
 
-    if (state.sequence === 'jungleRun' || state.sequence === 'swampRun' || state.sequence === 'swampBoss') {
-      const sky = ctx.createLinearGradient(0, 0, 0, state.height);
-      sky.addColorStop(0, '#243924');
-      sky.addColorStop(0.34, '#173121');
-      sky.addColorStop(0.68, '#122820');
-      sky.addColorStop(1, '#0a1918');
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, state.width, state.height);
-
-      const mist = ctx.createRadialGradient(state.width * 0.52, state.height * 0.32, 20, state.width * 0.52, state.height * 0.32, state.width * 0.48);
-      mist.addColorStop(0, 'rgba(174, 255, 198, 0.12)');
-      mist.addColorStop(1, 'rgba(174, 255, 198, 0)');
-      ctx.fillStyle = mist;
-      ctx.fillRect(0, 0, state.width, state.height);
-
-      for (let i = 0; i < 8; i++) {
-        const x = (i / 7) * state.width;
-        ctx.fillStyle = i % 2 ? 'rgba(18, 39, 28, 0.92)' : 'rgba(10, 27, 21, 0.9)';
-        ctx.beginPath();
-        ctx.moveTo(x - 40, 0);
-        ctx.lineTo(x + 30, 0);
-        ctx.lineTo(x + 10, state.height * 0.3 + (i % 3) * 42);
-        ctx.lineTo(x + 70, state.height);
-        ctx.lineTo(x - 80, state.height);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      for (let i = 0; i < 16; i++) {
-        const x = (i / 15) * state.width + Math.sin(i * 2.2 + state.time * 0.2) * 12;
-        const leafY = state.height * (0.1 + (i % 5) * 0.06);
-        ctx.strokeStyle = i % 2 ? 'rgba(68, 128, 82, 0.42)' : 'rgba(104, 168, 118, 0.34)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.quadraticCurveTo(x + Math.sin(i) * 18, leafY, x - Math.cos(i) * 12, leafY + 42);
-        ctx.stroke();
-      }
-
-      if (state.sequence === 'swampRun' || state.sequence === 'swampBoss') {
-        const water = ctx.createLinearGradient(0, state.height * 0.62, 0, state.height);
-        water.addColorStop(0, 'rgba(33, 68, 52, 0.88)');
-        water.addColorStop(1, 'rgba(11, 25, 21, 0.98)');
-        ctx.fillStyle = water;
-        ctx.fillRect(0, state.height * 0.62, state.width, state.height * 0.38);
-      }
-
-      drawMistLayer(state.height * 0.36, 64, 0.09, '121, 179, 129', 0.11, 0.28);
-      drawMistLayer(state.height * 0.76, 80, 0.1, '94, 161, 124', 0.09, 0.45);
-      return;
-    }
-
     const sky = ctx.createLinearGradient(0, 0, 0, state.height);
     sky.addColorStop(0, '#2b2340');
     sky.addColorStop(0.34, '#1a1730');
@@ -2276,23 +2043,12 @@
     const moonY = state.height * 0.16 + Math.sin(state.time * 0.1) * 4;
     ctx.fillStyle = 'rgba(240, 236, 255, 0.9)';
     ctx.beginPath();
-    ctx.arc(moonX, moonY, 26, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(195, 214, 248, 0.22)';
-    ctx.beginPath();
-    ctx.arc(moonX + 2, moonY + 1, 30, 0, Math.PI * 2);
+    ctx.arc(moonX, moonY, 24, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = 'rgba(143, 164, 204, 0.08)';
-    ellipse(moonX - 44, moonY + 10, 44, 12, true);
-    ellipse(moonX + 46, moonY + 16, 52, 14, true);
-
-    drawRidge(state.height * 0.48, 120, '#121726', 0, 0.94);
-    drawRidge(state.height * 0.53, 148, '#0d1421', 0, 1.04);
-    drawRidge(state.height * 0.58, 188, '#09101a', 0, 1.15);
-
-    drawMistLayer(state.height * 0.34, 54, 0.09, '135, 156, 203', 0.14, 0.3);
-    drawMistLayer(state.height * 0.44, 72, 0.08, '108, 131, 184', 0.2, 0.45);
+    drawRidge(state.height * 0.5, 120, '#161a29', 0, 0.94);
+    drawRidge(state.height * 0.57, 160, '#101523', 0, 1.06);
+    drawMistLayer(state.height * 0.44, 56, 0.08, '142, 164, 220', 0.12, 0.34);
   }
 
   function drawJourneyScenery() {
@@ -2312,44 +2068,6 @@
         const x = (i / 15) * state.width;
         ctx.fillStyle = 'rgba(94, 66, 53, 0.9)';
         ctx.fillRect(x, railY - 4, 12, 28);
-      }
-      return;
-    }
-
-    if (state.sequence === 'jungleRun' || state.sequence === 'swampRun' || state.sequence === 'swampBoss') {
-      const waterTop = player.groundY + 18;
-      ctx.fillStyle = state.sequence === 'jungleRun' ? 'rgba(58, 83, 44, 0.92)' : 'rgba(11, 34, 25, 0.88)';
-      ctx.fillRect(0, player.groundY + 8, state.width, state.height - player.groundY - 8);
-
-      for (let i = 0; i < 12; i++) {
-        const x = ((i * 170) - (state.journeyProgress * 0.55)) % (state.width + 180) - 90;
-        const trunkH = 84 + (i % 3) * 24;
-        ctx.fillStyle = 'rgba(58, 43, 29, 0.92)';
-        ctx.fillRect(x, player.groundY + 10 - trunkH, 26, trunkH);
-        ctx.strokeStyle = 'rgba(44, 79, 52, 0.72)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(x + 16, player.groundY - trunkH + 6);
-        ctx.lineTo(x - 10, player.groundY - trunkH - 28);
-        ctx.stroke();
-      }
-
-      if (state.sequence === 'swampRun' || state.sequence === 'swampBoss') {
-        ctx.fillStyle = 'rgba(11, 34, 25, 0.88)';
-        ctx.fillRect(0, waterTop, state.width, state.height - waterTop);
-        for (let i = 0; i < 8; i++) {
-          const x = ((i * 210) - (state.journeyProgress * 0.9)) % (state.width + 240) - 120;
-          const w = 110 + (i % 3) * 18;
-          const tilt = Math.sin(state.time * 2 + i) * 5;
-          ctx.fillStyle = 'rgba(107, 78, 50, 0.94)';
-          ctx.save();
-          ctx.translate(x, player.groundY + 18 + Math.sin(state.time * 2.1 + i) * 3);
-          ctx.rotate(tilt * 0.01);
-          ctx.fillRect(-w * 0.5, -10, w, 22);
-          ctx.fillStyle = 'rgba(72, 51, 33, 0.84)';
-          ctx.fillRect(-w * 0.46, -4, w * 0.92, 6);
-          ctx.restore();
-        }
       }
       return;
     }
@@ -2434,84 +2152,6 @@
           ctx.fillStyle = 'rgba(175, 150, 122, 0.96)';
           ctx.beginPath();
           ctx.arc(x + bob, player.groundY - 42, 18, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } else if (state.sequence === 'jungleRun' || state.sequence === 'swampRun') {
-        const x = hazard.screenX;
-        if (x == null || x < -240 || x > state.width + 240) return;
-        if (hazard.kind === 'gap') {
-          const water = ctx.createLinearGradient(0, player.groundY + 4, 0, player.groundY + 44);
-          water.addColorStop(0, 'rgba(54, 101, 72, 0.18)');
-          water.addColorStop(1, 'rgba(17, 38, 29, 0.74)');
-          ctx.fillStyle = water;
-          ctx.fillRect(x - hazard.width * 0.44, player.groundY + 4, hazard.width * 0.88, 42);
-          ctx.strokeStyle = 'rgba(156, 199, 142, 0.28)';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(x - hazard.width * 0.48, player.groundY + 8);
-          ctx.lineTo(x - hazard.width * 0.22, player.groundY + 16);
-          ctx.moveTo(x + hazard.width * 0.18, player.groundY + 14);
-          ctx.lineTo(x + hazard.width * 0.48, player.groundY + 8);
-          ctx.stroke();
-        } else if (hazard.kind === 'vine') {
-          const bob = Math.sin(hazard.swing || 0) * (hazard.amplitude || 42);
-          ctx.strokeStyle = 'rgba(74, 128, 72, 0.88)';
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.moveTo(x - 12, 0);
-          ctx.quadraticCurveTo(x + bob * 0.24, state.height * 0.22, x + bob * 0.42, player.groundY - 54);
-          ctx.stroke();
-          ctx.fillStyle = 'rgba(102, 196, 124, 0.76)';
-          ctx.beginPath();
-          ctx.arc(x + bob * 0.42, player.groundY - 44, hazard.radius || 22, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = 'rgba(32, 66, 38, 0.88)';
-          ctx.beginPath();
-          ctx.arc(x + bob * 0.42, player.groundY - 44, (hazard.radius || 22) * 0.56, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (hazard.kind === 'root') {
-          ctx.fillStyle = 'rgba(120, 88, 50, 0.95)';
-          for (let i = 0; i < 4; i++) {
-            const px = x - hazard.width * 0.5 + i * (hazard.width / 3);
-            ctx.beginPath();
-            ctx.moveTo(px, player.groundY + 10);
-            ctx.lineTo(px + 16, player.groundY - 24);
-            ctx.lineTo(px + 28, player.groundY + 12);
-            ctx.closePath();
-            ctx.fill();
-          }
-        } else if (hazard.kind === 'croc') {
-          const jaw = Math.max(0, Math.sin(hazard.snap || 0)) * 16;
-          const y = player.groundY + 14;
-          ctx.fillStyle = 'rgba(21, 73, 48, 0.98)';
-          ctx.beginPath();
-          ctx.moveTo(x - 34, y + 6);
-          ctx.lineTo(x + 34, y + 4);
-          ctx.lineTo(x + 18, y + 24);
-          ctx.lineTo(x - 18, y + 24);
-          ctx.closePath();
-          ctx.fill();
-          ctx.fillStyle = 'rgba(113, 172, 98, 0.98)';
-          ctx.beginPath();
-          ctx.moveTo(x - 32, y - jaw * 0.35);
-          ctx.lineTo(x + 32, y - jaw);
-          ctx.lineTo(x + 14, y + 2);
-          ctx.lineTo(x - 10, y + 4);
-          ctx.closePath();
-          ctx.fill();
-          ctx.fillStyle = 'rgba(225, 235, 214, 0.92)';
-          for (let i = 0; i < 5; i++) {
-            const tx = x - 22 + i * 11;
-            ctx.beginPath();
-            ctx.moveTo(tx, y + 4);
-            ctx.lineTo(tx + 3, y + 12);
-            ctx.lineTo(tx + 6, y + 4);
-            ctx.closePath();
-            ctx.fill();
-          }
-          ctx.fillStyle = '#0b1610';
-          ctx.beginPath();
-          ctx.arc(x + 18, y - 4, 3.4, 0, Math.PI * 2);
           ctx.fill();
         }
       } else if (hazard.kind === 'falling-rock') {
@@ -3494,111 +3134,11 @@
     ctx.stroke();
   }
 
-  function drawSwampBoss() {
-    const pulse = 0.72 + Math.sin(state.time * 3.1) * 0.08;
-    const auraRadius = boss.r + 54 + Math.sin(boss.aura * 3) * 12;
-    const aura = ctx.createRadialGradient(boss.x, boss.y + 10, 12, boss.x, boss.y + 10, auraRadius);
-    aura.addColorStop(0, 'rgba(128, 255, 171, 0.22)');
-    aura.addColorStop(0.34, 'rgba(84, 196, 122, 0.22)');
-    aura.addColorStop(1, 'rgba(17, 38, 28, 0)');
-    ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.arc(boss.x, boss.y + 10, auraRadius, 0, Math.PI * 2);
-    ctx.fill();
-
-    for (let i = 0; i < 7; i++) {
-      const angle = state.time * 1.6 + i * (Math.PI * 2 / 7);
-      const ox = boss.x + Math.cos(angle) * (boss.r + 18 + Math.sin(state.time * 2 + i) * 8);
-      const oy = boss.y + 12 + Math.sin(angle * 1.4) * 18;
-      ctx.fillStyle = i % 2 ? 'rgba(116, 238, 152, 0.55)' : 'rgba(180, 255, 198, 0.42)';
-      ctx.beginPath();
-      ctx.arc(ox, oy, 6 + (i % 3), 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ellipse(boss.x, boss.y + 94, 60, 22, true, 'rgba(0,0,0,0.28)');
-
-    ctx.save();
-    ctx.translate(boss.x, boss.y + Math.sin(state.time * 1.8) * 4);
-    ctx.scale(1, 0.96 + pulse * 0.06);
-
-    const body = ctx.createRadialGradient(-10, -18, 8, 0, 8, boss.r + 28);
-    body.addColorStop(0, boss.hitFlash > 0 ? '#efffe9' : '#aff1bd');
-    body.addColorStop(0.34, '#73d596');
-    body.addColorStop(0.72, '#2f8b64');
-    body.addColorStop(1, '#16392a');
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.moveTo(-boss.r * 0.82, 8);
-    ctx.quadraticCurveTo(-boss.r * 0.96, -boss.r * 0.86, 0, -boss.r * 0.98);
-    ctx.quadraticCurveTo(boss.r * 0.98, -boss.r * 0.82, boss.r * 0.86, 12);
-    ctx.quadraticCurveTo(boss.r * 0.78, boss.r * 0.84, 0, boss.r * 1.08);
-    ctx.quadraticCurveTo(-boss.r * 0.86, boss.r * 0.82, -boss.r * 0.82, 8);
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(226, 255, 232, 0.12)';
-    ctx.beginPath();
-    ctx.ellipse(-10, -18, boss.r * 0.38, boss.r * 0.18, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(24, 58, 41, 0.72)';
-    ctx.beginPath();
-    ctx.moveTo(-32, -40);
-    ctx.lineTo(-12, -78);
-    ctx.lineTo(4, -46);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(18, -34);
-    ctx.lineTo(42, -72);
-    ctx.lineTo(50, -30);
-    ctx.closePath();
-    ctx.fill();
-
-    const eyeGlow = ctx.createRadialGradient(0, -10, 2, 0, -10, 32);
-    eyeGlow.addColorStop(0, 'rgba(247, 255, 241, 0.95)');
-    eyeGlow.addColorStop(1, 'rgba(180, 255, 198, 0)');
-    ctx.fillStyle = eyeGlow;
-    ctx.beginPath();
-    ctx.arc(0, -10, 32, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#11211a';
-    ctx.beginPath();
-    ctx.ellipse(-18, -10, 8, 5, -0.16, 0, Math.PI * 2);
-    ctx.ellipse(18, -10, 8, 5, 0.16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#f5fff1';
-    ctx.beginPath();
-    ctx.arc(-18, -10, 2.4, 0, Math.PI * 2);
-    ctx.arc(18, -10, 2.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(12, 47, 30, 0.7)';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(-18, 24);
-    ctx.quadraticCurveTo(0, 38, 18, 24);
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(96, 210, 126, 0.64)';
-    for (let i = 0; i < 3; i++) {
-      ctx.beginPath();
-      ctx.arc(-28 + i * 28, 54 + i * 6, 11 - i * 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
   function drawBoss() {
     if (!boss.active) return;
 
-    if (boss.kind === 'mineWarden' || boss.phase === 0 && state.sequence === 'mineBoss') {
+    if (boss.kind === 'mineWarden' || boss.phase === 0) {
       drawMineBoss();
-      return;
-    }
-
-    if (boss.kind === 'swampSpirit' || state.sequence === 'swampBoss') {
-      drawSwampBoss();
       return;
     }
 
@@ -3784,43 +3324,11 @@
     ctx.restore();
   }
 
-  function drawSwampSlimeMinion(minion, bob) {
-    ellipse(minion.x, minion.y + minion.r * 0.74, minion.r * 0.92, minion.r * 0.3, true, 'rgba(0,0,0,0.22)');
-    ctx.save();
-    ctx.translate(minion.x, minion.y + bob * 0.35);
-    const body = ctx.createRadialGradient(-minion.r * 0.18, -minion.r * 0.28, 2, 0, 0, minion.r * 1.18);
-    body.addColorStop(0, '#dfffdc');
-    body.addColorStop(0.28, minion.color);
-    body.addColorStop(1, '#2d7c60');
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, minion.r * 0.92, minion.r * 0.72, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    ctx.beginPath();
-    ctx.ellipse(-minion.r * 0.18, -minion.r * 0.26, minion.r * 0.34, minion.r * 0.18, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#143425';
-    ctx.beginPath();
-    ctx.arc(-minion.r * 0.18, -minion.r * 0.08, minion.r * 0.1, 0, Math.PI * 2);
-    ctx.arc(minion.r * 0.18, -minion.r * 0.08, minion.r * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(14, 52, 34, 0.75)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-minion.r * 0.24, minion.r * 0.22);
-    ctx.quadraticCurveTo(0, minion.r * 0.38, minion.r * 0.24, minion.r * 0.22);
-    ctx.stroke();
-    ctx.restore();
-  }
-
   function drawMinions() {
     minions.forEach((minion) => {
       const bob = Math.sin(state.time * 6 + minion.bob) * 4;
       if (minion.variant === 'shoreBook' || minion.journeyHunter) {
         drawShoreBookMinion(minion, bob);
-      } else if (minion.variant === 'swampSlime') {
-        drawSwampSlimeMinion(minion, bob);
       } else {
         drawTempleMinion(minion, bob);
       }
