@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-07_19-59-39__before-mobile-hit-freeze-fix
+Created at: Tue Apr  7 19:59:39 EET 2026
+Purpose: snapshot before mobile anti-freeze hit recovery pass
