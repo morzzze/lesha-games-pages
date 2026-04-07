@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-08_00-54-36__before-compact-arena-hud-pass
+Created at: Wed Apr  8 00:54:36 EET 2026
+Purpose: snapshot before compact clean arena-mobile HUD pass

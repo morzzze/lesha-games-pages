@@ -37,11 +37,11 @@
   #hud {
     position: fixed;
     inset: 0 0 auto 0;
-    padding: max(5px, env(safe-area-inset-top)) 5px 0;
+    padding: max(8px, env(safe-area-inset-top)) 8px 0;
     z-index: 20;
     pointer-events: none;
     display: none;
-    width: min(calc(100vw - 8px), 760px);
+    width: min(calc(100vw - 12px), 760px);
     margin: 0 auto;
   }
 
@@ -49,17 +49,17 @@
 
   .hud-row {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: stretch;
   }
 
   .panel {
-    background: linear-gradient(180deg, rgba(7, 12, 24, 0.84), rgba(5, 8, 18, 0.9));
-    border: 1px solid rgba(166, 194, 230, 0.12);
-    border-radius: 14px;
-    padding: 8px 10px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 28px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.04);
+    background: linear-gradient(180deg, rgba(8, 14, 28, 0.88), rgba(6, 9, 19, 0.9));
+    border: 1px solid rgba(166, 194, 230, 0.14);
+    border-radius: 16px;
+    padding: 9px 11px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 14px 40px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
     position: relative;
     overflow: hidden;
   }
@@ -68,8 +68,8 @@
     content: "";
     position: absolute;
     inset: 1px;
-    border-radius: 13px;
-    border: 1px solid rgba(255,255,255,.03);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.035);
     pointer-events: none;
   }
 
@@ -82,12 +82,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
-    font-size: 10px;
-    line-height: 1;
-    letter-spacing: .32px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    letter-spacing: .42px;
     text-transform: uppercase;
-    color: rgba(233, 240, 255, 0.82);
+    color: rgba(233, 240, 255, 0.86);
   }
 
   .label-row span {
@@ -100,67 +99,66 @@
 
   .label-row strong {
     flex: 0 0 auto;
-    padding-left: 6px;
-    font-size: 12px;
+    padding-left: 8px;
     font-variant-numeric: tabular-nums;
   }
 
   .bar {
     width: 100%;
-    height: 9px;
+    height: 11px;
     border-radius: 999px;
     overflow: hidden;
-    background: rgba(255,255,255,.06);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.045), inset 0 4px 10px rgba(0,0,0,.16);
+    background: rgba(255,255,255,.065);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.055), inset 0 6px 14px rgba(0,0,0,.18);
   }
 
   .fill {
-    height: 100%;
     width: 100%;
+    height: 100%;
+    transition: width .12s linear;
     border-radius: inherit;
-    transition: width .12s ease;
   }
 
-#player-fill {
+  #player-fill {
     background: linear-gradient(90deg, #5bc7b0 0%, #8fe6cf 100%);
-    box-shadow: 0 0 14px rgba(99,216,190,.36);
+    box-shadow: 0 0 18px rgba(99,216,190,.45);
   }
 
   #boss-fill {
     background: linear-gradient(90deg, #86b8ff 0%, #d171b4 100%);
-    box-shadow: 0 0 16px rgba(161,141,255,.36);
+    box-shadow: 0 0 20px rgba(161,141,255,.45);
   }
 
   #hud-meta {
-    margin-top: 4px;
+    margin-top: 6px;
     display: flex;
-    gap: 4px;
+    gap: 6px;
     flex-wrap: wrap;
   }
 
   .stat-pill,
   .chip {
-    padding: 4px 8px;
-    border-radius: 12px;
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(255,255,255,.055);
-    color: rgba(237, 244, 255, 0.82);
-    backdrop-filter: blur(8px);
+    padding: 6px 10px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.045);
+    border: 1px solid rgba(255,255,255,.06);
+    color: rgba(237, 244, 255, 0.84);
+    backdrop-filter: blur(10px);
   }
 
   .stat-pill {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     min-width: 0;
   }
 
   .stat-label,
   .quest-label {
-    font-size: 9px;
-    letter-spacing: .28px;
+    font-size: 10px;
+    letter-spacing: .36px;
     text-transform: uppercase;
-    color: rgba(222, 231, 249, 0.56);
+    color: rgba(222, 231, 249, 0.6);
     white-space: nowrap;
   }
 
@@ -170,51 +168,97 @@
   }
 
   .stat-pill strong {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1;
   }
 
   #spell-pill.ready {
-    background: linear-gradient(180deg, rgba(111, 72, 181, 0.28), rgba(49, 28, 88, 0.36));
-    border-color: rgba(234, 213, 255, 0.2);
-    box-shadow: 0 0 18px rgba(166, 113, 255, 0.12);
+    background: linear-gradient(180deg, rgba(111, 72, 181, 0.34), rgba(49, 28, 88, 0.4));
+    border-color: rgba(234, 213, 255, 0.22);
+    box-shadow: 0 0 24px rgba(166, 113, 255, 0.14);
   }
 
   #quest-panel {
-    margin-top: 4px;
+    margin-top: 6px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
+    gap: 8px;
   }
 
   #quest-text {
     flex: 1;
     min-width: 0;
-    font-size: 12px;
-    line-height: 1.1;
+    font-size: 13px;
+    line-height: 1.2;
   }
 
   #help-chip {
-    margin-top: 4px;
+    margin-top: 6px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 10px;
+    font-size: 11px;
   }
 
-  #mobile-controls {
+  #overlay {
     position: fixed;
-    inset: auto 0 calc(max(14px, env(safe-area-inset-bottom)) + 2px) 0;
-    z-index: 25;
-    display: none;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
     pointer-events: none;
-    height: 188px;
+    padding: 20px;
   }
 
-  #mobile-controls.visible { display: block; }
+  .screen {
+    width: min(92vw, 560px);
+    padding: 26px 24px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(14, 18, 34, .95), rgba(5, 8, 17, .96));
+    border: 1px solid rgba(143, 205, 232, .2);
+    box-shadow: 0 24px 60px rgba(0,0,0,.52), 0 0 48px rgba(129, 174, 255, .08);
+    text-align: center;
+    pointer-events: auto;
+    display: none;
+  }
 
-button {
+  .screen.visible { display: block; }
+
+  h1, h2, p { margin: 0; }
+  h1 {
+    font-size: clamp(34px, 5vw, 54px);
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    font-size: clamp(28px, 4vw, 40px);
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: rgba(255,247,220,.92);
+    line-height: 1.5;
+    font-size: clamp(15px, 2.5vw, 18px);
+  }
+
+  .muted {
+    margin-top: 10px;
+    color: rgba(255,247,220,.72);
+    font-size: 14px;
+  }
+
+  .actions {
+    margin-top: 22px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  button {
     appearance: none;
     border: none;
     border-radius: 16px;
@@ -370,82 +414,63 @@ button {
   }
 
   @media (max-width: 760px) {
+  @media (max-width: 760px) {
     #hud {
-      width: min(calc(100vw - 6px), 480px);
-      padding: max(4px, env(safe-area-inset-top)) 3px 0;
+      width: min(calc(100vw - 8px), 520px);
+      padding: max(6px, env(safe-area-inset-top)) 6px 0;
     }
 
     .hud-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 4px;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .panel {
-      border-radius: 12px;
-      padding: 6px 8px;
-      box-shadow: 0 8px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.03);
+      border-radius: 14px;
+      padding: 8px 10px;
     }
 
-    .panel::before { border-radius: 11px; }
-
-    .label-row {
-      margin-bottom: 3px;
-      font-size: 8px;
-      letter-spacing: .2px;
-    }
-
-    .label-row strong {
-      padding-left: 4px;
-      font-size: 10px;
-    }
-
-    .bar {
-      height: 7px;
-    }
+    .panel::before { border-radius: 13px; }
+    .label-row { font-size: 10px; margin-bottom: 5px; }
+    .bar { height: 10px; }
 
     #hud-meta {
-      margin-top: 3px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 3px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 5px;
     }
 
     .stat-pill {
-      padding: 4px 6px;
-      border-radius: 10px;
+      padding: 6px 7px;
+      border-radius: 13px;
       flex-direction: column;
       align-items: flex-start;
-      gap: 1px;
+      gap: 2px;
     }
 
     .stat-label,
     .quest-label {
-      font-size: 8px;
-      letter-spacing: .2px;
+      font-size: 9px;
+      letter-spacing: .3px;
     }
 
     .stat-pill strong {
-      font-size: 10px;
-      line-height: 1.05;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
-    #score-chip,
     #best-chip,
     #help-chip {
       display: none;
     }
 
     #quest-panel {
-      margin-top: 3px;
-      gap: 4px;
-      padding: 5px 6px;
-      border-radius: 10px;
+      gap: 6px;
+      padding: 7px 9px;
     }
 
     #quest-text {
-      font-size: 10px;
-      line-height: 1.05;
+      font-size: 12px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -453,6 +478,44 @@ button {
 
     #mobile-controls { height: 176px; }
 
+    #joystick {
+      left: 12px;
+      width: 126px;
+      height: 126px;
+    }
+
+    #joystick-stick {
+      width: 54px;
+      height: 54px;
+      left: 36px;
+      top: 36px;
+    }
+
+    #attack-btn {
+      right: 12px;
+      width: 112px;
+      height: 112px;
+      font-size: 17px;
+    }
+
+    #spell-btn {
+      right: 24px;
+      bottom: 88px;
+      width: 78px;
+      height: 50px;
+      font-size: 11px;
+    }
+
+    #jump-btn {
+      left: 16px;
+      bottom: 94px;
+      width: 92px;
+      height: 52px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 760px) {
     #joystick {
       left: 14px;
       width: 132px;
@@ -486,18 +549,18 @@ button {
     }
   }
 
-</style></style>
+</style>
 </head>
 <body>
   <canvas id="game"></canvas>
 
   <div id="hud">
     <div class="hud-row">
-      <div class="panel bar-card compact-bar-card">
+      <div class="panel bar-card">
         <div class="label-row"><span>Игрок</span><strong id="player-hp-text">100 / 100</strong></div>
         <div class="bar"><div id="player-fill" class="fill"></div></div>
       </div>
-      <div class="panel bar-card compact-bar-card">
+      <div class="panel bar-card">
         <div class="label-row"><span id="boss-name-label">Дух Храма</span><strong id="boss-hp-text">1200 / 1200</strong></div>
         <div class="bar"><div id="boss-fill" class="fill"></div></div>
       </div>
@@ -509,8 +572,48 @@ button {
       <div class="stat-pill" id="score-chip"><span class="stat-label">Счёт</span><strong id="score-text">0</strong></div>
       <div class="stat-pill desktop-only" id="best-chip"><span class="stat-label">Лучший</span><strong id="best-text">0</strong></div>
     </div>
-    <div class="panel quest-panel" id="quest-panel"><span class="quest-label">Цель</span><strong id="quest-text">Доберись до храма</strong></div>
-    <div class="chip desktop-only" id="help-chip">Управление: <strong>A D / ← → / стик, вверх на стике = прыжок, F = обряд</strong></div>
+    <div class="panel quest-panel" id="quest-panel"><span class="quest-label">Задача</span><strong id="quest-text">Доберись до храма</strong></div>
+    <div class="chip desktop-only" id="help-chip">Управление: <strong>← → / A D / W / ↑ / Space / F</strong></div>
+  </div>
+
+  <div id="overlay">
+    <div id="start-screen" class="screen visible">
+      <h1>🌘 Дух Храма 2D</h1>
+      <p>Мистическая браузерная мини-игра: сначала приплыть на одинокий остров, пережить засаду книжных монстров, пройти ловушки и шахты, а потом уже войти в храм.</p>
+      <p class="muted">Открывается как обычный HTML-файл. На телефоне — виртуальный джойстик, прыжок, большая кнопка атаки и отдельная кнопка обряда. Для spell в храме теперь нужно 12 комбо.</p>
+      <div class="actions">
+        <button id="start-btn">ПРИСТАТЬ К ОСТРОВУ</button>
+      </div>
+    </div>
+
+    <div id="altar-screen" class="screen">
+      <h2>Алтарь спит под печатью</h2>
+      <p>Коснись печати, и в храме проснётся хранитель. После этого начнётся бой с HP, фазой ярости и мистическими атаками.</p>
+      <div class="actions">
+        <button id="altar-btn">КОСНУТЬСЯ ПЕЧАТИ</button>
+      </div>
+    </div>
+
+    <div id="shake-screen" class="screen">
+      <h2 id="shake-title">Храм шепчет…</h2>
+      <p id="shake-text">Печать сорвана. Дух выходит из тумана.</p>
+    </div>
+
+    <div id="victory-screen" class="screen">
+      <h2>🏆 Победа</h2>
+      <p id="victory-text">Дух повержен.</p>
+      <div class="actions">
+        <button id="play-again-btn" class="secondary">Играть снова</button>
+      </div>
+    </div>
+
+    <div id="defeat-screen" class="screen">
+      <h2>💀 Поражение</h2>
+      <p id="defeat-text">Игрок пал в храме.</p>
+      <div class="actions">
+        <button id="retry-btn" class="secondary">Попробовать снова</button>
+      </div>
+    </div>
   </div>
 
   <div id="mobile-controls">
@@ -865,7 +968,7 @@ button {
     state.journeyTimer = 0;
     state.journeyProgress = 0;
     state.journeyGoal = 900;
-    state.quest = 'Иди к храму вправо и прыгай через ловушки (W / ↑ / вверх на стике).';
+    state.quest = 'Иди к храму вправо и прыгай через ловушки (W / ↑ / ПРЫЖОК).';
     player.x = state.width * 0.32;
     player.y = player.groundY;
     player.vy = 0;
