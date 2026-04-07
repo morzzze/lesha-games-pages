@@ -695,20 +695,16 @@
     minions.length = 0;
     state.journeyBookTotal = 6;
     for (let i = 0; i < state.journeyBookTotal; i++) {
-      const phase = rand(0, Math.PI * 2);
       minions.push({
         x: rand(state.width * 0.14, state.width * 0.86),
         y: -rand(40, 240) - i * 34,
         r: rand(20, 28),
         hp: 3,
         maxHp: 3,
-        speed: rand(78, 116),
-        bob: phase,
-        drift: rand(34, 72),
-        damage: 10,
-        color: i % 2 === 0 ? '#b58dff' : '#8dc7ff',
-        angle: phase,
-        spin: rand(-2.8, 2.8)
+        vx: rand(-34, 34),
+        vy: rand(96, 150),
+        spin: rand(-2.8, 2.8),
+        angle: rand(0, Math.PI * 2)
       });
     }
   }
