@@ -675,7 +675,6 @@
     x: 0,
     y: 0,
     r: 56,
-    kind: 'templeSpirit',
     maxHp: 1200,
     hp: 1200,
     rage: false,
@@ -769,7 +768,6 @@
     player.spellFlash = 0;
     minions.length = 0;
     boss.active = true;
-    boss.kind = 'templeSpirit';
     boss.phase = 1;
     boss.trueForm = false;
     boss.r = 56;
@@ -857,7 +855,6 @@
         drift: rand(34, 72),
         damage: 6,
         color: i % 2 === 0 ? '#b58dff' : '#8dc7ff',
-        variant: 'shoreBook',
         angle: phase,
         spin: rand(-2.8, 2.8),
         attackTimer: rand(0.65, 1.25),
@@ -962,7 +959,6 @@
     player.cooldown = 0;
     restorePlayerCheckpoint(2);
     boss.active = true;
-    boss.kind = 'mineWarden';
     boss.phase = 0;
     boss.trueForm = false;
     boss.r = 64;
@@ -1025,7 +1021,6 @@
     restorePlayerCheckpoint(3);
     player.cooldown = 0;
     boss.active = true;
-    boss.kind = 'trueTemple';
     boss.phase = 2;
     boss.trueForm = true;
     boss.r = 84;
@@ -1084,8 +1079,7 @@
         bob: rand(0, Math.PI * 2),
         drift: rand(18, 34),
         damage: wave === 1 ? 6 : 8,
-        color: wave === 1 ? '#7f9fdc' : '#b44b72',
-        variant: wave === 1 ? 'templeMask' : 'templeShard'
+        color: wave === 1 ? '#a55c3a' : '#8b3242'
       });
     }
     updateHud();
@@ -1099,7 +1093,7 @@
     state.sequence = 'minionWaves';
     state.minionWave = 0;
     state.minionWaveDelay = 0.65;
-    state.quest = 'Отрази волны храмовых тварей внутри храма.';
+    state.quest = 'Отрази волны книжных монстров внутри храма.';
     state.collapseProgress = 1;
     state.whiteFlash = 0.95;
     player.invuln = 1.3;
@@ -1107,8 +1101,8 @@
     player.comboTimer = 0;
     player.spellFlash = 0;
     restorePlayerCheckpoint(2);
-    shakeTitle.textContent = 'Храмовые твари выползают из руин…';
-    shakeText.textContent = 'Отбей две волны разных храмовых чудовищ, и тогда из руин появится гигантская форма.';
+    shakeTitle.textContent = 'Книжные монстры ползут из руин…';
+    shakeText.textContent = 'Отбей две волны мелких книжных чудовищ, и тогда из руин появится гигантская форма.';
     setScreen('fight');
     updateHud();
   }
@@ -1152,7 +1146,7 @@
       const total = Math.max(1, state.minionWaveCount || remaining);
       bossRatio = remaining / total;
       bossHpText.textContent = remaining + ' / ' + total;
-      bossNameLabel.textContent = 'Храмовые твари · Волна ' + state.minionWave + '/' + state.minionWaveMax;
+      bossNameLabel.textContent = 'Книжные монстры · Волна ' + state.minionWave + '/' + state.minionWaveMax;
     } else {
       bossHpText.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
       bossNameLabel.textContent = boss.phase === 2 ? 'Истинный босс' : 'Дух Храма';
@@ -2807,229 +2801,102 @@
     ctx.restore();
   }
 
-  function drawMineBoss() {
-    const sway = Math.sin(state.time * 1.8) * 5;
-    const pulse = 0.62 + Math.sin(state.time * 3.6) * 0.08;
-    const auraRadius = boss.r + 48 + Math.sin(boss.aura * 2.8) * 10;
-    const aura = ctx.createRadialGradient(boss.x, boss.y + 8, 14, boss.x, boss.y + 8, auraRadius);
-    aura.addColorStop(0, 'rgba(122, 232, 255, 0.24)');
-    aura.addColorStop(0.34, 'rgba(92, 156, 255, 0.16)');
-    aura.addColorStop(0.62, 'rgba(255, 196, 118, 0.2)');
-    aura.addColorStop(1, 'rgba(20, 18, 31, 0)');
-    ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.arc(boss.x, boss.y + 8, auraRadius, 0, Math.PI * 2);
-    ctx.fill();
+  function drawBoss() {
+    if (!boss.active) return;
 
-    for (let i = 0; i < 6; i++) {
-      const angle = state.time * 1.2 + i * (Math.PI * 2 / 6);
-      const orbit = boss.r + 26 + Math.sin(state.time * 2 + i) * 6;
-      const ox = boss.x + Math.cos(angle) * orbit;
-      const oy = boss.y + Math.sin(angle * 1.5) * 18 + 14;
-      ctx.fillStyle = i % 2 ? 'rgba(120, 214, 255, 0.82)' : 'rgba(255, 191, 112, 0.78)';
-      ctx.beginPath();
-      ctx.moveTo(ox, oy - 12);
-      ctx.lineTo(ox + 10, oy - 2);
-      ctx.lineTo(ox + 4, oy + 13);
-      ctx.lineTo(ox - 8, oy + 9);
-      ctx.lineTo(ox - 10, oy - 4);
-      ctx.closePath();
-      ctx.fill();
-    }
+    const auraRadius = boss.r + (boss.phase === 2 ? 86 : 58) + Math.sin(boss.aura * 3) * (boss.phase === 2 ? 18 : 12);
+    const eyeOpen = boss.rage
+      ? 0.44 + Math.abs(Math.sin(state.time * 6.2)) * 0.42
+      : 0.76 + Math.sin(state.time * 2.4) * 0.1;
+    const headDrift = Math.sin(state.time * 1.9) * 3;
 
-    ellipse(boss.x, boss.y + 90, 58, 20, true, 'rgba(0,0,0,0.34)');
-
-    ctx.save();
-    ctx.translate(boss.x, boss.y + sway);
-
-    ctx.strokeStyle = 'rgba(121, 145, 176, 0.26)';
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.arc(0, 10, boss.r + 12, Math.PI * 0.12, Math.PI * 0.88);
-    ctx.stroke();
-    for (let i = 0; i < 4; i++) {
-      const angle = Math.PI * (0.18 + i * 0.18);
-      ctx.beginPath();
-      ctx.moveTo(Math.cos(angle) * (boss.r - 6), 10 + Math.sin(angle) * (boss.r - 6));
-      ctx.lineTo(Math.cos(angle) * (boss.r + 16), 10 + Math.sin(angle) * (boss.r + 16));
-      ctx.stroke();
-    }
-
-    ctx.strokeStyle = 'rgba(168, 132, 92, 0.45)';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(-42, 4);
-    ctx.lineTo(-74, 46);
-    ctx.moveTo(42, 4);
-    ctx.lineTo(74, 46);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(76, 54, 38, 0.96)';
-    ctx.fillRect(-86, 38, 18, 30);
-    ctx.fillRect(68, 38, 18, 30);
-    ctx.strokeStyle = '#201712';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(-86, 38);
-    ctx.lineTo(-68, 68);
-    ctx.moveTo(68, 38);
-    ctx.lineTo(86, 68);
-    ctx.stroke();
-
-    const body = ctx.createLinearGradient(0, -60, 0, 86);
-    body.addColorStop(0, boss.hitFlash > 0 ? '#f6f5eb' : '#b4aca2');
-    body.addColorStop(0.4, '#655d59');
-    body.addColorStop(1, '#262127');
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.moveTo(-54, -20);
-    ctx.lineTo(-38, -54);
-    ctx.lineTo(38, -54);
-    ctx.lineTo(54, -20);
-    ctx.lineTo(42, 40);
-    ctx.lineTo(18, 78);
-    ctx.lineTo(-18, 78);
-    ctx.lineTo(-42, 40);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(26, 22, 28, 0.92)';
-    ctx.fillRect(-34, -14, 68, 50);
-    const core = ctx.createRadialGradient(0, 12, 5, 0, 12, 34);
-    core.addColorStop(0, 'rgba(255, 242, 198, 0.96)');
-    core.addColorStop(0.35, 'rgba(255, 194, 112, 0.88)');
-    core.addColorStop(1, 'rgba(255, 148, 94, 0)');
-    ctx.fillStyle = core;
-    ctx.beginPath();
-    ctx.arc(0, 12, 34, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#f8d79f';
-    ctx.beginPath();
-    ctx.moveTo(0, -8);
-    ctx.lineTo(18, 12);
-    ctx.lineTo(0, 34);
-    ctx.lineTo(-18, 12);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#403936';
-    ctx.beginPath();
-    ctx.moveTo(-44, -46);
-    ctx.lineTo(-22, -74);
-    ctx.lineTo(22, -74);
-    ctx.lineTo(44, -46);
-    ctx.lineTo(26, -22);
-    ctx.lineTo(-26, -22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#c9a36c';
-    ctx.fillRect(-26, -64, 52, 12);
-    ctx.fillStyle = '#6f5740';
-    ctx.fillRect(-12, -82, 24, 20);
-
-    ctx.strokeStyle = 'rgba(122, 214, 255, 0.72)';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(-18, -30);
-    ctx.lineTo(-6, -18);
-    ctx.lineTo(0, -8);
-    ctx.lineTo(6, -18);
-    ctx.lineTo(18, -30);
-    ctx.stroke();
-
-    const eyeGlow = ctx.createRadialGradient(0, -24, 2, 0, -24, 26);
-    eyeGlow.addColorStop(0, 'rgba(208, 250, 255, 0.96)');
-    eyeGlow.addColorStop(1, 'rgba(111, 224, 255, 0)');
-    ctx.fillStyle = eyeGlow;
-    ctx.beginPath();
-    ctx.arc(0, -24, 26, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#0d1520';
-    ctx.beginPath();
-    ctx.ellipse(-12, -24, 7, 4, -0.1, 0, Math.PI * 2);
-    ctx.ellipse(12, -24, 7, 4, 0.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#dffcff';
-    ctx.beginPath();
-    ctx.arc(-12, -24, 2.2, 0, Math.PI * 2);
-    ctx.arc(12, -24, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(113, 223, 255, 0.55)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(-18, 52);
-    ctx.lineTo(-2, 64);
-    ctx.lineTo(18, 52);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  function drawTempleSpiritBoss() {
-    const isTrue = boss.kind === 'trueTemple' || boss.phase === 2;
-    const eyeOpen = isTrue
-      ? 0.38 + Math.abs(Math.sin(state.time * 6.2)) * 0.5
-      : (boss.rage ? 0.44 + Math.abs(Math.sin(state.time * 6.2)) * 0.42 : 0.76 + Math.sin(state.time * 2.4) * 0.1);
-    const headDrift = Math.sin(state.time * (isTrue ? 2.4 : 1.9)) * (isTrue ? 5 : 3);
-    const auraRadius = boss.r + (isTrue ? 92 : 62) + Math.sin(boss.aura * 3) * (isTrue ? 20 : 12);
     const aura = ctx.createRadialGradient(boss.x, boss.y, 12, boss.x, boss.y, auraRadius);
-    aura.addColorStop(0, isTrue ? 'rgba(255, 214, 168, 0.22)' : (boss.rage ? 'rgba(255, 220, 190, 0.18)' : 'rgba(206, 235, 255, 0.14)'));
-    aura.addColorStop(0.32, isTrue ? 'rgba(214, 106, 80, 0.34)' : (boss.rage ? 'rgba(184, 97, 168, 0.3)' : 'rgba(110, 138, 208, 0.22)'));
+    aura.addColorStop(0, boss.phase === 2 ? 'rgba(255, 210, 164, 0.22)' : (boss.rage ? 'rgba(255, 225, 178, 0.18)' : 'rgba(206, 235, 255, 0.14)'));
+    aura.addColorStop(0.32, boss.phase === 2 ? 'rgba(214, 106, 80, 0.34)' : (boss.rage ? 'rgba(184, 97, 168, 0.3)' : 'rgba(110, 138, 208, 0.22)'));
     aura.addColorStop(1, 'rgba(30, 30, 52, 0)');
     ctx.fillStyle = aura;
     ctx.beginPath();
     ctx.arc(boss.x, boss.y, auraRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    for (let i = 0; i < (isTrue ? 10 : 7); i++) {
-      const angle = state.time * (isTrue ? 1.8 : 1.1) + i * (Math.PI * 2 / (isTrue ? 10 : 7));
-      const orbitR = boss.r + (isTrue ? 34 : 24) + Math.sin(state.time * 2.2 + i) * (isTrue ? 12 : 8);
+    for (let i = 0; i < 4; i++) {
+      const wave = state.time * (boss.rage ? 1.8 : 1.2) + i * 1.4;
+      ctx.strokeStyle = boss.rage ? 'rgba(191, 110, 255, 0.16)' : 'rgba(142, 191, 255, 0.14)';
+      ctx.lineWidth = 10 - i * 1.6;
+      ctx.beginPath();
+      ctx.moveTo(boss.x - 34 + i * 4, boss.y + 10 + i * 6);
+      ctx.bezierCurveTo(
+        boss.x - 62 - i * 8,
+        boss.y + 26 + Math.sin(wave) * 10,
+        boss.x - 46,
+        boss.y + 74 + Math.cos(wave * 0.8) * 12,
+        boss.x - 8,
+        boss.y + 114 + i * 4
+      );
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(boss.x + 34 - i * 4, boss.y + 10 + i * 6);
+      ctx.bezierCurveTo(
+        boss.x + 62 + i * 8,
+        boss.y + 26 + Math.cos(wave) * 10,
+        boss.x + 46,
+        boss.y + 74 + Math.sin(wave * 0.8) * 12,
+        boss.x + 8,
+        boss.y + 114 + i * 4
+      );
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < 8; i++) {
+      const angle = state.time * (boss.rage ? 1.7 : 1.05) + i * (Math.PI * 2 / 8);
+      const orbitR = boss.r + 28 + Math.sin(state.time * 2.2 + i) * 10;
       const ox = boss.x + Math.cos(angle) * orbitR;
-      const oy = boss.y + Math.sin(angle * 1.45) * (isTrue ? 28 : 18) - 4;
-      const orb = ctx.createRadialGradient(ox, oy, 1, ox, oy, isTrue ? 22 : 16);
-      orb.addColorStop(0, isTrue ? 'rgba(255, 226, 182, 0.96)' : (boss.rage ? 'rgba(255, 224, 202, 0.94)' : 'rgba(228, 245, 255, 0.92)'));
-      orb.addColorStop(1, isTrue ? 'rgba(255, 120, 83, 0)' : (boss.rage ? 'rgba(210, 126, 255, 0)' : 'rgba(134, 184, 255, 0)'));
+      const oy = boss.y + Math.sin(angle * 1.4) * 20 - 4;
+      const orb = ctx.createRadialGradient(ox, oy, 1, ox, oy, boss.phase === 2 ? 22 : (boss.rage ? 18 : 14));
+      orb.addColorStop(0, boss.phase === 2 ? 'rgba(255, 226, 182, 0.96)' : (boss.rage ? 'rgba(255, 224, 202, 0.94)' : 'rgba(228, 245, 255, 0.92)'));
+      orb.addColorStop(1, boss.phase === 2 ? 'rgba(255, 120, 83, 0)' : (boss.rage ? 'rgba(210, 126, 255, 0)' : 'rgba(134, 184, 255, 0)'));
       ctx.fillStyle = orb;
       ctx.beginPath();
-      ctx.arc(ox, oy, isTrue ? 16 : 11, 0, Math.PI * 2);
+      ctx.arc(ox, oy, boss.rage ? 18 : 14, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    ellipse(boss.x, boss.y + (isTrue ? 86 : 78), isTrue ? 54 : 48, isTrue ? 22 : 18, true, 'rgba(0,0,0,0.34)');
+    ellipse(boss.x, boss.y + 78, 48, 18, true, 'rgba(0,0,0,0.34)');
 
-    const tail = ctx.createLinearGradient(boss.x, boss.y + 4, boss.x, boss.y + 132);
-    tail.addColorStop(0, isTrue ? 'rgba(110, 47, 104, 0.86)' : (boss.rage ? 'rgba(102, 44, 108, 0.82)' : 'rgba(56, 76, 140, 0.72)'));
+    const tail = ctx.createLinearGradient(boss.x, boss.y + 4, boss.x, boss.y + 124);
+    tail.addColorStop(0, boss.rage ? 'rgba(110, 47, 104, 0.82)' : 'rgba(56, 76, 140, 0.72)');
     tail.addColorStop(1, 'rgba(14, 18, 31, 0)');
     ctx.fillStyle = tail;
     ctx.beginPath();
     ctx.moveTo(boss.x - boss.r * 0.72, boss.y + 2);
-    ctx.quadraticCurveTo(boss.x - boss.r * 1.04, boss.y + 72, boss.x - 18, boss.y + 128);
-    ctx.quadraticCurveTo(boss.x, boss.y + 96, boss.x + 18, boss.y + 128);
-    ctx.quadraticCurveTo(boss.x + boss.r * 1.04, boss.y + 72, boss.x + boss.r * 0.72, boss.y + 2);
+    ctx.quadraticCurveTo(boss.x - boss.r * 1.02, boss.y + 66, boss.x - 18, boss.y + 124);
+    ctx.quadraticCurveTo(boss.x, boss.y + 96, boss.x + 18, boss.y + 124);
+    ctx.quadraticCurveTo(boss.x + boss.r * 1.02, boss.y + 66, boss.x + boss.r * 0.72, boss.y + 2);
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = isTrue ? 'rgba(255, 162, 110, 0.3)' : (boss.rage ? 'rgba(178, 93, 231, 0.3)' : 'rgba(111, 155, 221, 0.22)');
-    ctx.lineWidth = isTrue ? 8 : 6;
-    for (let i = 0; i < (isTrue ? 4 : 3); i++) {
+    ctx.strokeStyle = boss.rage ? 'rgba(178, 93, 231, 0.3)' : 'rgba(111, 155, 221, 0.22)';
+    ctx.lineWidth = 6;
+    for (let i = 0; i < 3; i++) {
       ctx.beginPath();
-      ctx.moveTo(boss.x - 18 + i * 9, boss.y + 14 + i * 8);
-      ctx.bezierCurveTo(boss.x - 48, boss.y + 52 + i * 4, boss.x - 28, boss.y + 96 + i * 6, boss.x - 8, boss.y + 122);
+      ctx.moveTo(boss.x - 16 + i * 8, boss.y + 16 + i * 8);
+      ctx.bezierCurveTo(boss.x - 42, boss.y + 50 + i * 4, boss.x - 24, boss.y + 94 + i * 6, boss.x - 8, boss.y + 116);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(boss.x + 18 - i * 9, boss.y + 14 + i * 8);
-      ctx.bezierCurveTo(boss.x + 48, boss.y + 52 + i * 4, boss.x + 28, boss.y + 96 + i * 6, boss.x + 8, boss.y + 122);
+      ctx.moveTo(boss.x + 16 - i * 8, boss.y + 16 + i * 8);
+      ctx.bezierCurveTo(boss.x + 42, boss.y + 50 + i * 4, boss.x + 24, boss.y + 94 + i * 6, boss.x + 8, boss.y + 116);
       ctx.stroke();
     }
 
     const face = ctx.createRadialGradient(boss.x - 12, boss.y - 18, 8, boss.x, boss.y, boss.r + 12);
     face.addColorStop(0, boss.hitFlash > 0 ? '#fffbe8' : '#f4efdd');
-    face.addColorStop(0.42, isTrue ? '#dca56e' : (boss.rage ? '#dcb083' : '#d6c9a7'));
-    face.addColorStop(0.72, isTrue ? '#8a4b34' : (boss.rage ? '#91614d' : '#5d6c82'));
-    face.addColorStop(1, isTrue ? '#261114' : (boss.rage ? '#33222f' : '#203249'));
+    face.addColorStop(0.42, boss.phase === 2 ? '#dca56e' : (boss.rage ? '#dcb083' : '#d6c9a7'));
+    face.addColorStop(0.72, boss.phase === 2 ? '#8a4b34' : (boss.rage ? '#91614d' : '#7e7463'));
+    face.addColorStop(1, boss.phase === 2 ? '#261114' : (boss.rage ? '#33222f' : '#263245'));
     ctx.fillStyle = face;
     ctx.beginPath();
-    ctx.ellipse(boss.x, boss.y + headDrift, boss.r * (isTrue ? 0.92 : 0.84), boss.r * (isTrue ? 1.06 : 1.02), 0, 0, Math.PI * 2);
+    ctx.ellipse(boss.x, boss.y + headDrift, boss.r * 0.84, boss.r * 1.02, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = 'rgba(255,255,255,0.07)';
@@ -3037,40 +2904,40 @@
     ctx.ellipse(boss.x - 8, boss.y - 16 + headDrift, boss.r * 0.42, boss.r * 0.22, -0.2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = isTrue ? 'rgba(114, 45, 34, 0.52)' : (boss.rage ? 'rgba(79, 37, 88, 0.52)' : 'rgba(39, 58, 88, 0.44)');
+    ctx.fillStyle = boss.rage ? 'rgba(79, 37, 88, 0.52)' : 'rgba(39, 58, 88, 0.44)';
     ctx.beginPath();
     ctx.moveTo(boss.x - 24, boss.y - 46 + headDrift);
-    ctx.lineTo(boss.x - (isTrue ? 56 : 46), boss.y - (isTrue ? 90 : 82) + headDrift * 0.5);
-    ctx.lineTo(boss.x - (isTrue ? 30 : 28), boss.y - (isTrue ? 70 : 70) + headDrift * 0.5);
+    ctx.lineTo(boss.x - 46, boss.y - 82 + headDrift * 0.5);
+    ctx.lineTo(boss.x - 28, boss.y - 70 + headDrift * 0.5);
     ctx.lineTo(boss.x - 10, boss.y - 56 + headDrift);
     ctx.closePath();
     ctx.fill();
     ctx.beginPath();
     ctx.moveTo(boss.x + 24, boss.y - 46 + headDrift);
-    ctx.lineTo(boss.x + (isTrue ? 56 : 46), boss.y - (isTrue ? 90 : 82) + headDrift * 0.5);
-    ctx.lineTo(boss.x + (isTrue ? 30 : 28), boss.y - (isTrue ? 70 : 70) + headDrift * 0.5);
+    ctx.lineTo(boss.x + 46, boss.y - 82 + headDrift * 0.5);
+    ctx.lineTo(boss.x + 28, boss.y - 70 + headDrift * 0.5);
     ctx.lineTo(boss.x + 10, boss.y - 56 + headDrift);
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = isTrue ? 'rgba(255, 170, 110, 0.62)' : (boss.rage ? 'rgba(224, 144, 255, 0.62)' : 'rgba(159, 215, 255, 0.48)');
-    ctx.lineWidth = isTrue ? 6 : 5;
+    ctx.strokeStyle = boss.phase === 2 ? 'rgba(255, 170, 110, 0.62)' : (boss.rage ? 'rgba(224, 144, 255, 0.62)' : 'rgba(159, 215, 255, 0.48)');
+    ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.arc(boss.x, boss.y, boss.r + 16 + Math.sin(boss.aura * 2) * 4, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.strokeStyle = isTrue ? '#ffd28c' : (boss.rage ? '#dab0ff' : '#abdfff');
-    ctx.lineWidth = isTrue ? 7 : 6;
+    ctx.strokeStyle = boss.phase === 2 ? '#ffd28c' : (boss.rage ? '#dab0ff' : '#abdfff');
+    ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(boss.x - boss.r * 0.5, boss.y - boss.r * 0.56 + headDrift);
-    ctx.quadraticCurveTo(boss.x - boss.r * (isTrue ? 1.16 : 1.06), boss.y - boss.r * 1.04 + headDrift * 0.4, boss.x - boss.r * 0.9, boss.y - boss.r * 0.06 + headDrift);
+    ctx.quadraticCurveTo(boss.x - boss.r * 1.06, boss.y - boss.r * 1.04 + headDrift * 0.4, boss.x - boss.r * 0.9, boss.y - boss.r * 0.06 + headDrift);
     ctx.moveTo(boss.x + boss.r * 0.5, boss.y - boss.r * 0.56 + headDrift);
-    ctx.quadraticCurveTo(boss.x + boss.r * (isTrue ? 1.16 : 1.06), boss.y - boss.r * 1.04 + headDrift * 0.4, boss.x + boss.r * 0.9, boss.y - boss.r * 0.06 + headDrift);
+    ctx.quadraticCurveTo(boss.x + boss.r * 1.06, boss.y - boss.r * 1.04 + headDrift * 0.4, boss.x + boss.r * 0.9, boss.y - boss.r * 0.06 + headDrift);
     ctx.stroke();
 
-    ctx.strokeStyle = isTrue ? 'rgba(255, 201, 166, 0.54)' : (boss.rage ? 'rgba(176, 104, 236, 0.5)' : 'rgba(118, 170, 227, 0.36)');
-    ctx.lineWidth = isTrue ? 4.4 : 3.2;
+    ctx.strokeStyle = boss.rage ? 'rgba(176, 104, 236, 0.5)' : 'rgba(118, 170, 227, 0.36)';
+    ctx.lineWidth = 3.2;
     ctx.beginPath();
     ctx.moveTo(boss.x, boss.y - 36 + headDrift);
     ctx.lineTo(boss.x, boss.y - 8 + headDrift);
@@ -3085,64 +2952,55 @@
     ctx.lineTo(boss.x + 21, boss.y + 31 + headDrift);
     ctx.stroke();
 
-    const eyeGlowL = ctx.createRadialGradient(boss.x - 18, boss.y - 8 + headDrift, 1, boss.x - 18, boss.y - 8 + headDrift, isTrue ? 20 : 17);
-    eyeGlowL.addColorStop(0, isTrue ? 'rgba(255, 239, 210, 0.98)' : (boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)'));
-    eyeGlowL.addColorStop(1, isTrue ? 'rgba(255, 138, 86, 0)' : (boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)'));
+    const eyeGlowL = ctx.createRadialGradient(boss.x - 18, boss.y - 8 + headDrift, 1, boss.x - 18, boss.y - 8 + headDrift, 17);
+    eyeGlowL.addColorStop(0, boss.phase === 2 ? 'rgba(255, 239, 210, 0.98)' : (boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)'));
+    eyeGlowL.addColorStop(1, boss.phase === 2 ? 'rgba(255, 138, 86, 0)' : (boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)'));
     ctx.fillStyle = eyeGlowL;
     ctx.beginPath();
-    ctx.arc(boss.x - 18, boss.y - 8 + headDrift, isTrue ? 20 : 17, 0, Math.PI * 2);
+    ctx.arc(boss.x - 18, boss.y - 8 + headDrift, 17, 0, Math.PI * 2);
     ctx.fill();
-    const eyeGlowR = ctx.createRadialGradient(boss.x + 18, boss.y - 8 + headDrift, 1, boss.x + 18, boss.y - 8 + headDrift, isTrue ? 20 : 17);
-    eyeGlowR.addColorStop(0, isTrue ? 'rgba(255, 239, 210, 0.98)' : (boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)'));
-    eyeGlowR.addColorStop(1, isTrue ? 'rgba(255, 138, 86, 0)' : (boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)'));
+    const eyeGlowR = ctx.createRadialGradient(boss.x + 18, boss.y - 8 + headDrift, 1, boss.x + 18, boss.y - 8 + headDrift, 17);
+    eyeGlowR.addColorStop(0, boss.phase === 2 ? 'rgba(255, 239, 210, 0.98)' : (boss.rage ? 'rgba(255, 229, 210, 0.96)' : 'rgba(220, 255, 250, 0.96)'));
+    eyeGlowR.addColorStop(1, boss.phase === 2 ? 'rgba(255, 138, 86, 0)' : (boss.rage ? 'rgba(233, 162, 255, 0)' : 'rgba(135, 235, 255, 0)'));
     ctx.fillStyle = eyeGlowR;
     ctx.beginPath();
-    ctx.arc(boss.x + 18, boss.y - 8 + headDrift, isTrue ? 20 : 17, 0, Math.PI * 2);
+    ctx.arc(boss.x + 18, boss.y - 8 + headDrift, 17, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = '#17212c';
     ctx.beginPath();
-    ctx.ellipse(boss.x - 18, boss.y - 8 + headDrift, 8, (isTrue ? 5.4 : 4.5) * eyeOpen, -0.18, 0, Math.PI * 2);
-    ctx.ellipse(boss.x + 18, boss.y - 8 + headDrift, 8, (isTrue ? 5.4 : 4.5) * eyeOpen, 0.18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = isTrue ? 'rgba(255, 242, 224, 0.92)' : (boss.rage ? 'rgba(255, 242, 224, 0.85)' : 'rgba(228, 251, 255, 0.82)');
-    ctx.beginPath();
-    ctx.ellipse(boss.x - 18, boss.y - 8 + headDrift, 2.2, (isTrue ? 2 : 1.6) * eyeOpen, 0, 0, Math.PI * 2);
-    ctx.ellipse(boss.x + 18, boss.y - 8 + headDrift, 2.2, (isTrue ? 2 : 1.6) * eyeOpen, 0, 0, Math.PI * 2);
+    ctx.ellipse(boss.x - 18, boss.y - 8 + headDrift, 8, 4.5 * eyeOpen, -0.18, 0, Math.PI * 2);
+    ctx.ellipse(boss.x + 18, boss.y - 8 + headDrift, 8, 4.5 * eyeOpen, 0.18, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = isTrue ? 'rgba(255, 210, 186, 0.42)' : (boss.rage ? 'rgba(255, 224, 186, 0.34)' : 'rgba(178, 222, 255, 0.26)');
+    ctx.fillStyle = boss.rage ? 'rgba(255, 242, 224, 0.85)' : 'rgba(228, 251, 255, 0.82)';
+    ctx.beginPath();
+    ctx.ellipse(boss.x - 18, boss.y - 8 + headDrift, 2.2, 1.6 * eyeOpen, 0, 0, Math.PI * 2);
+    ctx.ellipse(boss.x + 18, boss.y - 8 + headDrift, 2.2, 1.6 * eyeOpen, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = boss.rage ? 'rgba(255, 224, 186, 0.34)' : 'rgba(178, 222, 255, 0.26)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(boss.x, boss.y + 10 + headDrift, 18, Math.PI * 0.16, Math.PI * 0.84);
     ctx.stroke();
 
     ctx.strokeStyle = '#202833';
-    ctx.lineWidth = isTrue ? 4.8 : 4;
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(boss.x - 15, boss.y + 18 + headDrift);
-    ctx.quadraticCurveTo(boss.x, boss.y + (isTrue ? 32 : 28) + headDrift, boss.x + 15, boss.y + 18 + headDrift);
+    ctx.quadraticCurveTo(boss.x, boss.y + 28 + headDrift, boss.x + 15, boss.y + 18 + headDrift);
     ctx.stroke();
-    ctx.strokeStyle = isTrue ? 'rgba(255, 211, 173, 0.82)' : (boss.rage ? 'rgba(255, 211, 173, 0.75)' : 'rgba(173, 230, 255, 0.68)');
-    ctx.lineWidth = isTrue ? 3.8 : 3;
+
+    ctx.strokeStyle = boss.rage ? 'rgba(255, 211, 173, 0.75)' : 'rgba(173, 230, 255, 0.68)';
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(boss.x - 12, boss.y + 33 + headDrift);
-    ctx.lineTo(boss.x, boss.y + (isTrue ? 48 : 44) + headDrift);
-    ctx.lineTo(boss.x + 12, boss.y + 33 + headDrift);
+    ctx.moveTo(boss.x - 10, boss.y + 33 + headDrift);
+    ctx.lineTo(boss.x, boss.y + 44 + headDrift);
+    ctx.lineTo(boss.x + 10, boss.y + 33 + headDrift);
     ctx.moveTo(boss.x, boss.y + 31 + headDrift);
-    ctx.lineTo(boss.x, boss.y + (isTrue ? 58 : 53) + headDrift);
+    ctx.lineTo(boss.x, boss.y + 53 + headDrift);
     ctx.stroke();
-  }
-
-  function drawBoss() {
-    if (!boss.active) return;
-
-    if (boss.kind === 'mineWarden' || boss.phase === 0) {
-      drawMineBoss();
-      return;
-    }
-
-    drawTempleSpiritBoss();
   }
 
   function drawPickups() {
@@ -3178,160 +3036,35 @@
     });
   }
 
-  function drawShoreBookMinion(minion, bob) {
-    const wing = Math.sin(state.time * 8 + minion.bob) * minion.r * 0.22;
-    ellipse(minion.x, minion.y + minion.r * 0.84, minion.r * 0.94, minion.r * 0.32, true, 'rgba(0,0,0,0.28)');
-    ctx.save();
-    ctx.translate(minion.x, minion.y + bob);
-    ctx.rotate(Math.sin(state.time * 3 + minion.bob) * 0.12);
-
-    ctx.fillStyle = 'rgba(213, 161, 255, 0.18)';
-    ctx.beginPath();
-    ctx.moveTo(-minion.r * 1.1, -minion.r * 0.26);
-    ctx.lineTo(-minion.r * 1.64, -wing);
-    ctx.lineTo(-minion.r * 1.04, minion.r * 0.46 + wing * 0.2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(minion.r * 1.1, -minion.r * 0.26);
-    ctx.lineTo(minion.r * 1.64, wing);
-    ctx.lineTo(minion.r * 1.04, minion.r * 0.46 - wing * 0.2);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#3f2638';
-    ctx.fillRect(-minion.r * 0.86, -minion.r * 0.7, minion.r * 1.72, minion.r * 1.38);
-    ctx.fillStyle = minion.color;
-    ctx.fillRect(-minion.r * 0.7, -minion.r * 0.54, minion.r * 1.4, minion.r * 1.08);
-    ctx.fillStyle = '#f0e2c2';
-    ctx.fillRect(-minion.r * 0.44, -minion.r * 0.4, minion.r * 0.88, minion.r * 0.8);
-
-    ctx.strokeStyle = '#1f1422';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-minion.r * 0.08, -minion.r * 0.4);
-    ctx.lineTo(-minion.r * 0.08, minion.r * 0.38);
-    ctx.moveTo(minion.r * 0.1, -minion.r * 0.4);
-    ctx.lineTo(minion.r * 0.1, minion.r * 0.38);
-    ctx.stroke();
-
-    const eyeGlow = ctx.createRadialGradient(0, -minion.r * 0.02, 1, 0, -minion.r * 0.02, minion.r * 0.44);
-    eyeGlow.addColorStop(0, 'rgba(250, 245, 224, 0.98)');
-    eyeGlow.addColorStop(1, 'rgba(213, 161, 255, 0)');
-    ctx.fillStyle = eyeGlow;
-    ctx.beginPath();
-    ctx.arc(0, -minion.r * 0.02, minion.r * 0.44, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#16111b';
-    ctx.beginPath();
-    ctx.ellipse(0, -minion.r * 0.02, minion.r * 0.18, minion.r * 0.12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fff4d9';
-    ctx.beginPath();
-    ctx.arc(0, -minion.r * 0.02, minion.r * 0.045, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#4e2a1a';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-minion.r * 0.54, minion.r * 0.74);
-    ctx.lineTo(-minion.r * 0.26, minion.r * 1.1);
-    ctx.moveTo(-minion.r * 0.08, minion.r * 0.74);
-    ctx.lineTo(minion.r * 0.08, minion.r * 1.14);
-    ctx.moveTo(minion.r * 0.34, minion.r * 0.74);
-    ctx.lineTo(minion.r * 0.56, minion.r * 1.1);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  function drawTempleMinion(minion, bob) {
-    const isShard = minion.variant === 'templeShard';
-    ellipse(minion.x, minion.y + minion.r * 0.88, minion.r * 0.86, minion.r * 0.28, true, 'rgba(0,0,0,0.26)');
-    ctx.save();
-    ctx.translate(minion.x, minion.y + bob);
-    ctx.rotate(Math.sin(state.time * 2.6 + minion.bob) * 0.08);
-
-    const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, minion.r * 1.4);
-    glow.addColorStop(0, toRgba(minion.color, 0.28));
-    glow.addColorStop(1, toRgba(minion.color, 0));
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(0, 0, minion.r * 1.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = isShard ? '#462330' : '#2a3447';
-    ctx.beginPath();
-    ctx.moveTo(0, -minion.r * 0.94);
-    ctx.lineTo(minion.r * 0.76, -minion.r * 0.36);
-    ctx.lineTo(minion.r * 0.6, minion.r * 0.9);
-    ctx.lineTo(0, minion.r * 1.16);
-    ctx.lineTo(-minion.r * 0.6, minion.r * 0.9);
-    ctx.lineTo(-minion.r * 0.76, -minion.r * 0.36);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = isShard ? '#c086a3' : '#d8e4ff';
-    ctx.beginPath();
-    ctx.moveTo(0, -minion.r * 0.66);
-    ctx.lineTo(minion.r * 0.44, -minion.r * 0.24);
-    ctx.lineTo(minion.r * 0.34, minion.r * 0.54);
-    ctx.lineTo(0, minion.r * 0.72);
-    ctx.lineTo(-minion.r * 0.34, minion.r * 0.54);
-    ctx.lineTo(-minion.r * 0.44, -minion.r * 0.24);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = isShard ? '#7a2038' : '#41557b';
-    for (let i = -1; i <= 1; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * minion.r * 0.28, -minion.r * 0.88);
-      ctx.lineTo(i * minion.r * 0.18 - minion.r * 0.08, -minion.r * 1.26);
-      ctx.lineTo(i * minion.r * 0.18 + minion.r * 0.08, -minion.r * 1.18);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    const eyeGlow = ctx.createRadialGradient(0, -minion.r * 0.08, 1, 0, -minion.r * 0.08, minion.r * 0.36);
-    eyeGlow.addColorStop(0, isShard ? 'rgba(255, 219, 224, 0.98)' : 'rgba(235, 245, 255, 0.96)');
-    eyeGlow.addColorStop(1, toRgba(minion.color, 0));
-    ctx.fillStyle = eyeGlow;
-    ctx.beginPath();
-    ctx.arc(0, -minion.r * 0.08, minion.r * 0.36, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#10131b';
-    ctx.beginPath();
-    ctx.arc(0, -minion.r * 0.08, minion.r * 0.11, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = isShard ? 'rgba(255, 205, 210, 0.68)' : 'rgba(176, 214, 255, 0.6)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-minion.r * 0.26, minion.r * 0.16);
-    ctx.lineTo(0, minion.r * 0.4);
-    ctx.lineTo(minion.r * 0.26, minion.r * 0.16);
-    ctx.stroke();
-
-    ctx.strokeStyle = toRgba(minion.color, 0.42);
-    ctx.lineWidth = 2.6;
-    ctx.beginPath();
-    ctx.moveTo(-minion.r * 0.44, minion.r * 0.78);
-    ctx.quadraticCurveTo(-minion.r * 0.18, minion.r * 1.02, -minion.r * 0.08, minion.r * 1.3);
-    ctx.moveTo(minion.r * 0.44, minion.r * 0.78);
-    ctx.quadraticCurveTo(minion.r * 0.18, minion.r * 1.02, minion.r * 0.08, minion.r * 1.3);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
   function drawMinions() {
     minions.forEach((minion) => {
       const bob = Math.sin(state.time * 6 + minion.bob) * 4;
-      if (minion.variant === 'shoreBook' || minion.journeyHunter) {
-        drawShoreBookMinion(minion, bob);
-      } else {
-        drawTempleMinion(minion, bob);
-      }
+      ellipse(minion.x, minion.y + minion.r * 0.9, minion.r * 0.9, minion.r * 0.34, true, 'rgba(0,0,0,0.28)');
+      ctx.save();
+      ctx.translate(minion.x, minion.y + bob);
+      ctx.rotate(Math.sin(state.time * 3 + minion.bob) * 0.08);
+      ctx.fillStyle = '#5a301d';
+      ctx.fillRect(-minion.r * 0.86, -minion.r * 0.66, minion.r * 1.72, minion.r * 1.32);
+      ctx.fillStyle = minion.color;
+      ctx.fillRect(-minion.r * 0.72, -minion.r * 0.54, minion.r * 1.44, minion.r * 1.08);
+      ctx.fillStyle = '#f6e8c8';
+      ctx.fillRect(-minion.r * 0.44, -minion.r * 0.42, minion.r * 0.98, minion.r * 0.82);
+      ctx.fillStyle = '#0f1118';
+      ctx.beginPath();
+      ctx.arc(-minion.r * 0.18, -minion.r * 0.04, minion.r * 0.1, 0, Math.PI * 2);
+      ctx.arc(minion.r * 0.18, -minion.r * 0.04, minion.r * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#33190e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-minion.r * 0.5, minion.r * 0.74);
+      ctx.lineTo(-minion.r * 0.26, minion.r * 1.12);
+      ctx.moveTo(-minion.r * 0.06, minion.r * 0.74);
+      ctx.lineTo(minion.r * 0.08, minion.r * 1.16);
+      ctx.moveTo(minion.r * 0.34, minion.r * 0.74);
+      ctx.lineTo(minion.r * 0.54, minion.r * 1.12);
+      ctx.stroke();
+      ctx.restore();
     });
   }
 
