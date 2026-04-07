@@ -708,10 +708,7 @@
         damage: 10,
         color: i % 2 === 0 ? '#b58dff' : '#8dc7ff',
         angle: phase,
-        spin: rand(-2.8, 2.8),
-        attackTimer: rand(0.65, 1.25),
-        hoverY: rand(state.height * 0.28, state.height * 0.52),
-        journeyHunter: true
+        spin: rand(-2.8, 2.8)
       });
     }
   }
@@ -1725,43 +1722,8 @@
 
     for (let i = minions.length - 1; i >= 0; i--) {
       const minion = minions[i];
-      if (minion.journeyHunter) {
-        const hoverTargetY = minion.hoverY + Math.sin(state.time * 2.4 + minion.bob) * 18;
-        const dx = player.x - minion.x;
-        minion.x += Math.sign(dx || 1) * Math.min(Math.abs(dx), (minion.speed * 0.72 + Math.abs(Math.sin(state.time * 3 + minion.bob)) * 24) * dt);
-        minion.x += Math.sin(state.time * 4 + minion.bob) * dt * minion.drift * 0.22;
-        minion.y += (hoverTargetY - minion.y) * Math.min(1, dt * 2.2);
-        minion.attackTimer -= dt;
-
-        if (minion.attackTimer <= 0) {
-          const aimX = player.x + rand(-18, 18);
-          const aimY = player.y - 18 + rand(-14, 14);
-          const vx = aimX - minion.x;
-          const vy = aimY - minion.y;
-          const len = Math.max(1, Math.hypot(vx, vy));
-          const speed = rand(240, 320);
-          bullets.push({
-            x: minion.x,
-            y: minion.y + 8,
-            vx: (vx / len) * speed,
-            vy: (vy / len) * speed,
-            r: rand(15, 20),
-            type: 'book',
-            angle: rand(0, Math.PI * 2),
-            spin: rand(-7.2, 7.2),
-            reflected: false,
-            damage: 9
-          });
-          spawnParticles(minion.x, minion.y, minion.color, 9, 90, 4.5);
-          minion.attackTimer = rand(1.05, 1.65);
-        }
-
-        minion.y = clamp(minion.y, state.height * 0.18, player.groundY - 68);
-      } else {
-        minion.y += minion.speed * dt;
-        minion.x += Math.sin(state.time * 4 + minion.bob) * dt * minion.drift;
-      }
-
+      minion.y += minion.speed * dt;
+      minion.x += Math.sin(state.time * 4 + minion.bob) * dt * minion.drift;
       minion.x = clamp(minion.x, state.width * 0.08, state.width * 0.92);
       if (dist(minion.x, minion.y, player.x, player.y - 14) <= minion.r + player.r) {
         damagePlayer(minion.damage);
@@ -1770,7 +1732,7 @@
         updateHud();
         continue;
       }
-      if (!minion.journeyHunter && minion.y > state.height + 50) {
+      if (minion.y > state.height + 50) {
         minions.splice(i, 1);
         damagePlayer(minion.damage);
       }
