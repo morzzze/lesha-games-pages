@@ -764,7 +764,6 @@
     player.x = state.width * 0.32;
     player.y = player.groundY;
     player.vy = 0;
-    restorePlayerCheckpoint(1);
     bossNameLabel.textContent = 'Тропа к храму';
     seedTrapRunHazards();
     setScreen('journey');
@@ -870,7 +869,13 @@
     pickups.length = 0;
     minions.length = 0;
     warnings.length = 0;
-    restorePlayerCheckpoint(3);
+    player.hp = player.maxHp;
+    player.invuln = 0.9;
+    player.combo = 0;
+    player.comboTimer = 0;
+    player.shieldCharges = 1;
+    player.shieldFlash = 1.2;
+    player.spellFlash = 0;
     player.cooldown = 0;
     boss.active = true;
     boss.phase = 2;
@@ -1204,15 +1209,6 @@
     state.shakePower = Math.max(state.shakePower, 8);
 
     if (player.hp <= 0) {
-      if (state.mode === 'journey') {
-        player.x = state.sequence === 'mineBoss' ? state.width * 0.36 : (state.sequence === 'mineDescent' ? state.width * 0.42 : state.width * 0.32);
-        player.y = player.groundY;
-        player.vy = 0;
-        restorePlayerCheckpoint(state.sequence === 'mineBoss' || state.sequence === 'mineDescent' ? 2 : 1);
-        state.whiteFlash = Math.max(state.whiteFlash, 0.18);
-        state.shakeTime = Math.max(state.shakeTime, 0.24);
-        return;
-      }
       player.hp = 0;
       defeatText.textContent = 'Игрок пал в храме. Счёт: ' + Math.floor(state.score) + '.';
       setScreen('defeat');
@@ -1236,7 +1232,7 @@
         vx: dx / len * speed,
         vy: dy / len * speed,
         r: 13,
-        damage: 8,
+        damage: 12,
         color: '#d8a66e',
         type: 'book',
         angle: Math.atan2(dy, dx),
@@ -1256,7 +1252,7 @@
         vx: rand(-12, 12),
         vy: rand(540, 620),
         r: 12,
-        damage: 7,
+        damage: 10,
         color: '#d8f0ff',
         type: 'lightning',
         delayed: 0.42
@@ -1279,7 +1275,7 @@
         vx: dx / len * speed,
         vy: dy / len * speed,
         r: 12,
-        damage: 6,
+        damage: 9,
         color: '#ffd8a5',
         type: 'arrow',
         reflectable: true,
@@ -1500,10 +1496,10 @@
       if (Math.floor(prevTimer / 0.78) !== Math.floor(state.journeyTimer / 0.78)) {
         const x = rand(state.width * 0.16, state.width * 0.84);
         warnings.push({ x, life: 0.55, maxLife: 0.55, kind: 'mine-rock' });
-        journeyHazards.push({ kind: 'falling-rock', x, y: -52, vy: rand(360, 440), damage: 5, hitTimer: 0.18 });
+        journeyHazards.push({ kind: 'falling-rock', x, y: -52, vy: rand(360, 440), damage: 7, hitTimer: 0.18 });
       }
       if (Math.floor(prevTimer / 2.3) !== Math.floor(state.journeyTimer / 2.3)) {
-        journeyHazards.push({ kind: 'cart', x: -120, y: player.groundY + 8, vx: rand(280, 350), width: 96, damage: 5, hitTimer: 0.2 });
+        journeyHazards.push({ kind: 'cart', x: -120, y: player.groundY + 8, vx: rand(280, 350), width: 96, damage: 8, hitTimer: 0.2 });
       }
 
       updateJourneyHazards(dt);

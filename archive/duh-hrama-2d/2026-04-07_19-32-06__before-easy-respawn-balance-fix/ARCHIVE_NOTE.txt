@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-07_19-32-06__before-easy-respawn-balance-fix
+Created at: Tue Apr  7 19:32:07 EET 2026
+Purpose: snapshot before checkpoint-respawn and softer boss damage easy pass
