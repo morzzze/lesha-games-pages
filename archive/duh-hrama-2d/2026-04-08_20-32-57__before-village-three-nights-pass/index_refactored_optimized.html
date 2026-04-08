@@ -730,20 +730,7 @@ button {
     alertBanner: { text: '', time: 0 },
     jungleRun: { nodes: [], index: 0, swing: null, safeTime: 0, totalGoal: 0, streak: 0, peakStreak: 0, rewardPulse: 0 },
     journeyAssist: { checkpointProgress: 0, checkpointX: 0.28 },
-    templeRun: {
-      phase: 'approach',
-      alarm: 0,
-      chaseSpawn: 0,
-      wave: 0,
-      villageNight: 0,
-      nightEnemyTotal: 0,
-      campfireLit: false,
-      campfirePower: 0,
-      darkTick: 0,
-      helpTimer: 0,
-      titleEarned: false,
-      campfireGlow: 0
-    },
+    templeRun: { phase: 'approach', alarm: 0, chaseSpawn: 0 },
     weaponMode: 'default',
     performance: {
       step: INITIAL_PERFORMANCE_STEP,
@@ -1653,42 +1640,22 @@ button {
 
   function startTribeVillage(wave = 1) {
     clearTransientEntities({ keepParticles: true });
-    const night = clamp(wave, 1, 3);
     state.sequence = 'tribeVillage';
     state.journeyStage = 'tribeVillage';
-    state.journeyProgress = night - 1;
-    state.journeyGoal = 3;
+    state.journeyProgress = wave - 1;
+    state.journeyGoal = 2;
     state.journeyTimer = 0;
     state.templeRun.phase = 'village';
-    state.templeRun.wave = night;
-    state.templeRun.villageNight = night;
-    state.templeRun.campfireLit = true;
-    state.templeRun.campfirePower = 1;
-    state.templeRun.darkTick = 1.15;
-    state.templeRun.helpTimer = night === 2 ? 2.2 : 1.6;
-    state.templeRun.campfireGlow = 1.2;
-    if (night === 1) state.templeRun.titleEarned = false;
+    state.templeRun.wave = wave;
     state.weaponMode = 'spear';
-    state.quest = night === 1
-      ? 'Они извинились и отвели тебя в деревню. Переживи 1-ю ночь, держи костёр живым и отбивайся копьём.'
-      : (night === 2
-        ? '2-я ночь из 3: защити костёр. Из темноты уже идёт тигр.'
-        : '3-я ночь из 3: продержись до рассвета, и деревня даст тебе титул перед храмом.');
-    player.x = state.width * 0.2;
+    state.quest = 'Поселение аборигенов: обычный арсенал молчит, бейся копьём против копейщиков и лучников.';
+    player.x = state.width * 0.24;
     player.y = player.groundY;
     player.vy = 0;
     restorePlayerCheckpoint(2);
-    player.shieldCharges = Math.max(player.shieldCharges, night === 3 ? 3 : 2);
-    showAlertBanner(
-      night === 1
-        ? 'Они извинились и отвели тебя в деревню. Переживи три ночи.'
-        : (night === 2
-          ? 'Вторая ночь. Держи костёр, тигр уже рядом.'
-          : 'Последняя ночь. Деревня помогает тебе дожить до рассвета.'),
-      2.5
-    );
-    bossNameLabel.textContent = 'Три ночи в деревне';
-    spawnVillageNightThreats(night);
+    showAlertBanner('Обычное оружие не работает. Сражайся копьём.', 2.1);
+    bossNameLabel.textContent = 'Поселение аборигенов';
+    spawnTribeVillageWave(wave);
     setScreen('journey');
     updateHud();
   }
@@ -1702,14 +1669,7 @@ button {
     player.spellDamage = 400;
     player.bleed.time = 0;
     player.bleed.tick = 0;
-    if ((state.templeRun.villageNight || 0) >= 3) {
-      state.templeRun.titleEarned = true;
-      player.shieldCharges = Math.max(player.shieldCharges, 3);
-      player.shieldFlash = Math.max(player.shieldFlash, 1.1);
-      state.quest = 'Титул «Защитник деревни» получен. Жители ведут тебя к храму, контрольная точка у алтаря сохранена.';
-    } else {
-      state.quest = 'Заклинание усилено до 400. Контрольная точка у алтаря сохранена.';
-    }
+    state.quest = 'Заклинание усилено до 400. Контрольная точка у алтаря сохранена.';
     setCheckpoint('altar');
     setScreen('altar');
     updateHud();
@@ -1718,91 +1678,6 @@ button {
   function showAlertBanner(text, time = 1.8) {
     state.alertBanner.text = text;
     state.alertBanner.time = Math.max(state.alertBanner.time || 0, time);
-  }
-
-  function getVillageCampfireX() {
-    return state.width * 0.36;
-  }
-
-  function getVillageCampfireY() {
-    return player.groundY + 4;
-  }
-
-  function tryTendCampfire() {
-    if (state.sequence !== 'tribeVillage') return false;
-    const fireX = getVillageCampfireX();
-    const fireY = getVillageCampfireY();
-    if (Math.abs(player.x - fireX) > 96 || Math.abs((player.y - 8) - fireY) > 72) return false;
-    if (state.templeRun.campfireLit && (state.templeRun.campfirePower || 0) > 0.82) return false;
-    state.templeRun.campfireLit = true;
-    state.templeRun.campfirePower = 1;
-    state.templeRun.campfireGlow = 1.2;
-    state.templeRun.darkTick = 1.2;
-    showAlertBanner('Костёр снова горит. Деревня держится.', 1.3);
-    spawnParticles(fireX, fireY - 12, '#ffbe72', 16, 108, 5.4);
-    addScore(45);
-    updateHud();
-    return true;
-  }
-
-  function spawnVillageBookWave(night = 1) {
-    minions.length = 0;
-    const count = night === 3 ? (state.isTouch ? 5 : 6) : (state.isTouch ? 4 : 5);
-    state.templeRun.nightEnemyTotal = count;
-    for (let i = 0; i < count; i++) {
-      const phase = rand(0, Math.PI * 2);
-      minions.push({
-        x: rand(state.width * 0.56, state.width * 0.88),
-        y: rand(player.groundY - 72, player.groundY - 48),
-        r: rand(20, 26),
-        hp: night === 3 ? 3 : 2,
-        maxHp: night === 3 ? 3 : 2,
-        speed: rand(74, 104),
-        bob: phase,
-        drift: rand(20, 34),
-        damage: night === 3 ? 7 : 6,
-        color: i % 2 === 0 ? '#b58dff' : '#8dc7ff',
-        variant: 'shoreBook',
-        angle: phase,
-        spin: rand(-2.6, 2.6),
-        attackTimer: rand(0.82, 1.18),
-        hoverY: rand(player.groundY - 72, player.groundY - 48),
-        journeyHunter: true,
-        villageLow: true
-      });
-    }
-  }
-
-  function spawnNightTiger() {
-    minions.length = 0;
-    const tigerHp = state.isTouch ? 12 : 14;
-    state.templeRun.nightEnemyTotal = 1;
-    minions.push({
-      x: state.width * 0.88,
-      y: player.groundY - 6,
-      r: 30,
-      hp: tigerHp,
-      maxHp: tigerHp,
-      speed: rand(146, 170),
-      bob: rand(0, Math.PI * 2),
-      drift: 0,
-      damage: 16,
-      color: '#d98842',
-      variant: 'nightTiger',
-      attackTimer: 0.8,
-      hitTimer: 0,
-      pounceTime: 0,
-      pounceSpeed: 0,
-      pounceDir: -1
-    });
-  }
-
-  function spawnVillageNightThreats(night = 1) {
-    if (night === 2) {
-      spawnNightTiger();
-      return;
-    }
-    spawnVillageBookWave(night);
   }
 
   function getJourneyRecoveryProgress(hazard) {
@@ -2091,13 +1966,10 @@ button {
         }
       } else if (state.sequence === 'tribeVillage') {
         const remaining = minions.filter((m) => m.hp > 0).length;
-        const night = state.templeRun.villageNight || 1;
-        const total = Math.max(1, state.templeRun.nightEnemyTotal || remaining);
-        const firePct = Math.round(clamp(state.templeRun.campfirePower || 0, 0, 1) * 100);
-        const nightProgress = (night - 1) + clamp(1 - (remaining / total), 0, 1);
-        bossRatio = clamp(nightProgress / 3, 0, 1);
-        bossTextValue = 'Ночь ' + night + '/3 · огонь ' + firePct + '% · врагов ' + remaining;
-        bossLabelValue = state.templeRun.titleEarned ? 'Деревня признала тебя' : 'Три ночи в деревне';
+        const wave = state.templeRun.wave || 1;
+        bossRatio = remaining / Math.max(1, remaining + (wave === 1 ? 1 : 2));
+        bossTextValue = remaining + ' врагов · волна ' + wave + '/2';
+        bossLabelValue = 'Поселение аборигенов';
       } else if (state.sequence === 'mineBoss' || state.sequence === 'swampBoss') {
         bossRatio = clamp(boss.hp / boss.maxHp, 0, 1);
         bossTextValue = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp;
@@ -2200,10 +2072,6 @@ button {
 
   function spearStrike() {
     if (state.weaponMode !== 'spear' || player.cooldown > 0) return;
-    if (tryTendCampfire()) {
-      player.cooldown = 0.28;
-      return;
-    }
     player.cooldown = 0.32;
     state.shakeTime = Math.max(state.shakeTime, 0.06);
     state.shakePower = Math.max(state.shakePower, 3.4);
@@ -2214,16 +2082,15 @@ button {
       const minion = minions[i];
       const dx = minion.x - player.x;
       const dy = (minion.y - 12) - player.y;
-      const verticalReach = minion.variant === 'shoreBook' ? 92 : (minion.variant === 'nightTiger' ? 78 : 66);
-      if (dx > -36 && dx < 126 && Math.abs(dy) < verticalReach) {
+      if (dx > -36 && dx < 126 && Math.abs(dy) < 66) {
         hitAny = true;
-        minion.hp -= minion.variant === 'tribeSpear' ? 2 : (minion.variant === 'nightTiger' ? 2 : 1);
-        minion.x += minion.variant === 'nightTiger' ? 10 : 22;
+        minion.hp -= minion.variant === 'tribeSpear' ? 2 : 1;
+        minion.x += 22;
         spawnParticles(minion.x, minion.y - 16, '#ffd28d', 10, 92, 5.2);
-        addScore(minion.variant === 'nightTiger' ? 55 : 40);
+        addScore(40);
         if (minion.hp <= 0) {
           minions.splice(i, 1);
-          addScore(minion.variant === 'nightTiger' ? 220 : 110);
+          addScore(110);
         }
       }
     }
@@ -2943,48 +2810,14 @@ button {
     }
 
     if (state.sequence === 'tribeVillage') {
-      const night = state.templeRun.villageNight || 1;
-      const fireDrain = night === 2 ? 0.11 : (night === 3 ? 0.085 : 0.072);
-      state.templeRun.campfireGlow = Math.max(0, (state.templeRun.campfireGlow || 0) - dt * 1.2);
-      if (state.templeRun.campfireLit) {
-        state.templeRun.campfirePower = Math.max(0, (state.templeRun.campfirePower || 0) - fireDrain * dt);
-        if (state.templeRun.campfirePower <= 0.03) {
-          state.templeRun.campfireLit = false;
-          state.templeRun.darkTick = 0.7;
-          showAlertBanner('Костёр погас. Подойди и разожги его.', 1.4);
-        }
-      } else {
-        state.templeRun.darkTick -= dt;
-        if (state.templeRun.darkTick <= 0) {
-          state.templeRun.darkTick = night === 2 ? 0.9 : 1.2;
-          damagePlayer(night === 2 ? 6 : 4);
-        }
-      }
-
-      state.templeRun.helpTimer -= dt;
-      if (minions.length > 0 && state.templeRun.helpTimer <= 0) {
-        state.templeRun.helpTimer = night === 2 ? 2.8 : 1.7;
-        const allyTarget = minions[Math.floor(Math.random() * minions.length)];
-        if (allyTarget) {
-          allyTarget.hp -= 1;
-          spawnParticles(allyTarget.x, allyTarget.y - 12, '#ffd98f', 9, 86, 4.8);
-          addScore(20);
-          if (allyTarget.hp <= 0) {
-            const targetIndex = minions.indexOf(allyTarget);
-            if (targetIndex >= 0) minions.splice(targetIndex, 1);
-            addScore(70);
-          }
-        }
-      }
-
       if (minions.length === 0) {
-        if (night < 3) {
-          state.whiteFlash = Math.max(state.whiteFlash, 0.16);
-          startTribeVillage(night + 1);
+        if ((state.templeRun.wave || 1) < 2) {
+          state.templeRun.wave = (state.templeRun.wave || 1) + 1;
+          showAlertBanner('Новая волна из глубины поселения!', 1.4);
+          startTribeVillage(state.templeRun.wave);
         } else {
-          state.templeRun.titleEarned = true;
           state.whiteFlash = Math.max(state.whiteFlash, 0.22);
-          showAlertBanner('Титул получен. Деревня ведёт тебя к храму.', 2.1);
+          showAlertBanner('Путь обратно к храму открыт', 1.6);
           finishJourneyPrelude();
         }
       }
@@ -3289,30 +3122,6 @@ button {
           spawnParticles(minion.x, minion.y - 6, '#ffd69c', 8, 78, 4.4);
           minion.attackTimer = rand(minion.chaser ? 1.12 : 0.92, minion.chaser ? 1.48 : 1.28);
         }
-      } else if (minion.variant === 'nightTiger') {
-        minion.attackTimer -= dt;
-        minion.hitTimer = Math.max(0, (minion.hitTimer || 0) - dt);
-        minion.pounceTime = Math.max(0, (minion.pounceTime || 0) - dt);
-        const dx = player.x - minion.x;
-        const moveSpeed = minion.speed * (minion.pounceTime > 0 ? 1.45 : 1) * dt;
-        minion.x += Math.sign(dx || -1) * Math.min(Math.abs(dx), moveSpeed);
-        if (minion.pounceTime > 0) {
-          minion.x += minion.pounceDir * minion.pounceSpeed * dt;
-        }
-        minion.y = lerp(minion.y, player.groundY - 6 + Math.sin(state.time * 9 + minion.bob) * 3, dt * 7.5);
-        if (minion.attackTimer <= 0 && Math.abs(dx) < 240) {
-          minion.attackTimer = rand(1.05, 1.35);
-          minion.pounceTime = 0.24;
-          minion.pounceSpeed = rand(210, 280);
-          minion.pounceDir = Math.sign(dx || -1);
-          spawnParticles(minion.x + minion.pounceDir * 12, minion.y - 8, '#ffb26e', 12, 96, 5.5);
-        }
-        if (Math.abs(dx) < 64 && Math.abs(minion.y - player.y) < 54 && minion.hitTimer <= 0) {
-          damagePlayer(minion.damage);
-          player.vineKnockback = -240;
-          spawnParticles(minion.x, minion.y - 10, '#ffcf86', 12, 112, 5.8);
-          minion.hitTimer = 0.72;
-        }
       } else if (minion.variant === 'swampSlime') {
         minion.attackTimer -= dt;
         const hoverX = clamp(
@@ -3351,17 +3160,14 @@ button {
         const dx = player.x - minion.x;
         minion.x += Math.sign(dx || 1) * Math.min(Math.abs(dx), minion.speed * dt * 0.95);
         minion.x += Math.sin(state.time * 2 + minion.bob) * dt * minion.drift * 0.18;
-        const hoverTarget = minion.villageLow
-          ? clamp(player.y - 52 + Math.sin(minion.bob + state.time * 2.4) * 14, state.height * 0.3, player.groundY - 40)
-          : clamp(player.y - 92 + Math.sin(minion.bob + state.time * 2.4) * 24, state.height * 0.2, state.height * 0.58);
-        minion.hoverY = lerp(minion.hoverY || minion.y, hoverTarget, dt * (minion.villageLow ? 2.2 : 1.4));
-        minion.y = lerp(minion.y, minion.hoverY, dt * (minion.villageLow ? 2.4 : 1.8));
+        minion.hoverY = lerp(minion.hoverY || minion.y, clamp(player.y - 92 + Math.sin(minion.bob + state.time * 2.4) * 24, state.height * 0.2, state.height * 0.58), dt * 1.4);
+        minion.y = lerp(minion.y, minion.hoverY, dt * 1.8);
         if (minion.attackTimer <= 0) {
           const aimY = player.y - 34;
           const vx = player.x - minion.x;
           const vy = aimY - minion.y;
           const len = Math.max(1, Math.hypot(vx, vy));
-          const speed = minion.villageLow ? rand(220, 270) : rand(280, 340);
+          const speed = rand(280, 340);
           bullets.push({
             x: minion.x,
             y: minion.y,
@@ -3372,12 +3178,12 @@ button {
             type: 'book',
             angle: Math.atan2(vy, vx),
             spin: rand(-6, 6),
-            damage: minion.villageLow ? 7 : 9
+            damage: 9
           });
           spawnParticles(minion.x, minion.y, minion.color, 9, 90, 4.5);
-          minion.attackTimer = minion.villageLow ? rand(0.95, 1.28) : rand(0.72, 0.98);
+          minion.attackTimer = rand(0.72, 0.98);
         }
-        minion.y = clamp(minion.y, state.height * 0.18, player.groundY - (minion.villageLow ? 36 : 68));
+        minion.y = clamp(minion.y, state.height * 0.18, player.groundY - 68);
       } else {
         minion.y += minion.speed * dt;
       }
@@ -3768,39 +3574,10 @@ button {
     }
 
     if (state.sequence === 'tribeVillage') {
-      const night = state.templeRun.villageNight || 1;
-      const moonX = state.width * 0.78;
-      const moonY = state.height * 0.2;
-      ctx.fillStyle = 'rgba(64, 42, 26, 0.96)';
+      ctx.fillStyle = 'rgba(90, 62, 38, 0.96)';
       ctx.fillRect(0, player.groundY + 8, state.width, state.height - player.groundY - 8);
-
-      ctx.fillStyle = night === 2 ? 'rgba(235, 218, 168, 0.14)' : 'rgba(235, 218, 168, 0.22)';
-      ctx.beginPath();
-      ctx.arc(moonX, moonY, night === 2 ? 28 : 24, 0, Math.PI * 2);
-      ctx.fill();
-
-      const hutBaseX = state.width * 0.2;
-      const hutY = player.groundY - 26;
-      ctx.fillStyle = 'rgba(78, 54, 34, 0.98)';
-      ctx.fillRect(hutBaseX - 36, hutY, 72, 52);
-      ctx.fillStyle = 'rgba(158, 114, 66, 0.94)';
-      ctx.beginPath();
-      ctx.moveTo(hutBaseX - 46, hutY + 4);
-      ctx.lineTo(hutBaseX, hutY - 38);
-      ctx.lineTo(hutBaseX + 46, hutY + 4);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = 'rgba(36, 22, 14, 0.88)';
-      ctx.fillRect(hutBaseX - 12, hutY + 20, 24, 32);
-      ctx.strokeStyle = 'rgba(235, 210, 140, 0.3)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(hutBaseX, hutY - 36);
-      ctx.lineTo(hutBaseX, hutY - 64);
-      ctx.stroke();
-
-      for (let i = 0; i < 3; i++) {
-        const x = state.width * (0.52 + i * 0.12);
+      for (let i = 0; i < 4; i++) {
+        const x = state.width * (0.46 + i * 0.12);
         const y = player.groundY - 22 - (i % 2) * 8;
         ctx.fillStyle = 'rgba(86, 58, 36, 0.96)';
         ctx.fillRect(x - 26, y, 52, 42);
@@ -3811,44 +3588,15 @@ button {
         ctx.lineTo(x + 34, y + 2);
         ctx.closePath();
         ctx.fill();
+        ctx.strokeStyle = 'rgba(216, 180, 120, 0.28)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 30);
+        ctx.lineTo(x, y - 58);
+        ctx.stroke();
       }
-
-      const fireX = getVillageCampfireX();
-      const fireY = getVillageCampfireY();
-      ctx.fillStyle = 'rgba(56, 28, 12, 0.86)';
-      ctx.beginPath();
-      ctx.ellipse(fireX, fireY + 10, 42, 16, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(98, 74, 52, 0.92)';
-      ctx.fillRect(fireX - 34, fireY + 8, 68, 8);
-      ctx.save();
-      ctx.translate(fireX, fireY - 2);
-      if (state.templeRun.campfireLit) {
-        const flame = 0.7 + (state.templeRun.campfirePower || 0) * 0.65 + Math.sin(state.time * 9) * 0.08;
-        ctx.fillStyle = 'rgba(255, 184, 84, 0.94)';
-        ctx.beginPath();
-        ctx.moveTo(-14, 16);
-        ctx.quadraticCurveTo(-8, -18 * flame, 0, -30 * flame);
-        ctx.quadraticCurveTo(8, -18 * flame, 14, 16);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = 'rgba(255, 236, 166, 0.86)';
-        ctx.beginPath();
-        ctx.moveTo(-8, 12);
-        ctx.quadraticCurveTo(-4, -10 * flame, 0, -18 * flame);
-        ctx.quadraticCurveTo(4, -10 * flame, 8, 12);
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        ctx.fillStyle = 'rgba(152, 88, 52, 0.72)';
-        ctx.beginPath();
-        ctx.arc(0, 10, 8, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-
-      for (let i = 0; i < 4; i++) {
-        const x = state.width * (0.48 + i * 0.12);
+      for (let i = 0; i < 5; i++) {
+        const x = state.width * (0.18 + i * 0.15);
         ctx.strokeStyle = 'rgba(64, 40, 20, 0.92)';
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -5751,59 +5499,11 @@ button {
     ctx.restore();
   }
 
-  function drawNightTigerMinion(minion, bob) {
-    ellipse(minion.x, minion.y + minion.r * 0.92, minion.r * 1.02, minion.r * 0.26, true, 'rgba(0,0,0,0.28)');
-    ctx.save();
-    ctx.translate(minion.x, minion.y + bob * 0.12);
-    ctx.fillStyle = '#9a5a2e';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, minion.r * 0.92, minion.r * 0.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#d98b42';
-    ctx.beginPath();
-    ctx.ellipse(6, -4, minion.r * 0.72, minion.r * 0.34, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#f3d2a4';
-    ctx.beginPath();
-    ctx.ellipse(minion.r * 0.7, -8, minion.r * 0.34, minion.r * 0.26, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#2d1a0d';
-    for (let i = -1; i <= 1; i++) {
-      ctx.fillRect(-4 + i * 14, -minion.r * 0.44, 4, minion.r * 0.84);
-    }
-    ctx.beginPath();
-    ctx.moveTo(minion.r * 0.9, -minion.r * 0.22);
-    ctx.lineTo(minion.r * 1.22, -minion.r * 0.44);
-    ctx.lineTo(minion.r * 1.16, -minion.r * 0.02);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#f7f0e0';
-    ctx.beginPath();
-    ctx.moveTo(minion.r * 0.96, -minion.r * 0.42);
-    ctx.lineTo(minion.r * 1.08, -minion.r * 0.68);
-    ctx.lineTo(minion.r * 1.2, -minion.r * 0.38);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(minion.r * 0.52, -minion.r * 0.32);
-    ctx.lineTo(minion.r * 0.68, -minion.r * 0.62);
-    ctx.lineTo(minion.r * 0.82, -minion.r * 0.26);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#1b120c';
-    ctx.beginPath();
-    ctx.arc(minion.r * 0.84, -minion.r * 0.14, 2.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
   function drawMinions() {
     minions.forEach((minion) => {
       const bob = Math.sin(state.time * 6 + minion.bob) * 4;
       if (minion.variant === 'tribeSpear' || minion.variant === 'tribeArcher') {
         drawTribeMinion(minion, bob);
-      } else if (minion.variant === 'nightTiger') {
-        drawNightTigerMinion(minion, bob);
       } else if (minion.variant === 'shoreBook' || minion.journeyHunter) {
         drawShoreBookMinion(minion, bob);
       } else if (minion.variant === 'swampSlime') {
