@@ -1120,7 +1120,7 @@ button {
     state.sequence = 'boatArrival';
     state.journeyStage = 'boatArrival';
     state.journeyProgress = 0;
-    state.journeyGoal = state.isTouch ? 4.2 : 4.6;
+    state.journeyGoal = state.isTouch ? 2.2 : 2.6;
     state.journeyTimer = 0;
     state.quest = 'Плыви к одинокому острову и высаживайся у храма.';
     player.x = state.width * 0.22;
@@ -1260,7 +1260,7 @@ button {
     state.journeyStage = 'mineDescent';
     state.journeyTimer = 0;
     state.journeyProgress = 0;
-    state.journeyGoal = state.isTouch ? 760 : 860;
+    state.journeyGoal = state.isTouch ? 440 : 520;
     state.quest = 'Спустись в шахты, уворачивайся от вагонеток и камней.';
     player.x = state.width * 0.42;
     player.y = player.groundY;
@@ -1581,8 +1581,8 @@ button {
 
   function spawnTribeVillageWave(wave = 1) {
     minions.length = 0;
-    const fighters = wave === 1 ? (state.isTouch ? 3 : 4) : (state.isTouch ? 4 : 5);
-    const archers = wave === 1 ? 2 : (state.isTouch ? 2 : 3);
+    const fighters = state.isTouch ? 2 : 3;
+    const archers = state.isTouch ? 1 : 2;
     for (let i = 0; i < fighters; i++) {
       spawnTribeFighter(state.width * (0.54 + i * 0.09), false);
     }
@@ -1592,27 +1592,7 @@ button {
   }
 
   function startTempleApproach() {
-    clearTransientEntities({ keepParticles: true });
-    boss.active = false;
-    state.sequence = 'templeApproach';
-    state.journeyStage = 'templeApproach';
-    state.journeyProgress = 0;
-    state.journeyGoal = state.isTouch ? 860 : 980;
-    state.journeyTimer = 0;
-    state.spellUpgrade = true;
-    player.spellDamage = 400;
-    state.weaponMode = 'default';
-    state.templeRun.phase = 'approach';
-    state.templeRun.chaseSpawn = 0.74;
-    state.templeRun.wave = 0;
-    state.quest = 'После болотного босса подойди к храму и держись настороже.';
-    player.x = state.width * 0.26;
-    player.y = player.groundY;
-    player.vy = 0;
-    restorePlayerCheckpoint(2);
-    bossNameLabel.textContent = 'Подход к храму';
-    setScreen('journey');
-    updateHud();
+    return startTempleChase();
   }
 
   function startTempleChase() {
@@ -1620,12 +1600,12 @@ button {
     state.sequence = 'templeChase';
     state.journeyStage = 'templeChase';
     state.journeyProgress = 0;
-    state.journeyGoal = state.isTouch ? 980 : 1160;
+    state.journeyGoal = state.isTouch ? 760 : 900;
     state.journeyTimer = 0;
     state.templeRun.phase = 'chase';
-    state.templeRun.chaseSpawn = 0.58;
+    state.templeRun.chaseSpawn = 0.88;
     state.templeRun.wave = 0;
-    state.quest = 'Тревога! Беги от храма: аборигены идут с копьями и луками.';
+    state.quest = 'Тревога! Сразу после болотного духа начинается погоня к храму.';
     player.x = state.width * 0.22;
     player.y = player.groundY;
     player.vy = 0;
@@ -1633,7 +1613,6 @@ button {
     showAlertBanner('Тревога! Тебя заметили аборигены', 2.2);
     bossNameLabel.textContent = 'Побег от храма';
     spawnTribeFighter(state.width + 36, true);
-    spawnTribeArcher(state.width + 120, true);
     setScreen('journey');
     updateHud();
   }
@@ -1642,20 +1621,20 @@ button {
     clearTransientEntities({ keepParticles: true });
     state.sequence = 'tribeVillage';
     state.journeyStage = 'tribeVillage';
-    state.journeyProgress = wave - 1;
-    state.journeyGoal = 2;
+    state.journeyProgress = 0;
+    state.journeyGoal = 1;
     state.journeyTimer = 0;
     state.templeRun.phase = 'village';
-    state.templeRun.wave = wave;
+    state.templeRun.wave = 1;
     state.weaponMode = 'spear';
-    state.quest = 'Поселение аборигенов: обычный арсенал молчит, бейся копьём против копейщиков и лучников.';
+    state.quest = 'Короткая схватка в поселении: обычный арсенал молчит, добейся прохода копьём.';
     player.x = state.width * 0.24;
     player.y = player.groundY;
     player.vy = 0;
     restorePlayerCheckpoint(2);
     showAlertBanner('Обычное оружие не работает. Сражайся копьём.', 2.1);
     bossNameLabel.textContent = 'Поселение аборигенов';
-    spawnTribeVillageWave(wave);
+    spawnTribeVillageWave(1);
     setScreen('journey');
     updateHud();
   }
@@ -1859,10 +1838,10 @@ button {
     player.combo = 0;
     player.comboTimer = 0;
     state.sequence = 'bossAscend';
-    state.sequenceDuration = 2.2;
+    state.sequenceDuration = 1.35;
     state.quest = 'Храм рушится. Выживи и доберись до истинной формы.';
     state.debrisTimer = 0;
-    state.shakeTime = 2.2;
+    state.shakeTime = 1.35;
     state.shakePower = 15;
     boss.rage = true;
     shakeTitle.textContent = 'Дух взлетает…';
@@ -1874,19 +1853,19 @@ button {
   function spawnBookMinionWave(wave) {
     minions.length = 0;
     state.minionWave = wave;
-    state.minionWaveCount = wave === 1 ? (state.isTouch ? 5 : 6) : (state.isTouch ? 7 : 8);
+    state.minionWaveCount = state.isTouch ? 6 : 7;
     for (let i = 0; i < state.minionWaveCount; i++) {
       minions.push({
         x: state.width * (0.14 + (i % 4) * 0.18) + rand(-18, 18),
         y: -40 - Math.floor(i / 4) * 72 - rand(0, 24),
-        r: wave === 1 ? 20 : 24,
-        hp: wave === 1 ? 1 : 2,
-        speed: wave === 1 ? rand(56, 72) : rand(74, 92),
+        r: 22,
+        hp: 1,
+        speed: rand(64, 82),
         bob: rand(0, Math.PI * 2),
         drift: rand(18, 34),
-        damage: wave === 1 ? 6 : 8,
-        color: wave === 1 ? '#7f9fdc' : '#b44b72',
-        variant: wave === 1 ? 'templeMask' : 'templeShard'
+        damage: 7,
+        color: '#9f87d8',
+        variant: 'templeMask'
       });
     }
     updateHud();
@@ -1899,8 +1878,9 @@ button {
     boss.active = false;
     state.sequence = 'minionWaves';
     state.minionWave = 0;
-    state.minionWaveDelay = 0.65;
-    state.quest = 'Отрази волны храмовых тварей внутри храма.';
+    state.minionWaveMax = 1;
+    state.minionWaveDelay = 0.4;
+    state.quest = 'Отрази одну быструю волну храмовых тварей перед истинной формой.';
     state.collapseProgress = 1;
     state.whiteFlash = 0.95;
     player.invuln = 1.3;
@@ -1909,7 +1889,7 @@ button {
     player.spellFlash = 0;
     restorePlayerCheckpoint(2);
     shakeTitle.textContent = 'Храмовые твари выползают из руин…';
-    shakeText.textContent = 'Отбей две волны разных храмовых чудовищ, и тогда из руин появится гигантская форма.';
+    shakeText.textContent = 'Отбей короткую волну тварей, и из руин сразу появится гигантская форма.';
     setScreen('fight');
     updateHud();
   }
@@ -1966,8 +1946,9 @@ button {
       } else if (state.sequence === 'tribeVillage') {
         const remaining = minions.filter((m) => m.hp > 0).length;
         const wave = state.templeRun.wave || 1;
-        bossRatio = remaining / Math.max(1, remaining + (wave === 1 ? 1 : 2));
-        bossTextValue = remaining + ' врагов · волна ' + wave + '/2';
+        const waveCap = Math.max(1, Math.round(state.journeyGoal || 1));
+        bossRatio = remaining / Math.max(1, remaining + 1);
+        bossTextValue = remaining + ' врагов · волна ' + wave + '/' + waveCap;
         bossLabelValue = 'Поселение аборигенов';
       } else if (state.sequence === 'mineBoss' || state.sequence === 'swampBoss') {
         bossRatio = clamp(boss.hp / boss.maxHp, 0, 1);
@@ -2179,7 +2160,7 @@ button {
         startJungleRun();
       } else if (state.sequence === 'swampBoss') {
         state.whiteFlash = Math.max(state.whiteFlash, 0.45);
-        startTempleApproach();
+        startTempleChase();
       } else if (boss.phase === 1) {
         startTempleCollapseSequence();
       } else if (boss.phase === 2) {
@@ -2724,12 +2705,12 @@ button {
       state.journeyTimer += dt;
       state.journeyProgress = clamp(state.journeyProgress + 88 * dt + Math.max(0, move) * 110 * dt, 0, state.journeyGoal);
 
-      if (Math.floor(prevTimer / 0.78) !== Math.floor(state.journeyTimer / 0.78)) {
+      if (Math.floor(prevTimer / 1.05) !== Math.floor(state.journeyTimer / 1.05)) {
         const x = rand(state.width * 0.16, state.width * 0.84);
         warnings.push({ x, life: 0.55, maxLife: 0.55, kind: 'mine-rock' });
         journeyHazards.push({ kind: 'falling-rock', x, y: -52, vy: rand(360, 440), damage: 5, hitTimer: 0.18 });
       }
-      if (Math.floor(prevTimer / 2.3) !== Math.floor(state.journeyTimer / 2.3)) {
+      if (Math.floor(prevTimer / 3.4) !== Math.floor(state.journeyTimer / 3.4)) {
         journeyHazards.push({ kind: 'cart', x: -120, y: player.groundY + 8, vx: rand(280, 350), width: 96, damage: 5, hitTimer: 0.2 });
       }
 
@@ -2782,11 +2763,7 @@ button {
     }
 
     if (state.sequence === 'templeApproach') {
-      state.journeyProgress = clamp(state.journeyProgress + 98 * dt + Math.max(0, move) * 102 * dt, 0, state.journeyGoal);
-      if (state.journeyProgress >= state.journeyGoal) {
-        state.whiteFlash = Math.max(state.whiteFlash, 0.16);
-        startTempleChase();
-      }
+      startTempleChase();
       return;
     }
 
@@ -2794,7 +2771,7 @@ button {
       state.templeRun.chaseSpawn -= dt;
       state.journeyProgress = clamp(state.journeyProgress + 112 * dt + Math.max(0, move) * 136 * dt, 0, state.journeyGoal);
       if (state.templeRun.chaseSpawn <= 0) {
-        state.templeRun.chaseSpawn = rand(0.7, 1.08);
+        state.templeRun.chaseSpawn = rand(0.95, 1.25);
         if (Math.random() < 0.55) {
           spawnTribeArcher(state.width + rand(28, 84), true);
         } else {
@@ -2810,15 +2787,9 @@ button {
 
     if (state.sequence === 'tribeVillage') {
       if (minions.length === 0) {
-        if ((state.templeRun.wave || 1) < 2) {
-          state.templeRun.wave = (state.templeRun.wave || 1) + 1;
-          showAlertBanner('Новая волна из глубины поселения!', 1.4);
-          startTribeVillage(state.templeRun.wave);
-        } else {
-          state.whiteFlash = Math.max(state.whiteFlash, 0.22);
-          showAlertBanner('Путь обратно к храму открыт', 1.6);
-          finishJourneyPrelude();
-        }
+        state.whiteFlash = Math.max(state.whiteFlash, 0.22);
+        showAlertBanner('Путь обратно к храму открыт', 1.6);
+        finishJourneyPrelude();
       }
       return;
     }
