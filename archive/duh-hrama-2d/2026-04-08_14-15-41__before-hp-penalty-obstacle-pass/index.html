@@ -1238,7 +1238,7 @@ button {
     state.journeyGoal = state.isTouch ? 5660 : 5920;
     state.journeyAssist.checkpointProgress = 0;
     state.journeyAssist.checkpointX = 0.26;
-    state.quest = 'Тропа к храму переделана под mobile-first: одна угроза за раз, длинные телеграфы, локальный откат и штраф по HP вместо старта сначала.';
+    state.quest = 'Тропа к храму переделана под mobile-first: одна угроза за раз, длинные телеграфы и мягкий recovery без обязательного урона.';
     player.x = state.width * 0.26;
     player.y = player.groundY;
     player.vy = 0;
@@ -1427,7 +1427,7 @@ button {
     state.journeyTimer = 0;
     state.journeyProgress = 0;
     state.journeyGoal = 0;
-    state.quest = 'Верхние джунгли переделаны под мобильный платформинг: широкие ветки, честные лианы, 20 зелёных захватов и штраф по HP вместо отката в начало.';
+    state.quest = 'Верхние джунгли переделаны под мобильный платформинг: широкие ветки, честные лианы, мягкий recovery и 20 зелёных захватов без обязательного урона.';
     player.x = state.width * 0.28;
     player.y = player.groundY;
     player.vy = 0;
@@ -1471,7 +1471,7 @@ button {
     state.journeyGoal = state.isTouch ? 1460 : 1620;
     state.journeyAssist.checkpointProgress = 0;
     state.journeyAssist.checkpointX = 0.28;
-    state.quest = 'Болотная переправа переделана как честный mobile-run: длинные телеграфы, более читаемые брёвна и штраф по HP вместо рестарта сегмента.';
+    state.quest = 'Болотная переправа переделана как честный mobile-run: меньше ширина угроз, длинные телеграфы и recovery вместо чип-урона.';
     player.x = state.width * 0.28;
     player.y = player.groundY;
     player.vy = 0;
@@ -1686,28 +1686,12 @@ button {
     return clamp((state.journeyAssist.checkpointProgress || 0), 0, state.journeyGoal || 0);
   }
 
-  function getJourneyHazardPenalty(hazard) {
-    if (!hazard) return 8;
-    if (hazard.softDamage != null) return hazard.softDamage;
-    if (hazard.kind === 'idol' || hazard.kind === 'croc') return 14;
-    if (hazard.kind === 'gap' || hazard.kind === 'pit') return 12;
-    return 8;
-  }
-
   function hitJourneyHazard(hazard, damage) {
     if (hazard.hitTimer > 0 || player.invuln > 0) return;
     const softFail = !!hazard.softFail;
     hazard.hitTimer = softFail ? 0.72 : 0.55;
     if (softFail) {
-      const localRewind = (hazard.kind === 'gap' || hazard.kind === 'pit' || hazard.kind === 'croc') ? 120 : 72;
-      const recoverTo = clamp(
-        Math.max(getJourneyRecoveryProgress(hazard), state.journeyProgress - localRewind),
-        0,
-        state.journeyGoal || 0
-      );
-      const penalty = getJourneyHazardPenalty(hazard);
-      player.invuln = 0;
-      damagePlayer(penalty);
+      const recoverTo = getJourneyRecoveryProgress(hazard);
       state.journeyProgress = recoverTo;
       for (const nextHazard of journeyHazards) {
         if (nextHazard.worldX != null && nextHazard.worldX >= recoverTo - 40 && nextHazard.worldX <= recoverTo + 960) {
@@ -1716,18 +1700,18 @@ button {
           if (nextHazard.kind === 'breakBranch') nextHazard.branchTimer = 0;
         }
       }
-      player.invuln = Math.max(player.invuln, 0.82);
+      player.invuln = Math.max(player.invuln, 0.72);
       player.y = player.groundY;
       player.vy = 0;
       player.jumpBoostX = 0;
-      player.coyoteTime = 0.14;
+      player.coyoteTime = 0;
       player.jumpBuffer = 0;
       player.bufferedDir = 0;
       player.x = clamp(state.width * (hazard.resetX || state.journeyAssist.checkpointX || 0.28), state.width * 0.18, state.width * 0.42);
       state.shakeTime = Math.max(state.shakeTime, state.lowFx ? 0.04 : 0.1);
       state.shakePower = Math.max(state.shakePower, state.lowFx ? 1.8 : 4.8);
       spawnParticles(player.x, player.y - 18, '#ffd5a0', 12, 86, 4.8);
-      showAlertBanner(hazard.failText || ('Потеряно ' + penalty + ' HP, но маршрут сохраняется'), 0.9);
+      showAlertBanner(hazard.failText || 'Ошибся в тайминге, но маршрут сохраняется', 0.9);
       updateHud();
       return;
     }
