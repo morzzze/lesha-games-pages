@@ -327,10 +327,8 @@ button {
     left: 39px;
     top: 39px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(247, 251, 255, 0.34), rgba(168, 192, 255, 0.18) 52%, rgba(86, 104, 168, 0.14) 100%);
-    border: 1px solid rgba(239, 245, 255, 0.42);
-    box-shadow: 0 8px 18px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.2);
-    backdrop-filter: blur(3px);
+    background: radial-gradient(circle at 35% 35%, rgba(247, 251, 255, 0.96), rgba(168, 192, 255, 0.72) 52%, rgba(86, 104, 168, 0.78) 100%);
+    box-shadow: 0 8px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35);
   }
 
   #attack-btn {
@@ -546,7 +544,7 @@ button {
     }
   }
 
-</style>
+</style></style>
 </head>
 <body>
   <canvas id="game"></canvas>
@@ -711,8 +709,7 @@ button {
     shieldFlash: 0,
     spellFlash: 0,
     groundY: 0,
-    vy: 0,
-    jumpBoostX: 0
+    vy: 0
   };
 
   const boss = {
@@ -821,7 +818,6 @@ button {
     player.shieldCharges = 0;
     player.shieldFlash = 0;
     player.spellFlash = 0;
-    player.jumpBoostX = 0;
     minions.length = 0;
     boss.active = true;
     boss.kind = 'templeSpirit';
@@ -867,19 +863,11 @@ button {
     return state.mode === 'journey' && state.sequence !== 'boatArrival';
   }
 
-  function jumpPlayer(directionX = null) {
+  function jumpPlayer() {
     if (!canUseJump()) return;
     if (player.y < player.groundY - 6) return;
-    const keyIntent = (keys.ArrowRight || keys.d || keys.D ? 1 : 0) - (keys.ArrowLeft || keys.a || keys.A ? 1 : 0);
-    const steerX = clamp(directionX == null ? (state.joystick.active ? state.joystick.valueX : keyIntent) : directionX, -1, 1);
     player.vy = -690;
     player.y -= 2;
-    if (Math.abs(steerX) > 0.16) {
-      player.jumpBoostX = steerX * 190;
-      player.x = clamp(player.x + steerX * 12, state.width * 0.12, state.width * 0.88);
-    } else {
-      player.jumpBoostX = 0;
-    }
     spawnParticles(player.x, player.y - 16, '#d7bcff', 12, 130, 7);
   }
 
@@ -1820,19 +1808,13 @@ button {
     if (canUseJump() || player.y < player.groundY) {
       player.vy += 1720 * dt;
       player.y += player.vy * dt;
-      if (Math.abs(player.jumpBoostX) > 0.1) {
-        player.x = clamp(player.x + player.jumpBoostX * dt, state.width * 0.12, state.width * 0.88);
-        player.jumpBoostX = lerp(player.jumpBoostX, 0, dt * 7.2);
-      }
       if (player.y >= player.groundY) {
         player.y = player.groundY;
         player.vy = 0;
-        player.jumpBoostX = 0;
       }
     } else {
       player.y = player.groundY;
       player.vy = 0;
-      player.jumpBoostX = 0;
     }
 
     if (state.sequence === 'boatArrival') {
@@ -4283,16 +4265,7 @@ button {
     const jumpBtn = document.getElementById('jump-btn');
     const attackBtn = document.getElementById('attack-btn');
     const spellBtn = document.getElementById('spell-btn');
-    const JOYSTICK_JUMP_THRESHOLD = -0.64;
-    const JOYSTICK_DEADZONE = 0.08;
-
-    function shapeJoystickAxis(value) {
-      const sign = Math.sign(value);
-      const magnitude = Math.abs(clamp(value, -1, 1));
-      if (magnitude <= JOYSTICK_DEADZONE) return 0;
-      const normalized = (magnitude - JOYSTICK_DEADZONE) / (1 - JOYSTICK_DEADZONE);
-      return sign * Math.pow(normalized, 0.9);
-    }
+    const JOYSTICK_JUMP_THRESHOLD = -0.72;
 
     function resetJoystick() {
       state.joystick.active = false;
@@ -4308,19 +4281,17 @@ button {
       const cy = rect.top + rect.height / 2;
       let dx = clientX - cx;
       let dy = clientY - cy;
-      const max = rect.width * 0.31;
+      const max = rect.width * 0.3;
       const len = Math.hypot(dx, dy);
       if (len > max) {
         dx = dx / len * max;
         dy = dy / len * max;
       }
       state.joystick.active = true;
-      const rawX = clamp(dx / max, -1, 1);
-      const rawY = clamp(dy / max, -1, 1);
-      state.joystick.valueX = shapeJoystickAxis(rawX);
-      state.joystick.valueY = shapeJoystickAxis(rawY);
+      state.joystick.valueX = clamp(dx / max, -1, 1);
+      state.joystick.valueY = clamp(dy / max, -1, 1);
       if (state.joystick.valueY <= JOYSTICK_JUMP_THRESHOLD && state.joystick.jumpReady) {
-        jumpPlayer(state.joystick.valueX);
+        jumpPlayer();
         state.joystick.jumpReady = false;
       } else if (state.joystick.valueY > -0.26) {
         state.joystick.jumpReady = true;
