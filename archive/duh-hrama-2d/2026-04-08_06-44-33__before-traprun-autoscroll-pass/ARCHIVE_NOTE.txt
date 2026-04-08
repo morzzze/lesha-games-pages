@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-08_06-44-33__before-traprun-autoscroll-pass
+Created at: Wed Apr  8 06:44:33 EET 2026
+Purpose: snapshot before republishing trapRun autoscroll segment
