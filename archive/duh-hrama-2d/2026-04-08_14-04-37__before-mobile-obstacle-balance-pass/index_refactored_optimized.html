@@ -728,8 +728,7 @@ button {
     isTouch: INITIAL_IS_TOUCH,
     lowFx: INITIAL_IS_TOUCH || prefersReducedMotion,
     alertBanner: { text: '', time: 0 },
-    jungleRun: { nodes: [], index: 0, swing: null, safeTime: 0, totalGoal: 0 },
-    journeyAssist: { checkpointProgress: 0, checkpointX: 0.28 },
+    jungleRun: { nodes: [], index: 0, swing: null, safeTime: 0 },
     templeRun: { phase: 'approach', alarm: 0, chaseSpawn: 0 },
     weaponMode: 'default',
     performance: {
@@ -773,9 +772,6 @@ button {
     groundY: 0,
     vy: 0,
     jumpBoostX: 0,
-    coyoteTime: 0,
-    jumpBuffer: 0,
-    bufferedDir: 0,
     vineKnockback: 0,
     bleed: { time: 0, tick: 0, period: 0.25, dmg: 5 }
   };
@@ -1052,16 +1048,12 @@ button {
     state.journeyBookTotal = 0;
     state.alertBanner.text = '';
     state.alertBanner.time = 0;
-    state.jungleRun = { nodes: [], index: 0, swing: null, safeTime: 0, grabs: 0, checkpointIndex: 0, totalGoal: 0 };
-    state.journeyAssist = { checkpointProgress: 0, checkpointX: 0.28 };
+    state.jungleRun = { nodes: [], index: 0, swing: null, safeTime: 0, grabs: 0, checkpointIndex: 0 };
     state.templeRun = { phase: 'approach', alarm: 0, chaseSpawn: 0, wave: 0 };
     state.weaponMode = 'default';
     player.bleed.time = 0;
     player.bleed.tick = 0;
     player.vineKnockback = 0;
-    player.coyoteTime = 0;
-    player.jumpBuffer = 0;
-    player.bufferedDir = 0;
     bossNameLabel.textContent = 'Дух Храма';
     shakeTitle.textContent = 'Храм шепчет…';
     shakeText.textContent = 'Печать сорвана. Дух выходит из тумана.';
@@ -1081,32 +1073,20 @@ button {
     return state.mode === 'journey' && state.sequence !== 'boatArrival';
   }
 
-  function performJourneyJump(steerX = 0, jumpPower = 1) {
-    const boost = jumpPower || 1;
-    player.vy = -760 * boost;
+  function jumpPlayer(directionX = null) {
+    if (!canUseJump()) return;
+    if (player.y < player.groundY - 6) return;
+    const keyIntent = (keys.ArrowRight || keys.d || keys.D ? 1 : 0) - (keys.ArrowLeft || keys.a || keys.A ? 1 : 0);
+    const steerX = clamp(directionX == null ? (state.joystick.active ? state.joystick.valueX : keyIntent) : directionX, -1, 1);
+    player.vy = -690;
     player.y -= 2;
-    if (Math.abs(steerX) > 0.12) {
-      player.jumpBoostX = steerX * 230 * boost;
-      player.x = clamp(player.x + steerX * 14, state.width * 0.12, state.width * 0.88);
+    if (Math.abs(steerX) > 0.16) {
+      player.jumpBoostX = steerX * 190;
+      player.x = clamp(player.x + steerX * 12, state.width * 0.12, state.width * 0.88);
     } else {
       player.jumpBoostX = 0;
     }
-    player.coyoteTime = 0;
-    player.jumpBuffer = 0;
     spawnParticles(player.x, player.y - 16, '#d7bcff', 12, 130, 7);
-  }
-
-  function jumpPlayer(directionX = null) {
-    if (!canUseJump()) return;
-    const keyIntent = (keys.ArrowRight || keys.d || keys.D ? 1 : 0) - (keys.ArrowLeft || keys.a || keys.A ? 1 : 0);
-    const steerX = clamp(directionX == null ? (state.joystick.active ? state.joystick.valueX : keyIntent) : directionX, -1, 1);
-    const onGround = player.y >= player.groundY - 14;
-    if (!onGround && player.coyoteTime <= 0) {
-      player.jumpBuffer = 0.14;
-      player.bufferedDir = steerX;
-      return;
-    }
-    performJourneyJump(steerX, state.sequence === 'jungleRun' ? 1.04 : 1);
   }
 
   function startBoatArrival() {
@@ -1182,45 +1162,67 @@ button {
   function seedTrapRunHazards() {
     journeyHazards.length = 0;
     const add = (hazard) => journeyHazards.push({ ...hazard, hitTimer: 0 });
-    const segment = state.isTouch ? 940 : 980;
+    const segment = 1120;
 
     const patterns = [
       [
-        { kind: 'pit', x: 180, width: 74, hitWidth: 58, warningLead: 430, warningKind: 'pit', failText: 'Прыжок нужен чуть раньше' },
-        { kind: 'spike', x: 408, width: 52, hitWidth: 40, warningLead: 420, warningKind: 'spike', failText: 'Шипы теперь читаются заранее' },
-        { kind: 'swing', x: 660, width: 56, hitWidth: 44, amplitude: 24, spinSpeed: 2.2, warningLead: 460, warningKind: 'swing', failText: 'Маятник лучше брать после короткой паузы' }
+        { kind: 'pit', x: 68, width: 82, hitWidth: 74, damage: 0, warningLead: 300, warningKind: 'pit' },
+        { kind: 'spike', x: 178, width: 60, damage: 5, warningLead: 274, warningKind: 'spike' },
+        { kind: 'blade', x: 292, width: 82, radius: 18, damage: 6, amplitude: 34, spinSpeed: 2.72, warningLead: 324, warningKind: 'blade', hitWidth: 70, yLevel: -82 },
+        { kind: 'beam', x: 446, width: 108, thickness: 14, damage: 6, yLevel: -70, beamAmp: 16, spinSpeed: 3.05, warningLead: 332, warningKind: 'beam', hitWidth: 112 },
+        { kind: 'swing', x: 580, width: 70, damage: 6, amplitude: 38, spinSpeed: 5.1, warningLead: 292, warningKind: 'swing' },
+        { kind: 'idol', x: 676, width: 126, damage: 8, yLevel: -124, warningLead: 326, warningKind: 'idol', hitWidth: 116, triggerLead: 40 },
+        { kind: 'pit', x: 748, width: 96, hitWidth: 86, damage: 0, warningLead: 338, warningKind: 'pit' },
+        { kind: 'spike', x: 860, width: 74, damage: 5, warningLead: 276, warningKind: 'spike' },
+        { kind: 'dart', x: 1040, width: 100, damage: 6, warningLead: 308, warningKind: 'dart', hitWidth: 44, dartHeight: 18, dartSpeed: 3.6, dartWave: 1.18 }
       ],
       [
-        { kind: 'beam', x: 210, width: 84, hitWidth: 76, thickness: 12, yLevel: -64, beamAmp: 10, spinSpeed: 2.1, warningLead: 470, warningKind: 'beam', failText: 'У луча теперь длинный телеграф' },
-        { kind: 'pit', x: 470, width: 80, hitWidth: 60, warningLead: 430, warningKind: 'pit', failText: 'Здесь нужен один спокойный прыжок' },
-        { kind: 'idol', x: 760, width: 108, hitWidth: 92, yLevel: -118, triggerLead: 80, warningLead: 520, warningKind: 'idol', failText: 'Гигантскую ловушку можно прочитать заранее' }
+        { kind: 'spike', x: 56, width: 68, damage: 5, warningLead: 282, warningKind: 'spike' },
+        { kind: 'blade', x: 196, width: 84, radius: 16, damage: 6, amplitude: 30, spinSpeed: 2.95, yLevel: -80, warningLead: 330, warningKind: 'blade', hitWidth: 66 },
+        { kind: 'pit', x: 312, width: 84, hitWidth: 76, damage: 0, warningLead: 320, warningKind: 'pit' },
+        { kind: 'beam', x: 450, width: 120, thickness: 12, damage: 6, yLevel: -66, beamAmp: 18, spinSpeed: 2.72, warningLead: 336, warningKind: 'beam', hitWidth: 120 },
+        { kind: 'swing', x: 612, width: 62, damage: 6, amplitude: 44, spinSpeed: 4.8, warningLead: 290, warningKind: 'swing' },
+        { kind: 'spike', x: 710, width: 56, damage: 5, warningLead: 276, warningKind: 'spike' },
+        { kind: 'pit', x: 868, width: 92, hitWidth: 86, damage: 0, warningLead: 332, warningKind: 'pit' },
+        { kind: 'beam', x: 1034, width: 92, thickness: 15, damage: 6, yLevel: -88, beamAmp: 22, spinSpeed: 3.22, warningLead: 326, warningKind: 'beam', hitWidth: 102 }
       ],
       [
-        { kind: 'dart', x: 230, width: 84, hitWidth: 34, dartHeight: 14, dartSpeed: 2.45, dartWave: 0.84, warningLead: 450, warningKind: 'dart', failText: 'Дротик даёт понятное окно реакции' },
-        { kind: 'blade', x: 520, width: 68, hitWidth: 50, radius: 16, amplitude: 28, spinSpeed: 2.1, yLevel: -92, warningLead: 470, warningKind: 'blade', failText: 'Лезвие проходится по ритму' },
-        { kind: 'pit', x: 790, width: 82, hitWidth: 62, warningLead: 430, warningKind: 'pit', failText: 'После ошибки маршрут мягко откатывается назад' }
+        { kind: 'pit', x: 90, width: 94, hitWidth: 80, damage: 0, warningLead: 306, warningKind: 'pit' },
+        { kind: 'swing', x: 200, width: 72, damage: 6, amplitude: 42, spinSpeed: 4.6, warningLead: 292, warningKind: 'swing' },
+        { kind: 'dart', x: 330, width: 110, damage: 6, warningLead: 312, warningKind: 'dart', hitWidth: 46, dartHeight: 22, dartSpeed: 3.95, dartWave: 1.04 },
+        { kind: 'dart', x: 330, width: 110, damage: 6, warningLead: 312, warningKind: 'dart', hitWidth: 46, dartHeight: 22, dartSpeed: 3.95, dartWave: 1.08, phaseShift: 0.55 },
+        { kind: 'dart', x: 330, width: 110, damage: 6, warningLead: 312, warningKind: 'dart', hitWidth: 46, dartHeight: 22, dartSpeed: 3.95, dartWave: 1.1, phaseShift: 1.1 },
+        { kind: 'pit', x: 520, width: 90, hitWidth: 82, damage: 0, warningLead: 316, warningKind: 'pit' },
+        { kind: 'blade', x: 700, width: 86, radius: 20, damage: 6, amplitude: 48, spinSpeed: 2.98, yLevel: -104, warningLead: 340, warningKind: 'blade', hitWidth: 68 },
+        { kind: 'idol', x: 812, width: 132, damage: 8, yLevel: -128, warningLead: 332, warningKind: 'idol', hitWidth: 120, triggerLead: 44 },
+        { kind: 'beam', x: 930, width: 112, thickness: 13, damage: 7, yLevel: -60, beamAmp: 20, spinSpeed: 3.3, warningLead: 330, warningKind: 'beam', hitWidth: 116 },
+        { kind: 'pit', x: 1038, width: 88, hitWidth: 80, damage: 0, warningLead: 292, warningKind: 'pit' }
       ],
       [
-        { kind: 'spike', x: 188, width: 48, hitWidth: 38, warningLead: 410, warningKind: 'spike', failText: 'Шипы лучше брать коротким прыжком' },
-        { kind: 'beam', x: 444, width: 86, hitWidth: 74, thickness: 12, yLevel: -70, beamAmp: 12, spinSpeed: 2.05, warningLead: 470, warningKind: 'beam', failText: 'Луч идёт стабильно, без случайности' },
-        { kind: 'swing', x: 716, width: 58, hitWidth: 46, amplitude: 26, spinSpeed: 2.3, warningLead: 450, warningKind: 'swing', failText: 'Маятник рассчитан под мобильный тайминг' }
+        { kind: 'spike', x: 70, width: 64, damage: 5, warningLead: 268, warningKind: 'spike' },
+        { kind: 'beam', x: 182, width: 98, thickness: 13, damage: 6, yLevel: -72, beamAmp: 16, spinSpeed: 2.8, warningLead: 330, warningKind: 'beam', hitWidth: 104 },
+        { kind: 'pit', x: 298, width: 96, hitWidth: 86, damage: 0, warningLead: 324, warningKind: 'pit' },
+        { kind: 'blade', x: 440, width: 88, radius: 17, damage: 6, amplitude: 52, spinSpeed: 3.2, yLevel: -74, warningLead: 336, warningKind: 'blade', hitWidth: 72 },
+        { kind: 'pit', x: 582, width: 102, hitWidth: 92, damage: 0, warningLead: 334, warningKind: 'pit' },
+        { kind: 'swing', x: 682, width: 60, damage: 7, amplitude: 46, spinSpeed: 5.3, warningLead: 292, warningKind: 'swing' },
+        { kind: 'spike', x: 788, width: 68, damage: 5, warningLead: 278, warningKind: 'spike' },
+        { kind: 'dart', x: 904, width: 104, damage: 6, warningLead: 314, warningKind: 'dart', hitWidth: 44, dartHeight: 20, dartSpeed: 4.1, dartWave: 1.2 },
+        { kind: 'pit', x: 1066, width: 84, hitWidth: 78, damage: 0, warningLead: 306, warningKind: 'pit' }
       ]
     ];
 
-    for (let i = 0; i < 6; i++) {
-      const start = 220 + i * segment;
+    for (let i = 0; i < 10; i++) {
+      const start = 160 + i * segment;
       const pattern = patterns[i % patterns.length];
-      const recoverTo = Math.max(0, start - 180);
+      const laneShift = ((i % 3) - 1) * 10;
 
       pattern.forEach((template) => {
-        add({
-          ...template,
-          worldX: start + template.x,
-          damage: 0,
-          softFail: true,
-          recoverTo,
-          resetX: 0.26
-        });
+        const hazard = { ...template };
+        hazard.worldX = start + hazard.x + laneShift;
+        if (hazard.kind === 'beam') {
+          hazard.width = (hazard.width || 96) + (i % 3) * 4 + (laneShift > 0 ? 2 : -2);
+        }
+        add(hazard);
       });
     }
   }
@@ -1235,10 +1237,8 @@ button {
     state.journeyStage = 'trapRun';
     state.journeyTimer = 0;
     state.journeyProgress = 0;
-    state.journeyGoal = state.isTouch ? 5660 : 5920;
-    state.journeyAssist.checkpointProgress = 0;
-    state.journeyAssist.checkpointX = 0.26;
-    state.quest = 'Тропа к храму переделана под mobile-first: одна угроза за раз, длинные телеграфы и мягкий recovery без обязательного урона.';
+    state.journeyGoal = state.isTouch ? 9800 : 11200;
+    state.quest = 'Тропа к храму стала длинной и живая: уклоняйся от шипов, лезвий, дротиков и разрушающих лучей (W / ↑ / вверх на стике).';
     player.x = state.width * 0.26;
     player.y = player.groundY;
     player.vy = 0;
@@ -1308,32 +1308,22 @@ button {
     journeyHazards.length = 0;
     state.jungleRun.grabs = 0;
     state.jungleRun.checkpointIndex = 0;
-    state.jungleRun.nodes = [];
+    state.jungleRun.nodes = Array.from({ length: 20 }, (_, index) => ({ index }));
 
-    let worldX = 180;
-    let lastRecoverTo = 0;
+    let worldX = 150;
     for (let i = 0; i < 20; i++) {
-      const step = i % 4;
+      const block = Math.floor(i / 5);
+      const step = i % 5;
       const branchX = worldX;
-      const safeBranch = step === 0 || i === 19;
-
-      if (safeBranch) {
-        lastRecoverTo = Math.max(0, branchX - 110);
-      }
-
-      state.jungleRun.nodes.push({ index: i, branchX, recoverTo: lastRecoverTo });
+      const safeBranch = step === 4;
 
       journeyHazards.push({
         kind: 'breakBranch',
         worldX: branchX,
-        width: safeBranch ? 132 : 112,
-        hitWidth: safeBranch ? 106 : 92,
-        damage: 0,
-        softFail: !safeBranch,
-        recoverTo: lastRecoverTo,
-        resetX: 0.24,
-        failText: safeBranch ? 'Здесь безопасная площадка' : 'Ветка предупреждает заранее и даёт шанс отступить',
-        breakDelay: safeBranch ? 1.6 : 1.12,
+        width: safeBranch ? 104 : 88,
+        hitWidth: safeBranch ? 90 : 76,
+        damage: 6,
+        breakDelay: safeBranch ? 1.08 : 0.72,
         safe: safeBranch,
         stepIndex: i,
         hitTimer: 0,
@@ -1342,77 +1332,67 @@ button {
 
       journeyHazards.push({
         kind: 'safeVine',
-        worldX: branchX + 108,
-        width: 84,
+        worldX: branchX + 78,
+        width: 74,
         damage: 0,
-        amplitude: 24 + (step % 2) * 4,
-        radius: 28 + (i % 2),
-        hitWidth: 64,
-        warningLead: 500,
+        amplitude: 42 + (step % 3) * 5,
+        radius: 22 + (i % 2),
+        hitWidth: 52,
+        warningLead: 300,
         warningKind: 'vine',
         stepIndex: i,
         grabbed: false,
-        hitTimer: 0,
-        recoverTo: lastRecoverTo,
-        resetX: 0.24
+        hitTimer: 0
       });
 
       if (i < 19) {
         journeyHazards.push({
           kind: 'gap',
-          worldX: branchX + 184,
-          width: 70 + (i % 3) * 8,
-          hitWidth: 54 + (i % 3) * 6,
-          damage: 0,
-          softFail: true,
-          recoverTo: lastRecoverTo,
-          resetX: 0.24,
-          failText: 'Разрыв проходится одним чистым прыжком',
-          warningLead: 500,
+          worldX: branchX + 150,
+          width: 96 + (i % 2) * 16,
+          hitWidth: 74 + (i % 2) * 12,
+          damage: 7,
+          warningLead: 332,
           warningKind: 'gap',
           hitTimer: 0
         });
       }
 
-      if (i % 5 === 2 && i < 19) {
+      if (i % 2 === 0 && i < 19) {
         journeyHazards.push({
           kind: 'snakeVine',
-          worldX: branchX + 144,
+          worldX: branchX + 116 + (i % 3) * 10,
           width: 62,
           damage: 50,
-          amplitude: 20,
+          amplitude: 34 + (i % 4) * 4,
           radius: 20,
           hitWidth: 44,
-          warningLead: 460,
+          warningLead: 282,
           warningKind: 'snake-vine',
           stepIndex: i,
-          hitTimer: 0,
-          recoverTo: lastRecoverTo,
-          resetX: 0.24
+          hitTimer: 0
         });
       }
 
-      if (i % 6 === 3) {
+      if (i % 3 === 1) {
         journeyHazards.push({
           kind: 'crawlerSnake',
-          worldX: branchX + 58,
-          width: 52,
-          damage: 0,
-          softFail: true,
-          recoverTo: lastRecoverTo,
-          resetX: 0.24,
-          failText: 'Наземную змею видно заранее, ей нужен отдельный ритм',
-          hitWidth: 40,
-          warningLead: 420,
+          worldX: branchX + 28,
+          width: 58,
+          damage: 7,
+          hitWidth: 46,
+          warningLead: 248,
           warningKind: 'crawler-snake',
           snakePhase: i * 0.65,
           hitTimer: 0
         });
       }
 
-      worldX += safeBranch ? 200 : 164;
+      worldX += safeBranch ? 230 : 150;
+      if (block === 3 && step === 4) {
+        worldX += 120;
+      }
     }
-    state.jungleRun.totalGoal = worldX + 160;
   }
 
   function startJungleRun() {
@@ -1426,20 +1406,17 @@ button {
     state.journeyStage = 'jungleRun';
     state.journeyTimer = 0;
     state.journeyProgress = 0;
-    state.journeyGoal = 0;
-    state.quest = 'Верхние джунгли переделаны под мобильный платформинг: широкие ветки, честные лианы, мягкий recovery и 20 зелёных захватов без обязательного урона.';
+    state.journeyGoal = state.isTouch ? 3220 : 3560;
+    state.quest = 'Верхний путь джунглей: 20 захватов за лианы, хрупкие ветки, ложные змеи и редкие безопасные площадки.';
     player.x = state.width * 0.28;
     player.y = player.groundY;
     player.vy = 0;
     player.bleed.time = 0;
     player.bleed.tick = 0;
     player.vineKnockback = 0;
-    state.journeyAssist.checkpointProgress = 0;
-    state.journeyAssist.checkpointX = 0.24;
     restorePlayerCheckpoint(2);
     bossNameLabel.textContent = 'Верхние джунгли';
     seedJungleHazards();
-    state.journeyGoal = state.jungleRun.totalGoal || (state.isTouch ? 2860 : 3140);
     setScreen('journey');
     updateHud();
   }
@@ -1447,13 +1424,13 @@ button {
   function seedSwampHazards() {
     journeyHazards.length = 0;
     [
-      { kind: 'gap', worldX: 210, width: 76, hitWidth: 58, damage: 0, softFail: true, recoverTo: 0, resetX: 0.26, failText: 'Первый разрыв теперь короткий и читаемый', warningLead: 500, warningKind: 'gap' },
-      { kind: 'croc', worldX: 430, width: 78, hitWidth: 58, damage: 0, softFail: true, recoverTo: 120, resetX: 0.28, failText: 'Бревно заранее раскачивается перед атакой', snapSpeed: 2.2, warningLead: 520, warningKind: 'croc' },
-      { kind: 'root', worldX: 630, width: 58, hitWidth: 42, damage: 0, softFail: true, recoverTo: 420, resetX: 0.3, failText: 'Корень теперь служит тайминговым, а не штрафным препятствием', warningLead: 460, warningKind: 'root' },
-      { kind: 'gap', worldX: 860, width: 84, hitWidth: 62, damage: 0, softFail: true, recoverTo: 620, resetX: 0.28, failText: 'Средний разрыв всё ещё проходится без спешки', warningLead: 500, warningKind: 'gap' },
-      { kind: 'croc', worldX: 1080, width: 82, hitWidth: 60, damage: 0, softFail: true, recoverTo: 840, resetX: 0.3, failText: 'Крокодил теперь атакует только в явном окне угрозы', snapSpeed: 2.35, warningLead: 520, warningKind: 'croc' },
-      { kind: 'gap', worldX: 1300, width: 86, hitWidth: 64, damage: 0, softFail: true, recoverTo: 1080, resetX: 0.3, failText: 'Финальный прыжок шире телеграфируется', warningLead: 510, warningKind: 'gap' },
-      { kind: 'croc', worldX: 1510, width: 86, hitWidth: 62, damage: 0, softFail: true, recoverTo: 1300, resetX: 0.32, failText: 'Последний крокодил теперь честно читается по раскачке бревна', snapSpeed: 2.4, warningLead: 520, warningKind: 'croc' }
+      { kind: 'gap', worldX: 166, width: 118, hitWidth: 90, damage: 8, warningLead: 360, warningKind: 'gap' },
+      { kind: 'croc', worldX: 334, width: 102, damage: 9, snapSpeed: 4.9, warningLead: 300, warningKind: 'croc' },
+      { kind: 'gap', worldX: 478, width: 132, hitWidth: 98, damage: 8, warningLead: 330, warningKind: 'gap' },
+      { kind: 'root', worldX: 632, width: 74, damage: 6, hitWidth: 58, warningLead: 270, warningKind: 'root' },
+      { kind: 'croc', worldX: 796, width: 108, damage: 9, snapSpeed: 5.25, warningLead: 300, warningKind: 'croc' },
+      { kind: 'gap', worldX: 960, width: 138, hitWidth: 102, damage: 8, warningLead: 340, warningKind: 'gap' },
+      { kind: 'croc', worldX: 1132, width: 116, damage: 10, snapSpeed: 5.5, warningLead: 310, warningKind: 'croc' }
     ].forEach((hazard) => journeyHazards.push({ ...hazard, hitTimer: 0 }));
   }
 
@@ -1468,10 +1445,8 @@ button {
     state.journeyStage = 'swampRun';
     state.journeyTimer = 0;
     state.journeyProgress = 0;
-    state.journeyGoal = state.isTouch ? 1460 : 1620;
-    state.journeyAssist.checkpointProgress = 0;
-    state.journeyAssist.checkpointX = 0.28;
-    state.quest = 'Болотная переправа переделана как честный mobile-run: меньше ширина угроз, длинные телеграфы и recovery вместо чип-урона.';
+    state.journeyGoal = state.isTouch ? 1200 : 1350;
+    state.quest = 'Прыгай по деревяшкам в болоте и уворачивайся от крокодилов.';
     player.x = state.width * 0.28;
     player.y = player.groundY;
     player.vy = 0;
@@ -1679,42 +1654,9 @@ button {
     state.alertBanner.time = Math.max(state.alertBanner.time || 0, time);
   }
 
-  function getJourneyRecoveryProgress(hazard) {
-    if (hazard && hazard.recoverTo != null) {
-      return clamp(hazard.recoverTo, 0, state.journeyGoal || 0);
-    }
-    return clamp((state.journeyAssist.checkpointProgress || 0), 0, state.journeyGoal || 0);
-  }
-
   function hitJourneyHazard(hazard, damage) {
     if (hazard.hitTimer > 0 || player.invuln > 0) return;
-    const softFail = !!hazard.softFail;
-    hazard.hitTimer = softFail ? 0.72 : 0.55;
-    if (softFail) {
-      const recoverTo = getJourneyRecoveryProgress(hazard);
-      state.journeyProgress = recoverTo;
-      for (const nextHazard of journeyHazards) {
-        if (nextHazard.worldX != null && nextHazard.worldX >= recoverTo - 40 && nextHazard.worldX <= recoverTo + 960) {
-          nextHazard.warningQueued = false;
-          if (nextHazard.kind === 'idol') nextHazard.triggered = 0;
-          if (nextHazard.kind === 'breakBranch') nextHazard.branchTimer = 0;
-        }
-      }
-      player.invuln = Math.max(player.invuln, 0.72);
-      player.y = player.groundY;
-      player.vy = 0;
-      player.jumpBoostX = 0;
-      player.coyoteTime = 0;
-      player.jumpBuffer = 0;
-      player.bufferedDir = 0;
-      player.x = clamp(state.width * (hazard.resetX || state.journeyAssist.checkpointX || 0.28), state.width * 0.18, state.width * 0.42);
-      state.shakeTime = Math.max(state.shakeTime, state.lowFx ? 0.04 : 0.1);
-      state.shakePower = Math.max(state.shakePower, state.lowFx ? 1.8 : 4.8);
-      spawnParticles(player.x, player.y - 18, '#ffd5a0', 12, 86, 4.8);
-      showAlertBanner(hazard.failText || 'Ошибся в тайминге, но маршрут сохраняется', 0.9);
-      updateHud();
-      return;
-    }
+    hazard.hitTimer = 0.55;
     damagePlayer(damage);
     state.journeyProgress = Math.max(0, state.journeyProgress - 26);
     player.x = Math.max(state.width * 0.18, player.x - 34);
@@ -2149,9 +2091,6 @@ button {
     player.combo = 0;
     player.comboTimer = 0;
     player.spellFlash = 0;
-    player.coyoteTime = 0;
-    player.jumpBuffer = 0;
-    player.bufferedDir = 0;
     player.shieldCharges = Math.max(player.shieldCharges, shields);
     player.shieldFlash = Math.max(player.shieldFlash, 1.05);
     updateHud();
@@ -2454,11 +2393,11 @@ button {
             hazard.triggered = 0.01;
           }
           if (hazard.triggered) {
-            hazard.triggered += dt * 2.1;
+            hazard.triggered += dt * 3.4;
           }
           const idolSweep = hazard.triggered ? Math.sin(Math.min(Math.PI, hazard.triggered * Math.PI)) : 0;
           const idolY = player.groundY + (hazard.yLevel || -124) + idolSweep * 10;
-          if (hazard.triggered && idolSweep > 0.72 && overlap && player.y > idolY - 18) {
+          if (hazard.triggered && idolSweep > 0.18 && overlap && player.y > idolY - 22) {
             hitJourneyHazard(hazard, hazard.damage);
           }
         } else if (hazard.kind === 'blade') {
@@ -2491,17 +2430,16 @@ button {
           const tipX = screenX + bob * 0.46;
           const tipY = player.groundY - 48;
           const vineRadius = hazard.radius || 22;
-          const airborne = player.y < player.groundY - 8 || player.vy < 40;
-          if (!hazard.grabbed && airborne && dist(player.x, player.y - 16, tipX, tipY) <= vineRadius + player.r * 1.48) {
+          const airborne = player.y < player.groundY - 18 || player.vy < -40;
+          if (!hazard.grabbed && airborne && dist(player.x, player.y - 16, tipX, tipY) <= vineRadius + player.r * 0.82) {
             hazard.grabbed = true;
             state.jungleRun.grabs = Math.max(state.jungleRun.grabs || 0, (hazard.stepIndex || 0) + 1);
-            if (((hazard.stepIndex || 0) + 1) % 4 === 0) {
+            if (((hazard.stepIndex || 0) + 1) % 5 === 0) {
               state.jungleRun.checkpointIndex = state.jungleRun.grabs;
             }
-            state.jungleRun.safeTime = 0.2;
-            player.vy = Math.min(player.vy, -540);
-            player.jumpBoostX = Math.max(player.jumpBoostX, 310);
-            player.x = clamp(player.x + 18, state.width * 0.12, state.width * 0.88);
+            player.vy = Math.min(player.vy, -640);
+            player.jumpBoostX = Math.max(player.jumpBoostX, 275);
+            player.x = clamp(player.x + 12, state.width * 0.12, state.width * 0.88);
             spawnParticles(tipX, tipY, '#8dff9e', 10, 104, 4.8);
           }
         } else if (hazard.kind === 'snakeVine') {
@@ -2509,8 +2447,8 @@ button {
           const bob = Math.sin(hazard.swing + 0.4) * (hazard.amplitude || 34);
           const tipX = screenX + bob * 0.38;
           const tipY = player.groundY - 48;
-          const airborne = player.y < player.groundY - 10 || player.vy < 0;
-          if (hazard.hitTimer <= 0 && airborne && dist(player.x, player.y - 14, tipX, tipY) <= (hazard.radius || 20) + player.r * 0.52) {
+          const airborne = player.y < player.groundY - 18 || player.vy < -40;
+          if (hazard.hitTimer <= 0 && airborne && dist(player.x, player.y - 14, tipX, tipY) <= (hazard.radius || 20) + player.r * 0.75) {
             hazard.hitTimer = 0.9;
             damagePlayer(50);
             player.bleed.time = 2;
@@ -2528,8 +2466,6 @@ button {
             hazard.branchTimer = (hazard.branchTimer || 0) + dt;
             if (hazard.safe) {
               state.jungleRun.checkpointIndex = Math.max(state.jungleRun.checkpointIndex || 0, (hazard.stepIndex || 0) + 1);
-              state.journeyAssist.checkpointProgress = Math.max(state.journeyAssist.checkpointProgress || 0, hazard.worldX - 36);
-              state.journeyAssist.checkpointX = 0.24;
             }
           } else {
             hazard.branchTimer = Math.max(0, (hazard.branchTimer || 0) - dt * 1.8);
@@ -2540,8 +2476,8 @@ button {
             player.vy = Math.min(player.vy, -180);
           }
         } else if (hazard.kind === 'crawlerSnake') {
-          hazard.snakePhase = (hazard.snakePhase || 0) + dt * 3.2;
-          hazard.traceOffset = Math.sin(hazard.snakePhase) * 10;
+          hazard.snakePhase = (hazard.snakePhase || 0) + dt * 4.6;
+          hazard.traceOffset = Math.sin(hazard.snakePhase) * 16;
           if (Math.abs(player.x - (screenX + hazard.traceOffset)) < (hitWidth * 0.46 + player.r * 0.55) && player.y >= player.groundY - 18) {
             hitJourneyHazard(hazard, hazard.damage);
           }
@@ -2554,14 +2490,14 @@ button {
           }
         } else if (hazard.kind === 'croc') {
           hazard.snap = (hazard.snap || 0) + dt * (hazard.snapSpeed || 4.8);
-          if (Math.sin(hazard.snap) > 0.72 && overlap && player.y >= player.groundY - 18) {
+          if (Math.sin(hazard.snap) > 0.1 && overlap && player.y >= player.groundY - 22) {
             hitJourneyHazard(hazard, hazard.damage);
           }
         } else if (hazard.kind === 'gap') {
-          if (overlap && player.y >= player.groundY - 6) {
+          if (overlap && player.y >= player.groundY - 14) {
             hitJourneyHazard(hazard, hazard.damage);
           }
-        } else if (hazard.kind === 'root' && overlap && player.y >= player.groundY - 8) {
+        } else if (hazard.kind === 'root' && overlap && player.y >= player.groundY - 18) {
           hitJourneyHazard(hazard, hazard.damage);
         }
       } else {
@@ -2590,36 +2526,21 @@ button {
 
   function updateJourneyStage(dt, move) {
     if (canUseJump() || player.y < player.groundY) {
-      player.vy += 1540 * dt;
+      player.vy += 1720 * dt;
       player.y += player.vy * dt;
       if (Math.abs(player.jumpBoostX) > 0.1) {
         player.x = clamp(player.x + player.jumpBoostX * dt, state.width * 0.12, state.width * 0.88);
-        player.jumpBoostX = lerp(player.jumpBoostX, 0, dt * 5.4);
+        player.jumpBoostX = lerp(player.jumpBoostX, 0, dt * 7.2);
       }
       if (player.y >= player.groundY) {
         player.y = player.groundY;
         player.vy = 0;
         player.jumpBoostX = 0;
-        player.coyoteTime = 0.14;
       }
     } else {
       player.y = player.groundY;
       player.vy = 0;
       player.jumpBoostX = 0;
-      player.coyoteTime = 0.14;
-    }
-
-    if (player.y < player.groundY - 1) {
-      player.coyoteTime = Math.max(0, player.coyoteTime - dt);
-    }
-    if (player.jumpBuffer > 0) {
-      player.jumpBuffer = Math.max(0, player.jumpBuffer - dt);
-      if (player.jumpBuffer > 0 && (player.y >= player.groundY - 14 || player.coyoteTime > 0)) {
-        performJourneyJump(player.bufferedDir || 0, state.sequence === 'jungleRun' ? 1.04 : 1);
-      }
-    }
-    if (state.sequence === 'jungleRun' && state.jungleRun.safeTime > 0) {
-      state.jungleRun.safeTime = Math.max(0, state.jungleRun.safeTime - dt);
     }
 
     if (state.sequence === 'boatArrival') {
@@ -2642,9 +2563,9 @@ button {
 
     if (state.sequence === 'trapRun') {
       const rhythm = 1 + Math.sin(state.time * 0.45 + state.journeyProgress * 0.0042) * 0.14;
-      const surge = 1 + Math.sin(state.time * 0.9) * 0.04;
-      const runBoost = Math.max(0, move) * 72;
-      state.journeyProgress = clamp(state.journeyProgress + (60 * rhythm * surge + runBoost) * dt, 0, state.journeyGoal);
+      const surge = 1 + Math.sin(state.time * 0.9) * 0.08;
+      const runBoost = Math.max(0, move) * 88;
+      state.journeyProgress = clamp(state.journeyProgress + (84 * rhythm * surge + runBoost) * dt, 0, state.journeyGoal);
       updateJourneyHazards(dt);
       if (state.journeyProgress >= state.journeyGoal) {
         state.whiteFlash = Math.max(state.whiteFlash, 0.18);
@@ -2681,21 +2602,17 @@ button {
     }
 
     if (state.sequence === 'jungleRun') {
-      const safeBrake = state.jungleRun.safeTime > 0 ? 0.52 : 1;
-      state.journeyProgress = clamp(state.journeyProgress + (58 * safeBrake + Math.max(0, move) * 68) * dt, 0, state.journeyGoal);
+      state.journeyProgress = clamp(state.journeyProgress + 148 * dt + Math.max(0, move) * 154 * dt, 0, state.journeyGoal);
       updateJourneyHazards(dt);
-      if (state.journeyProgress >= state.journeyGoal && (state.jungleRun.grabs || 0) >= 20) {
+      if (state.journeyProgress >= state.journeyGoal) {
         state.whiteFlash = Math.max(state.whiteFlash, 0.2);
         startSwampRun();
-      } else if (state.journeyProgress >= state.journeyGoal && (state.jungleRun.grabs || 0) < 20) {
-        state.journeyProgress = Math.max(0, state.journeyGoal - 18);
-        showAlertBanner('Держись за зелёные лианы, нужно 20 из 20', 1.2);
       }
       return;
     }
 
     if (state.sequence === 'swampRun') {
-      state.journeyProgress = clamp(state.journeyProgress + 54 * dt + Math.max(0, move) * 78 * dt, 0, state.journeyGoal);
+      state.journeyProgress = clamp(state.journeyProgress + 76 * dt + Math.max(0, move) * 112 * dt, 0, state.journeyGoal);
       updateJourneyHazards(dt);
       if (state.journeyProgress >= state.journeyGoal) {
         state.whiteFlash = Math.max(state.whiteFlash, 0.22);
