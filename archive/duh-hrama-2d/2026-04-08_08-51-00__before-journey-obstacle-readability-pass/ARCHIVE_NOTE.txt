@@ -1,0 +1,5 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-08_08-51-00__before-journey-obstacle-readability-pass
+Created at: Wed Apr 08 08:51:00  2026
+Purpose: snapshot before journey obstacle readability pass
+Source commit: 32f5391

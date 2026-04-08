@@ -1066,14 +1066,13 @@ button {
   function seedJungleHazards() {
     journeyHazards.length = 0;
     [
-      { kind: 'gap', worldX: 176, width: 112, hitWidth: 86, damage: 7, warningLead: 350, warningKind: 'gap' },
-      { kind: 'vine', worldX: 332, width: 76, damage: 7, amplitude: 46, radius: 24, hitWidth: 64, warningLead: 290, warningKind: 'vine' },
-      { kind: 'root', worldX: 510, width: 76, damage: 6, hitWidth: 60, warningLead: 270, warningKind: 'root' },
-      { kind: 'gap', worldX: 676, width: 122, hitWidth: 92, damage: 7, warningLead: 330, warningKind: 'gap' },
-      { kind: 'root', worldX: 852, width: 80, damage: 6, hitWidth: 62, warningLead: 290, warningKind: 'root' },
-      { kind: 'vine', worldX: 988, width: 80, damage: 7, amplitude: 52, radius: 25, hitWidth: 62, warningLead: 280, warningKind: 'vine' },
-      { kind: 'croc', worldX: 1180, width: 108, damage: 8, snapSpeed: 4.65, warningLead: 300, warningKind: 'croc' }
-    ].forEach((hazard) => journeyHazards.push({ ...hazard, hitTimer: 0 }));
+      { kind: 'gap', worldX: 180, width: 108, damage: 8 },
+      { kind: 'vine', worldX: 348, width: 72, damage: 7, amplitude: 42, radius: 22 },
+      { kind: 'root', worldX: 520, width: 70, damage: 6 },
+      { kind: 'gap', worldX: 690, width: 116, damage: 8 },
+      { kind: 'vine', worldX: 860, width: 74, damage: 7, amplitude: 48, radius: 24 },
+      { kind: 'croc', worldX: 1010, width: 96, damage: 9, snapSpeed: 4.8 }
+    ].forEach((hazard) => journeyHazards.push(hazard));
   }
 
   function startJungleRun() {
@@ -1087,7 +1086,7 @@ button {
     state.journeyStage = 'jungleRun';
     state.journeyTimer = 0;
     state.journeyProgress = 0;
-    state.journeyGoal = 1320;
+    state.journeyGoal = 1080;
     state.quest = 'Проберись по лианам джунглей и перепрыгивай обрывы над болотом.';
     player.x = state.width * 0.28;
     player.y = player.groundY;
@@ -1102,14 +1101,14 @@ button {
   function seedSwampHazards() {
     journeyHazards.length = 0;
     [
-      { kind: 'gap', worldX: 166, width: 118, hitWidth: 90, damage: 8, warningLead: 360, warningKind: 'gap' },
-      { kind: 'croc', worldX: 334, width: 102, damage: 9, snapSpeed: 4.9, warningLead: 300, warningKind: 'croc' },
-      { kind: 'gap', worldX: 478, width: 132, hitWidth: 98, damage: 8, warningLead: 330, warningKind: 'gap' },
-      { kind: 'root', worldX: 632, width: 74, damage: 6, hitWidth: 58, warningLead: 270, warningKind: 'root' },
-      { kind: 'croc', worldX: 796, width: 108, damage: 9, snapSpeed: 5.25, warningLead: 300, warningKind: 'croc' },
-      { kind: 'gap', worldX: 960, width: 138, hitWidth: 102, damage: 8, warningLead: 340, warningKind: 'gap' },
-      { kind: 'croc', worldX: 1132, width: 116, damage: 10, snapSpeed: 5.5, warningLead: 310, warningKind: 'croc' }
-    ].forEach((hazard) => journeyHazards.push({ ...hazard, hitTimer: 0 }));
+      { kind: 'gap', worldX: 154, width: 120, damage: 9 },
+      { kind: 'croc', worldX: 308, width: 98, damage: 9, snapSpeed: 5.2 },
+      { kind: 'gap', worldX: 458, width: 126, damage: 9 },
+      { kind: 'root', worldX: 612, width: 64, damage: 6 },
+      { kind: 'croc', worldX: 760, width: 104, damage: 10, snapSpeed: 5.5 },
+      { kind: 'gap', worldX: 918, width: 132, damage: 9 },
+      { kind: 'croc', worldX: 1088, width: 108, damage: 10, snapSpeed: 5.8 }
+    ].forEach((hazard) => journeyHazards.push(hazard));
   }
 
   function startSwampRun() {
@@ -1123,7 +1122,7 @@ button {
     state.journeyStage = 'swampRun';
     state.journeyTimer = 0;
     state.journeyProgress = 0;
-    state.journeyGoal = 1350;
+    state.journeyGoal = 1180;
     state.quest = 'Прыгай по деревяшкам в болоте и уворачивайся от крокодилов.';
     player.x = state.width * 0.28;
     player.y = player.groundY;
@@ -1213,25 +1212,6 @@ button {
     damagePlayer(damage);
     state.journeyProgress = Math.max(0, state.journeyProgress - 26);
     player.x = Math.max(state.width * 0.18, player.x - 34);
-  }
-
-  function queueJourneyWarning(hazard, screenX, fallbackKind, fallbackLead) {
-    if (hazard.warningQueued) return;
-    const distanceAhead = hazard.worldX - state.journeyProgress;
-    const lead = hazard.warningLead != null ? hazard.warningLead : fallbackLead;
-    const kind = hazard.warningKind || fallbackKind;
-    if (distanceAhead <= lead && distanceAhead > -hazard.width * 0.7 && screenX > -140 && screenX < state.width + 140) {
-      const duration = clamp(0.6 + Math.min(0.5, lead / 460), 0.6, 1.05);
-      warnings.push({
-        x: screenX,
-        y: player.groundY - 8,
-        life: duration,
-        maxLife: duration,
-        kind,
-        type: kind
-      });
-      hazard.warningQueued = true;
-    }
   }
 
   function pressAltarButton() {
@@ -1803,10 +1783,8 @@ button {
         const screenX = state.width * 0.44 + hazard.worldX - state.journeyProgress;
         hazard.screenX = screenX;
         if (screenX < -220 || screenX > state.width + 220) continue;
-        const hitWidth = hazard.hitWidth || hazard.width;
-        const overlap = Math.abs(player.x - screenX) < (hitWidth * 0.5 + player.r * 0.62);
-        queueJourneyWarning(hazard, screenX, hazard.kind === 'pit' ? 'pit' : hazard.kind, 290);
 
+        const overlap = Math.abs(player.x - screenX) < (hazard.width * 0.5 + player.r * 0.62);
         if (hazard.kind === 'swing') {
           hazard.swing = (hazard.swing || 0) + dt * 4.4;
           if (overlap && player.y > player.groundY - 56) {
@@ -1819,20 +1797,17 @@ button {
         const screenX = state.width * 0.56 + hazard.worldX - state.journeyProgress;
         hazard.screenX = screenX;
         if (screenX < -240 || screenX > state.width + 240) continue;
-        const hitWidth = hazard.hitWidth || hazard.width;
-        const overlap = Math.abs(player.x - screenX) < (hitWidth * 0.5 + player.r * 0.7);
-        queueJourneyWarning(hazard, screenX, hazard.kind, 300);
+        const overlap = Math.abs(player.x - screenX) < (hazard.width * 0.5 + player.r * 0.7);
 
         if (hazard.kind === 'vine') {
           hazard.swing = (hazard.swing || 0) + dt * 4.3;
           const bob = Math.sin(hazard.swing) * (hazard.amplitude || 42);
-          const vineRadius = hazard.radius || 22;
-          if (Math.abs(player.x - (screenX + bob * 0.46)) < (vineRadius + player.r * 0.38) && player.y > player.groundY - 64) {
+          if (Math.abs(player.x - (screenX + bob * 0.46)) < ((hazard.radius || 22) + player.r * 0.4) && player.y > player.groundY - 64) {
             hitJourneyHazard(hazard, hazard.damage);
           }
         } else if (hazard.kind === 'croc') {
           hazard.snap = (hazard.snap || 0) + dt * (hazard.snapSpeed || 4.8);
-          if (Math.sin(hazard.snap) > 0.1 && overlap && player.y >= player.groundY - 22) {
+          if (Math.sin(hazard.snap) > 0.12 && overlap && player.y >= player.groundY - 24) {
             hitJourneyHazard(hazard, hazard.damage);
           }
         } else if (hazard.kind === 'gap') {
@@ -2572,14 +2547,12 @@ button {
         const x = hazard.screenX;
         if (x == null || x < -240 || x > state.width + 240) return;
         if (hazard.kind === 'gap') {
-          const gapPulse = Math.sin(state.time * 4 + x * 0.03);
           const water = ctx.createLinearGradient(0, player.groundY + 4, 0, player.groundY + 44);
-          water.addColorStop(0, 'rgba(54, 101, 72, 0.26)');
-          water.addColorStop(1, 'rgba(11, 31, 23, 0.88)');
+          water.addColorStop(0, 'rgba(54, 101, 72, 0.18)');
+          water.addColorStop(1, 'rgba(17, 38, 29, 0.74)');
           ctx.fillStyle = water;
           ctx.fillRect(x - hazard.width * 0.44, player.groundY + 4, hazard.width * 0.88, 42);
-          const wave = 1 + Math.sin(gapPulse) * 0.22;
-          ctx.strokeStyle = 'rgba(188, 224, 173, ' + (0.22 + wave * 0.08).toFixed(3) + ')';
+          ctx.strokeStyle = 'rgba(156, 199, 142, 0.28)';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.moveTo(x - hazard.width * 0.48, player.groundY + 8);
@@ -2587,93 +2560,36 @@ button {
           ctx.moveTo(x + hazard.width * 0.18, player.groundY + 14);
           ctx.lineTo(x + hazard.width * 0.48, player.groundY + 8);
           ctx.stroke();
-          for (let i = 0; i < 3; i++) {
-            const px = x - hazard.width * 0.36 + i * (hazard.width * 0.25);
-            const sx = px + Math.sin(gapPulse + i) * 4;
-            const sy = player.groundY + 16 + (i % 2) * 3;
-            ctx.fillStyle = 'rgba(165, 222, 177, ' + (0.22 + i * 0.04).toFixed(3) + ')';
-            ctx.beginPath();
-            ctx.moveTo(sx, sy);
-            ctx.lineTo(sx + 6, sy - 6);
-            ctx.lineTo(sx + 10, sy);
-            ctx.closePath();
-            ctx.fill();
-          }
         } else if (hazard.kind === 'vine') {
           const bob = Math.sin(hazard.swing || 0) * (hazard.amplitude || 42);
-          const vineTipX = x + bob * 0.42;
-          const vineTipY = player.groundY - 44;
-          const vineRadius = hazard.radius || 22;
-          const vinePulse = Math.sin(state.time * 2.6 + hazard.worldX * 0.011);
-
-          ctx.strokeStyle = 'rgba(74, 128, 72, 0.74)';
-          ctx.lineWidth = 5;
+          ctx.strokeStyle = 'rgba(74, 128, 72, 0.88)';
+          ctx.lineWidth = 4;
           ctx.beginPath();
           ctx.moveTo(x - 12, 0);
-          ctx.quadraticCurveTo(x + bob * 0.24, state.height * 0.22, vineTipX, vineTipY);
+          ctx.quadraticCurveTo(x + bob * 0.24, state.height * 0.22, x + bob * 0.42, player.groundY - 54);
           ctx.stroke();
-          ctx.strokeStyle = 'rgba(118, 190, 116, 0.56)';
-          ctx.lineWidth = 2;
+          ctx.fillStyle = 'rgba(102, 196, 124, 0.76)';
           ctx.beginPath();
-          ctx.moveTo(x - 4, state.height * 0.16);
-          ctx.quadraticCurveTo(x + bob * 0.12, state.height * 0.21, vineTipX + vinePulse, vineTipY - 2);
-          ctx.stroke();
-
-          ctx.fillStyle = 'rgba(118, 216, 125, 0.8)';
-          ctx.beginPath();
-          ctx.arc(vineTipX, vineTipY, vineRadius, 0, Math.PI * 2);
+          ctx.arc(x + bob * 0.42, player.groundY - 44, hazard.radius || 22, 0, Math.PI * 2);
           ctx.fill();
-          ctx.fillStyle = 'rgba(28, 66, 35, 0.82)';
+          ctx.fillStyle = 'rgba(32, 66, 38, 0.88)';
           ctx.beginPath();
-          ctx.arc(vineTipX, vineTipY, vineRadius * 0.56, 0, Math.PI * 2);
-          ctx.fill();
-          const warningGlow = Math.max(0, 0.5 + vinePulse * 0.5);
-          const aura = ctx.createRadialGradient(vineTipX, vineTipY, 4, vineTipX, vineTipY, vineRadius * 1.4);
-          aura.addColorStop(0, 'rgba(150, 255, 186, ' + warningGlow.toFixed(3) + ')');
-          aura.addColorStop(1, 'rgba(150, 255, 186, 0)');
-          ctx.fillStyle = aura;
-          ctx.beginPath();
-          ctx.arc(vineTipX, vineTipY, vineRadius * 1.4, 0, Math.PI * 2);
+          ctx.arc(x + bob * 0.42, player.groundY - 44, (hazard.radius || 22) * 0.56, 0, Math.PI * 2);
           ctx.fill();
         } else if (hazard.kind === 'root') {
-          const rootBase = Math.max(16, player.groundY + 10);
-          const rootPulse = Math.sin(state.time * 5 + hazard.worldX * 0.021);
           ctx.fillStyle = 'rgba(120, 88, 50, 0.95)';
           for (let i = 0; i < 4; i++) {
             const px = x - hazard.width * 0.5 + i * (hazard.width / 3);
             ctx.beginPath();
-            ctx.moveTo(px, rootBase + rootPulse);
-            ctx.lineTo(px + 16 + Math.sin(rootPulse + i) * 2, rootBase - 24);
-            ctx.lineTo(px + 28, rootBase + 12);
+            ctx.moveTo(px, player.groundY + 10);
+            ctx.lineTo(px + 16, player.groundY - 24);
+            ctx.lineTo(px + 28, player.groundY + 12);
             ctx.closePath();
             ctx.fill();
-
-            ctx.fillStyle = 'rgba(84, 55, 30, 0.85)';
-            ctx.fillRect(px + 9 + Math.sin(rootPulse + i) * 2, rootBase - 6, 6, 16);
-            ctx.fillStyle = 'rgba(120, 88, 50, 0.95)';
           }
-          ctx.fillStyle = 'rgba(160, 130, 96, 0.16)';
-          ctx.fillRect(x - hazard.width * 0.4, player.groundY + 2, hazard.width * 0.8, 2);
         } else if (hazard.kind === 'croc') {
-          const snap = Math.sin(hazard.snap || 0);
-          const jaw = Math.max(0, snap) * 16;
-          const snapping = snap > 0.1;
+          const jaw = Math.max(0, Math.sin(hazard.snap || 0)) * 16;
           const y = player.groundY + 14;
-          const ripple = Math.max(0, snap) * 0.9 + 0.12;
-
-          ctx.fillStyle = 'rgba(17, 53, 36, 0.86)';
-          ctx.fillRect(x - 42, y + 7, 84, 18);
-
-          ctx.strokeStyle = 'rgba(132, 215, 138, ' + ripple.toFixed(3) + ')';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          for (let i = 0; i < 9; i++) {
-            const px = x - 40 + i * 10 + Math.sin(state.time * 7 + i) * 2;
-            ctx.moveTo(px, y + 16);
-            ctx.lineTo(px + 4, y + 20);
-          }
-          ctx.stroke();
-
           ctx.fillStyle = 'rgba(21, 73, 48, 0.98)';
           ctx.beginPath();
           ctx.moveTo(x - 34, y + 6);
@@ -2682,7 +2598,7 @@ button {
           ctx.lineTo(x - 18, y + 24);
           ctx.closePath();
           ctx.fill();
-          ctx.fillStyle = snapping ? 'rgba(255, 173, 124, 0.98)' : 'rgba(113, 172, 98, 0.98)';
+          ctx.fillStyle = 'rgba(113, 172, 98, 0.98)';
           ctx.beginPath();
           ctx.moveTo(x - 32, y - jaw * 0.35);
           ctx.lineTo(x + 32, y - jaw);
@@ -2690,7 +2606,7 @@ button {
           ctx.lineTo(x - 10, y + 4);
           ctx.closePath();
           ctx.fill();
-          ctx.fillStyle = snapping ? 'rgba(255, 240, 214, 0.98)' : 'rgba(225, 235, 214, 0.92)';
+          ctx.fillStyle = 'rgba(225, 235, 214, 0.92)';
           for (let i = 0; i < 5; i++) {
             const tx = x - 22 + i * 11;
             ctx.beginPath();
@@ -2699,14 +2615,6 @@ button {
             ctx.lineTo(tx + 6, y + 4);
             ctx.closePath();
             ctx.fill();
-          }
-          if (snapping) {
-            ctx.strokeStyle = 'rgba(255, 188, 138, 0.76)';
-            ctx.lineWidth = 2.2;
-            ctx.beginPath();
-            ctx.moveTo(x - 34, y + 16);
-            ctx.lineTo(x + 34, y + 16);
-            ctx.stroke();
           }
           ctx.fillStyle = '#0b1610';
           ctx.beginPath();
@@ -4263,83 +4171,25 @@ button {
 
   function drawWarnings() {
     warnings.forEach((warning) => {
-      const alpha = Math.max(0, Math.min(1, warning.life / 0.55));
-      const kind = warning.kind || warning.type;
-      const warningY = warning.y != null ? warning.y : state.height * 0.73;
-      const warningColor = kind === 'croc'
-        ? 'rgba(255, 156, 136, ' + (alpha * 0.95).toFixed(3) + ')'
-        : kind === 'vine'
-          ? 'rgba(119, 220, 126, ' + (alpha * 0.94).toFixed(3) + ')'
-          : kind === 'root'
-            ? 'rgba(198, 149, 95, ' + (alpha * 0.9).toFixed(3) + ')'
-            : kind === 'gap'
-              ? 'rgba(168, 236, 211, ' + (alpha * 0.9).toFixed(3) + ')'
-              : kind === 'lightning'
-                ? 'rgba(220, 244, 255, ' + (alpha * 0.95).toFixed(3) + ')'
-                : kind === 'mine-rock'
-                  ? 'rgba(131, 201, 255, ' + (alpha * 0.8).toFixed(3) + ')'
-                  : 'rgba(131, 201, 255, ' + (alpha * 0.82).toFixed(3) + ')';
-
-      if (kind === 'gap') {
-        ctx.strokeStyle = warningColor;
-        ctx.lineWidth = 2.8;
-        ctx.setLineDash([7, 5]);
-        ctx.beginPath();
-        ctx.moveTo(warning.x - 46, warningY + 8);
-        ctx.lineTo(warning.x + 46, warningY + 8);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.arc(warning.x, warningY + 8, 11, 0, Math.PI * 2);
-        ctx.stroke();
-        return;
-      }
-
-      if (kind === 'vine') {
-        ctx.strokeStyle = warningColor;
-        ctx.lineWidth = 3.4;
-        ctx.beginPath();
-        ctx.moveTo(warning.x - 8, warningY);
-        ctx.lineTo(warning.x + 8, warningY);
-        ctx.moveTo(warning.x, warningY - 6);
-        ctx.lineTo(warning.x, warningY + 12);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(warning.x, warningY - 7, 3.6, 0, Math.PI * 2);
-        ctx.fillStyle = warningColor;
-        ctx.fill();
-        return;
-      }
-
-      if (kind === 'croc') {
-        ctx.strokeStyle = warningColor;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(warning.x, warningY - 4);
-        ctx.lineTo(warning.x, warningY + 18);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(warning.x, warningY + 5, 12, 0, Math.PI * 2);
-        ctx.stroke();
-        return;
-      }
-
+      const alpha = Math.max(0, warning.life / 0.55);
+      const warningColor = warning.type === 'lightning'
+        ? 'rgba(220, 244, 255, ' + (alpha * 0.95).toFixed(3) + ')'
+        : 'rgba(131, 201, 255, ' + (alpha * 0.8).toFixed(3) + ')';
       ctx.strokeStyle = warningColor;
       ctx.lineWidth = warning.type === 'lightning' ? 3.6 : 2.2;
       ctx.beginPath();
       ctx.moveTo(warning.x, state.height * 0.64);
-      ctx.lineTo(warning.x, warningY);
+      ctx.lineTo(warning.x, state.height * 0.92);
       ctx.stroke();
 
-      const markerY = warningY;
       ctx.beginPath();
-      ctx.arc(warning.x, markerY, 14, 0, Math.PI * 2);
+      ctx.arc(warning.x, state.height * 0.73, 14, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(warning.x - 8, markerY);
-      ctx.lineTo(warning.x + 8, markerY);
-      ctx.moveTo(warning.x, markerY - 8);
-      ctx.lineTo(warning.x, markerY + 8);
+      ctx.moveTo(warning.x - 8, state.height * 0.73);
+      ctx.lineTo(warning.x + 8, state.height * 0.73);
+      ctx.moveTo(warning.x, state.height * 0.73 - 8);
+      ctx.lineTo(warning.x, state.height * 0.73 + 8);
       ctx.stroke();
     });
   }
