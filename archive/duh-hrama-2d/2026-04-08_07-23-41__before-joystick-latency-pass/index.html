@@ -327,11 +327,10 @@ button {
     left: 39px;
     top: 39px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(247, 251, 255, 0.28), rgba(168, 192, 255, 0.14) 52%, rgba(86, 104, 168, 0.1) 100%);
-    border: 1px solid rgba(239, 245, 255, 0.38);
-    box-shadow: 0 6px 14px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.16);
-    will-change: transform;
-    transform: translate3d(0px, 0px, 0);
+    background: radial-gradient(circle at 35% 35%, rgba(247, 251, 255, 0.34), rgba(168, 192, 255, 0.18) 52%, rgba(86, 104, 168, 0.14) 100%);
+    border: 1px solid rgba(239, 245, 255, 0.42);
+    box-shadow: 0 8px 18px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.2);
+    backdrop-filter: blur(3px);
   }
 
   #attack-btn {
@@ -4284,17 +4283,15 @@ button {
     const jumpBtn = document.getElementById('jump-btn');
     const attackBtn = document.getElementById('attack-btn');
     const spellBtn = document.getElementById('spell-btn');
-    const JOYSTICK_JUMP_THRESHOLD = -0.6;
-    const JOYSTICK_DEADZONE = 0.025;
-    const JOYSTICK_TOUCH_GUARD_MS = 380;
-    let lastJoystickTouchAt = 0;
+    const JOYSTICK_JUMP_THRESHOLD = -0.64;
+    const JOYSTICK_DEADZONE = 0.08;
 
     function shapeJoystickAxis(value) {
       const sign = Math.sign(value);
       const magnitude = Math.abs(clamp(value, -1, 1));
       if (magnitude <= JOYSTICK_DEADZONE) return 0;
       const normalized = (magnitude - JOYSTICK_DEADZONE) / (1 - JOYSTICK_DEADZONE);
-      return sign * normalized;
+      return sign * Math.pow(normalized, 0.9);
     }
 
     function resetJoystick() {
@@ -4302,7 +4299,7 @@ button {
       state.joystick.valueX = 0;
       state.joystick.valueY = 0;
       state.joystick.jumpReady = true;
-      stick.style.transform = 'translate3d(0px, 0px, 0)';
+      stick.style.transform = 'translate(0px, 0px)';
     }
 
     function moveJoystick(clientX, clientY) {
@@ -4311,7 +4308,7 @@ button {
       const cy = rect.top + rect.height / 2;
       let dx = clientX - cx;
       let dy = clientY - cy;
-      const max = rect.width * 0.28;
+      const max = rect.width * 0.31;
       const len = Math.hypot(dx, dy);
       if (len > max) {
         dx = dx / len * max;
@@ -4325,37 +4322,31 @@ button {
       if (state.joystick.valueY <= JOYSTICK_JUMP_THRESHOLD && state.joystick.jumpReady) {
         jumpPlayer(state.joystick.valueX);
         state.joystick.jumpReady = false;
-      } else if (state.joystick.valueY > -0.18) {
+      } else if (state.joystick.valueY > -0.26) {
         state.joystick.jumpReady = true;
       }
-      stick.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      stick.style.transform = `translate(${dx}px, ${dy}px)`;
     }
 
     joystick.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      lastJoystickTouchAt = Date.now();
-      const touch = e.touches[0] || e.changedTouches[0];
+      const touch = e.changedTouches[0];
       moveJoystick(touch.clientX, touch.clientY);
-    }, { passive: false });
+    }, { passive: true });
 
     joystick.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      lastJoystickTouchAt = Date.now();
-      const touch = e.touches[0] || e.changedTouches[0];
+      const touch = e.changedTouches[0];
       moveJoystick(touch.clientX, touch.clientY);
-    }, { passive: false });
+    }, { passive: true });
 
     joystick.addEventListener('touchend', resetJoystick, { passive: true });
     joystick.addEventListener('touchcancel', resetJoystick, { passive: true });
 
     joystick.addEventListener('pointerdown', (e) => {
-      if (Date.now() - lastJoystickTouchAt < JOYSTICK_TOUCH_GUARD_MS) return;
       e.preventDefault();
       moveJoystick(e.clientX, e.clientY);
     });
 
     document.addEventListener('pointermove', (e) => {
-      if (Date.now() - lastJoystickTouchAt < JOYSTICK_TOUCH_GUARD_MS) return;
       if (!state.joystick.active) return;
       moveJoystick(e.clientX, e.clientY);
     });
