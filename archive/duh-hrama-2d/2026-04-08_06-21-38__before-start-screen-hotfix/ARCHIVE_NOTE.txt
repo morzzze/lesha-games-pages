@@ -1,0 +1,4 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-08_06-21-38__before-start-screen-hotfix
+Created at: Wed Apr  8 06:21:39 EET 2026
+Purpose: snapshot of broken compact HUD published build before restoring overlay/start screens
