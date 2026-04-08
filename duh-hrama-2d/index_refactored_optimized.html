@@ -1363,6 +1363,7 @@ button {
           groundAssist: 0,
           launchX: milestone ? 360 : 332,
           launchY: milestone ? -650 : -590,
+          progressBoost: milestone ? 92 : 54,
           milestone,
           section
         });
@@ -1386,25 +1387,6 @@ button {
             bleedTime: 1.3,
             bleedPeriod: 0.5,
             bleedDamage: 5
-          });
-        }
-
-        if (section > 0 && step === 1) {
-          journeyHazards.push({
-            kind: 'crawlerSnake',
-            worldX: branchX + 88,
-            width: 52,
-            damage: 0,
-            softFail: true,
-            softDamage: 8,
-            recoverTo: lastRecoverTo,
-            resetX: 0.26,
-            failText: 'Наземная змея сбивает ритм, но снизу всё ещё можно пройти',
-            hitWidth: 40,
-            warningLead: 440,
-            warningKind: 'crawler-snake',
-            snakePhase: index * 0.65,
-            hitTimer: 0
           });
         }
 
@@ -1721,7 +1703,11 @@ button {
     state.jungleRun.streak = Math.max(1, (state.jungleRun.streak || 0) + 1);
     state.jungleRun.peakStreak = Math.max(state.jungleRun.peakStreak || 0, state.jungleRun.streak);
     state.jungleRun.safeTime = groundedAssist ? 0.34 : 0.24;
-    state.journeyProgress = Math.max(state.journeyProgress, Math.max(0, (hazard.worldX || 0) - 18));
+    state.journeyProgress = clamp(
+      Math.max(state.journeyProgress, Math.max(0, hazard.worldX || 0)) + (hazard.progressBoost || 0),
+      0,
+      state.journeyGoal || 0
+    );
 
     if (hazard.milestone) {
       state.jungleRun.checkpointIndex = grabCount;
@@ -2762,8 +2748,8 @@ button {
 
     if (state.sequence === 'jungleRun') {
       const rhythmBonus = Math.min(18, (state.jungleRun.streak || 0) * 1.6);
-      const safeBrake = state.jungleRun.safeTime > 0 ? 0.36 : 1;
-      state.journeyProgress = clamp(state.journeyProgress + ((44 + rhythmBonus) * safeBrake + Math.max(0, move) * 62) * dt, 0, state.journeyGoal);
+      const flowBoost = state.jungleRun.safeTime > 0 ? 1.18 : 1;
+      state.journeyProgress = clamp(state.journeyProgress + ((44 + rhythmBonus) * flowBoost + Math.max(0, move) * 62) * dt, 0, state.journeyGoal);
       updateJourneyHazards(dt);
       if (state.journeyProgress >= state.journeyGoal) {
         if ((state.jungleRun.grabs || 0) >= 12) {
