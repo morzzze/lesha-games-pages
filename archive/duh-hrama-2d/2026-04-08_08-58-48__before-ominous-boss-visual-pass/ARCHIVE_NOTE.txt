@@ -1,0 +1,5 @@
+Archived from: duh-hrama-2d
+Snapshot: 2026-04-08_08-58-48__before-ominous-boss-visual-pass
+Created at: Wed Apr 08 08:58:48  2026
+Purpose: snapshot before ominous boss visual pass
+Source commit: d003138
