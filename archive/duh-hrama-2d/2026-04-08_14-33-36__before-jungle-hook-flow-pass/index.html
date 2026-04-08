@@ -728,7 +728,7 @@ button {
     isTouch: INITIAL_IS_TOUCH,
     lowFx: INITIAL_IS_TOUCH || prefersReducedMotion,
     alertBanner: { text: '', time: 0 },
-    jungleRun: { nodes: [], index: 0, swing: null, safeTime: 0, totalGoal: 0, streak: 0, peakStreak: 0, rewardPulse: 0 },
+    jungleRun: { nodes: [], index: 0, swing: null, safeTime: 0, totalGoal: 0 },
     journeyAssist: { checkpointProgress: 0, checkpointX: 0.28 },
     templeRun: { phase: 'approach', alarm: 0, chaseSpawn: 0 },
     weaponMode: 'default',
@@ -1052,7 +1052,7 @@ button {
     state.journeyBookTotal = 0;
     state.alertBanner.text = '';
     state.alertBanner.time = 0;
-    state.jungleRun = { nodes: [], index: 0, swing: null, safeTime: 0, grabs: 0, checkpointIndex: 0, totalGoal: 0, streak: 0, peakStreak: 0, rewardPulse: 0 };
+    state.jungleRun = { nodes: [], index: 0, swing: null, safeTime: 0, grabs: 0, checkpointIndex: 0, totalGoal: 0 };
     state.journeyAssist = { checkpointProgress: 0, checkpointX: 0.28 };
     state.templeRun = { phase: 'approach', alarm: 0, chaseSpawn: 0, wave: 0 };
     state.weaponMode = 'default';
@@ -1308,39 +1308,32 @@ button {
     journeyHazards.length = 0;
     state.jungleRun.grabs = 0;
     state.jungleRun.checkpointIndex = 0;
-    state.jungleRun.streak = 0;
-    state.jungleRun.peakStreak = 0;
-    state.jungleRun.rewardPulse = 0;
     state.jungleRun.nodes = [];
 
     let worldX = 180;
     let lastRecoverTo = 0;
     for (let i = 0; i < 20; i++) {
-      const phase = Math.floor(i / 5);
-      const step = i % 5;
+      const step = i % 4;
       const branchX = worldX;
-      const safeBranch = step === 0 || step === 4 || i === 19;
-      const milestone = (i + 1) % 5 === 0;
-      const vineY = milestone ? -66 : (step === 2 ? -60 : (step === 3 ? -54 : -50));
+      const safeBranch = step === 0 || i === 19;
 
       if (safeBranch) {
-        lastRecoverTo = Math.max(0, branchX - 124);
+        lastRecoverTo = Math.max(0, branchX - 110);
       }
 
-      state.jungleRun.nodes.push({ index: i, branchX, recoverTo: lastRecoverTo, milestone });
+      state.jungleRun.nodes.push({ index: i, branchX, recoverTo: lastRecoverTo });
 
       journeyHazards.push({
         kind: 'breakBranch',
         worldX: branchX,
-        width: safeBranch ? 148 : 118,
-        hitWidth: safeBranch ? 118 : 96,
+        width: safeBranch ? 132 : 112,
+        hitWidth: safeBranch ? 106 : 92,
         damage: 0,
         softFail: !safeBranch,
-        softDamage: safeBranch ? 0 : 8,
         recoverTo: lastRecoverTo,
         resetX: 0.24,
-        failText: safeBranch ? 'Здесь безопасная площадка' : 'Хрупкая ветка трескается, но откатывает только чуть назад',
-        breakDelay: safeBranch ? 1.85 : 1.28,
+        failText: safeBranch ? 'Здесь безопасная площадка' : 'Ветка предупреждает заранее и даёт шанс отступить',
+        breakDelay: safeBranch ? 1.6 : 1.12,
         safe: safeBranch,
         stepIndex: i,
         hitTimer: 0,
@@ -1349,79 +1342,66 @@ button {
 
       journeyHazards.push({
         kind: 'safeVine',
-        worldX: branchX + (safeBranch ? 98 : 94),
-        width: milestone ? 96 : 88,
+        worldX: branchX + 108,
+        width: 84,
         damage: 0,
-        amplitude: milestone ? 16 : 18 + (step % 2) * 4,
-        radius: milestone ? 34 : 30 + (i % 2),
-        hitWidth: milestone ? 78 : 70,
+        amplitude: 24 + (step % 2) * 4,
+        radius: 28 + (i % 2),
+        hitWidth: 64,
         warningLead: 500,
         warningKind: 'vine',
         stepIndex: i,
         grabbed: false,
         hitTimer: 0,
         recoverTo: lastRecoverTo,
-        resetX: 0.24,
-        tipY: vineY,
-        catchBoost: milestone ? 1.95 : 1.72,
-        groundAssist: milestone ? 2.18 : 1.92,
-        launchX: milestone ? 390 : (safeBranch ? 350 : 332),
-        launchY: milestone ? -700 : -620,
-        milestone,
-        phase
+        resetX: 0.24
       });
 
       if (i < 19) {
         journeyHazards.push({
           kind: 'gap',
-          worldX: branchX + (safeBranch ? 170 : 166),
-          width: 60 + (step % 3) * 8,
-          hitWidth: 46 + (step % 3) * 6,
+          worldX: branchX + 184,
+          width: 70 + (i % 3) * 8,
+          hitWidth: 54 + (i % 3) * 6,
           damage: 0,
           softFail: true,
-          softDamage: 10,
           recoverTo: lastRecoverTo,
           resetX: 0.24,
-          failText: 'Промах по прыжку снимает HP, но не ломает весь забег',
+          failText: 'Разрыв проходится одним чистым прыжком',
           warningLead: 500,
           warningKind: 'gap',
           hitTimer: 0
         });
       }
 
-      if (step === 2 && i < 19) {
+      if (i % 5 === 2 && i < 19) {
         journeyHazards.push({
           kind: 'snakeVine',
-          worldX: branchX + 136,
-          width: 58,
-          damage: 24,
-          amplitude: 14,
-          radius: 18,
-          hitWidth: 36,
-          warningLead: 520,
+          worldX: branchX + 144,
+          width: 62,
+          damage: 50,
+          amplitude: 20,
+          radius: 20,
+          hitWidth: 44,
+          warningLead: 460,
           warningKind: 'snake-vine',
           stepIndex: i,
           hitTimer: 0,
           recoverTo: lastRecoverTo,
-          resetX: 0.24,
-          tipY: vineY - 4,
-          bleedTime: 1.5,
-          bleedPeriod: 0.5,
-          bleedDamage: 6
+          resetX: 0.24
         });
       }
 
-      if (step === 3 && i < 19) {
+      if (i % 6 === 3) {
         journeyHazards.push({
           kind: 'crawlerSnake',
-          worldX: branchX + 64,
+          worldX: branchX + 58,
           width: 52,
           damage: 0,
           softFail: true,
-          softDamage: 10,
           recoverTo: lastRecoverTo,
           resetX: 0.24,
-          failText: 'Наземная змея сбивает ритм, но не отправляет в начало',
+          failText: 'Наземную змею видно заранее, ей нужен отдельный ритм',
           hitWidth: 40,
           warningLead: 420,
           warningKind: 'crawler-snake',
@@ -1430,9 +1410,9 @@ button {
         });
       }
 
-      worldX += safeBranch ? 184 : (step === 2 ? 154 : 162);
+      worldX += safeBranch ? 200 : 164;
     }
-    state.jungleRun.totalGoal = worldX + 140;
+    state.jungleRun.totalGoal = worldX + 160;
   }
 
   function startJungleRun() {
@@ -1447,7 +1427,7 @@ button {
     state.journeyTimer = 0;
     state.journeyProgress = 0;
     state.journeyGoal = 0;
-    state.quest = 'Лови зелёные кольца сериями, избегай змей, каждые 5 захватов лечат и ставят чекпоинт.';
+    state.quest = 'Верхние джунгли переделаны под мобильный платформинг: широкие ветки, честные лианы, 20 зелёных захватов и штраф по HP вместо отката в начало.';
     player.x = state.width * 0.28;
     player.y = player.groundY;
     player.vy = 0;
@@ -1460,7 +1440,6 @@ button {
     bossNameLabel.textContent = 'Верхние джунгли';
     seedJungleHazards();
     state.journeyGoal = state.jungleRun.totalGoal || (state.isTouch ? 2860 : 3140);
-    showAlertBanner('Зелёное кольцо подхватывает само, если войти под него. Держи серию 5 × 4.', 2.6);
     setScreen('journey');
     updateHud();
   }
@@ -1715,44 +1694,6 @@ button {
     return 8;
   }
 
-  function registerJungleGrab(hazard, tipX, tipY, groundedAssist = false) {
-    hazard.grabbed = true;
-
-    const grabCount = Math.max(state.jungleRun.grabs || 0, (hazard.stepIndex || 0) + 1);
-    state.jungleRun.grabs = grabCount;
-    state.jungleRun.streak = Math.max(1, (state.jungleRun.streak || 0) + 1);
-    state.jungleRun.peakStreak = Math.max(state.jungleRun.peakStreak || 0, state.jungleRun.streak);
-    state.jungleRun.safeTime = groundedAssist ? 0.34 : 0.24;
-    state.journeyProgress = Math.max(state.journeyProgress, Math.max(0, (hazard.worldX || 0) - 18));
-
-    if (grabCount % 5 === 0) {
-      state.jungleRun.checkpointIndex = grabCount;
-      state.journeyAssist.checkpointProgress = Math.max(state.journeyAssist.checkpointProgress || 0, Math.max(0, (hazard.worldX || 0) - 92));
-      state.journeyAssist.checkpointX = 0.26;
-      const prevHp = player.hp;
-      player.hp = Math.min(player.maxHp, player.hp + 16);
-      player.bleed.time = Math.max(0, player.bleed.time - 1.1);
-      player.bleed.tick = 0;
-      state.jungleRun.rewardPulse = 0.9;
-      const healed = player.hp - prevHp;
-      showAlertBanner(healed > 0 ? ('Серия 5! +' + healed + ' HP и чекпоинт') : 'Серия 5! Чекпоинт сохранён', 1.25);
-      spawnParticles(tipX, tipY, '#ffe083', 18, 132, 6.2);
-    } else if (grabCount === 1) {
-      showAlertBanner('Хорошо, зелёные кольца подхватывают автоматически', 1.2);
-    } else if (state.jungleRun.streak === 3) {
-      showAlertBanner('Ритм пойман, держи серию', 0.95);
-    }
-
-    player.invuln = Math.max(player.invuln, 0.12);
-    player.vy = hazard.launchY != null ? hazard.launchY : (groundedAssist ? -620 : -600);
-    player.jumpBoostX = Math.max(player.jumpBoostX, hazard.launchX || (groundedAssist ? 360 : 330));
-    player.x = clamp(player.x + (groundedAssist ? 24 : 18), state.width * 0.12, state.width * 0.88);
-    player.jumpBuffer = 0;
-    player.bufferedDir = 0;
-    spawnParticles(tipX, tipY, hazard.milestone ? '#fff1a4' : '#8dff9e', hazard.milestone ? 14 : 10, 104, 4.8);
-    updateHud();
-  }
-
   function hitJourneyHazard(hazard, damage) {
     if (hazard.hitTimer > 0 || player.invuln > 0) return;
     const softFail = !!hazard.softFail;
@@ -1782,10 +1723,6 @@ button {
       player.coyoteTime = 0.14;
       player.jumpBuffer = 0;
       player.bufferedDir = 0;
-      if (state.sequence === 'jungleRun') {
-        state.jungleRun.streak = 0;
-        state.jungleRun.safeTime = 0;
-      }
       player.x = clamp(state.width * (hazard.resetX || state.journeyAssist.checkpointX || 0.28), state.width * 0.18, state.width * 0.42);
       state.shakeTime = Math.max(state.shakeTime, state.lowFx ? 0.04 : 0.1);
       state.shakePower = Math.max(state.shakePower, state.lowFx ? 1.8 : 4.8);
@@ -1966,7 +1903,7 @@ button {
           bossLabelValue = 'Спуск в шахты';
         } else if (state.sequence === 'jungleRun') {
           bossRatio = clamp((state.jungleRun.grabs || 0) / 20, 0, 1);
-          bossTextValue = (state.jungleRun.grabs || 0) + ' / 20 · x' + (state.jungleRun.streak || 0);
+          bossTextValue = (state.jungleRun.grabs || 0) + ' / 20';
           bossLabelValue = 'Захваты за лианы';
         } else if (state.sequence === 'templeApproach') {
           bossLabelValue = 'Подход к храму';
@@ -2568,31 +2505,37 @@ button {
           hazard.swing = (hazard.swing || 0) + dt * 4.25;
           const bob = Math.sin(hazard.swing) * (hazard.amplitude || 42);
           const tipX = screenX + bob * 0.46;
-          const tipY = player.groundY + (hazard.tipY || -48);
+          const tipY = player.groundY - 48;
           const vineRadius = hazard.radius || 22;
           const airborne = player.y < player.groundY - 8 || player.vy < 40;
-          const airCatch = dist(player.x, player.y - 16, tipX, tipY) <= vineRadius + player.r * (hazard.catchBoost || 1.7);
-          const groundCatch = player.y >= player.groundY - 18 && Math.abs(player.x - tipX) <= vineRadius + player.r * (hazard.groundAssist || 1.9);
-          if (!hazard.grabbed && (airCatch || groundCatch)) {
-            registerJungleGrab(hazard, tipX, tipY, groundCatch && !airborne);
+          if (!hazard.grabbed && airborne && dist(player.x, player.y - 16, tipX, tipY) <= vineRadius + player.r * 1.48) {
+            hazard.grabbed = true;
+            state.jungleRun.grabs = Math.max(state.jungleRun.grabs || 0, (hazard.stepIndex || 0) + 1);
+            if (((hazard.stepIndex || 0) + 1) % 4 === 0) {
+              state.jungleRun.checkpointIndex = state.jungleRun.grabs;
+            }
+            state.jungleRun.safeTime = 0.2;
+            player.vy = Math.min(player.vy, -540);
+            player.jumpBoostX = Math.max(player.jumpBoostX, 310);
+            player.x = clamp(player.x + 18, state.width * 0.12, state.width * 0.88);
+            spawnParticles(tipX, tipY, '#8dff9e', 10, 104, 4.8);
           }
         } else if (hazard.kind === 'snakeVine') {
           hazard.swing = (hazard.swing || 0) + dt * 4.9;
           const bob = Math.sin(hazard.swing + 0.4) * (hazard.amplitude || 34);
           const tipX = screenX + bob * 0.38;
-          const tipY = player.groundY + (hazard.tipY || -52);
+          const tipY = player.groundY - 48;
           const airborne = player.y < player.groundY - 10 || player.vy < 0;
           if (hazard.hitTimer <= 0 && airborne && dist(player.x, player.y - 14, tipX, tipY) <= (hazard.radius || 20) + player.r * 0.52) {
             hazard.hitTimer = 0.9;
-            state.jungleRun.streak = 0;
-            damagePlayer(hazard.damage || 24);
-            player.bleed.time = hazard.bleedTime || 1.5;
+            damagePlayer(50);
+            player.bleed.time = 2;
             player.bleed.tick = 0;
-            player.bleed.period = hazard.bleedPeriod || 0.5;
-            player.bleed.dmg = hazard.bleedDamage || 6;
-            player.vineKnockback = -220;
-            state.journeyProgress = Math.max(0, state.journeyProgress - 22);
-            showAlertBanner('Ложная лиана, но урон теперь мягче и читаемее', 1.2);
+            player.bleed.period = 0.5;
+            player.bleed.dmg = 10;
+            player.vineKnockback = -260;
+            state.journeyProgress = Math.max(0, state.journeyProgress - 34);
+            showAlertBanner('Это змея, а не лиана!', 1.2);
             spawnParticles(tipX, tipY, '#d38b5a', 14, 120, 5.4);
           }
         } else if (hazard.kind === 'breakBranch') {
@@ -2616,7 +2559,6 @@ button {
           hazard.snakePhase = (hazard.snakePhase || 0) + dt * 3.2;
           hazard.traceOffset = Math.sin(hazard.snakePhase) * 10;
           if (Math.abs(player.x - (screenX + hazard.traceOffset)) < (hitWidth * 0.46 + player.r * 0.55) && player.y >= player.groundY - 18) {
-            state.jungleRun.streak = 0;
             hitJourneyHazard(hazard, hazard.damage);
           }
         } else if (hazard.kind === 'vine') {
@@ -2695,9 +2637,6 @@ button {
     if (state.sequence === 'jungleRun' && state.jungleRun.safeTime > 0) {
       state.jungleRun.safeTime = Math.max(0, state.jungleRun.safeTime - dt);
     }
-    if (state.sequence === 'jungleRun' && state.jungleRun.rewardPulse > 0) {
-      state.jungleRun.rewardPulse = Math.max(0, state.jungleRun.rewardPulse - dt);
-    }
 
     if (state.sequence === 'boatArrival') {
       state.journeyTimer += dt;
@@ -2758,9 +2697,8 @@ button {
     }
 
     if (state.sequence === 'jungleRun') {
-      const rhythmBonus = Math.min(18, (state.jungleRun.streak || 0) * 1.6);
-      const safeBrake = state.jungleRun.safeTime > 0 ? 0.36 : 1;
-      state.journeyProgress = clamp(state.journeyProgress + ((44 + rhythmBonus) * safeBrake + Math.max(0, move) * 62) * dt, 0, state.journeyGoal);
+      const safeBrake = state.jungleRun.safeTime > 0 ? 0.52 : 1;
+      state.journeyProgress = clamp(state.journeyProgress + (58 * safeBrake + Math.max(0, move) * 68) * dt, 0, state.journeyGoal);
       updateJourneyHazards(dt);
       if (state.journeyProgress >= state.journeyGoal && (state.jungleRun.grabs || 0) >= 20) {
         state.whiteFlash = Math.max(state.whiteFlash, 0.2);
@@ -3862,26 +3800,25 @@ button {
         } else if (hazard.kind === 'safeVine' || hazard.kind === 'snakeVine' || hazard.kind === 'vine') {
           const bob = Math.sin(hazard.swing || 0) * (hazard.amplitude || 42);
           const vineTipX = x + bob * 0.42;
-          const vineTipY = player.groundY + (hazard.tipY || -44);
+          const vineTipY = player.groundY - 44;
           const vineRadius = hazard.radius || 22;
           const vinePulse = Math.sin(state.time * 2.6 + hazard.worldX * 0.011);
 
           const isSnake = hazard.kind === 'snakeVine';
-          const isMilestone = !!hazard.milestone;
-          ctx.strokeStyle = isSnake ? 'rgba(124, 84, 48, 0.82)' : (isMilestone ? 'rgba(184, 154, 76, 0.86)' : 'rgba(74, 128, 72, 0.74)');
+          ctx.strokeStyle = isSnake ? 'rgba(124, 84, 48, 0.82)' : 'rgba(74, 128, 72, 0.74)';
           ctx.lineWidth = 5;
           ctx.beginPath();
           ctx.moveTo(x - 12, 0);
           ctx.quadraticCurveTo(x + bob * 0.24, state.height * 0.22, vineTipX, vineTipY);
           ctx.stroke();
-          ctx.strokeStyle = isSnake ? 'rgba(181, 132, 88, 0.54)' : (isMilestone ? 'rgba(255, 230, 138, 0.66)' : 'rgba(118, 190, 116, 0.56)');
+          ctx.strokeStyle = isSnake ? 'rgba(181, 132, 88, 0.54)' : 'rgba(118, 190, 116, 0.56)';
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.moveTo(x - 4, state.height * 0.16);
           ctx.quadraticCurveTo(x + bob * 0.12, state.height * 0.21, vineTipX + vinePulse, vineTipY - 2);
           ctx.stroke();
 
-          ctx.fillStyle = isSnake ? 'rgba(170, 110, 68, 0.9)' : (isMilestone ? 'rgba(238, 220, 116, 0.9)' : 'rgba(118, 216, 125, 0.8)');
+          ctx.fillStyle = isSnake ? 'rgba(170, 110, 68, 0.9)' : 'rgba(118, 216, 125, 0.8)';
           ctx.beginPath();
           ctx.arc(vineTipX, vineTipY, vineRadius, 0, Math.PI * 2);
           ctx.fill();
@@ -3891,8 +3828,8 @@ button {
           ctx.fill();
           const warningGlow = Math.max(0, 0.5 + vinePulse * 0.5);
           const aura = ctx.createRadialGradient(vineTipX, vineTipY, 4, vineTipX, vineTipY, vineRadius * 1.4);
-          aura.addColorStop(0, isSnake ? 'rgba(255, 196, 144, ' + warningGlow.toFixed(3) + ')' : (isMilestone ? 'rgba(255, 238, 163, ' + warningGlow.toFixed(3) + ')' : 'rgba(150, 255, 186, ' + warningGlow.toFixed(3) + ')'));
-          aura.addColorStop(1, isSnake ? 'rgba(255, 196, 144, 0)' : (isMilestone ? 'rgba(255, 238, 163, 0)' : 'rgba(150, 255, 186, 0)'));
+          aura.addColorStop(0, isSnake ? 'rgba(255, 196, 144, ' + warningGlow.toFixed(3) + ')' : 'rgba(150, 255, 186, ' + warningGlow.toFixed(3) + ')');
+          aura.addColorStop(1, isSnake ? 'rgba(255, 196, 144, 0)' : 'rgba(150, 255, 186, 0)');
           ctx.fillStyle = aura;
           ctx.beginPath();
           ctx.arc(vineTipX, vineTipY, vineRadius * 1.4, 0, Math.PI * 2);
@@ -3902,16 +3839,6 @@ button {
             ctx.beginPath();
             ctx.arc(vineTipX + vineRadius * 0.28, vineTipY - vineRadius * 0.18, 3.2, 0, Math.PI * 2);
             ctx.fill();
-          } else {
-            ctx.strokeStyle = isMilestone ? 'rgba(72, 52, 18, 0.72)' : 'rgba(23, 58, 34, 0.68)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(vineTipX - vineRadius * 0.36, vineTipY);
-            ctx.lineTo(vineTipX + vineRadius * 0.3, vineTipY);
-            ctx.moveTo(vineTipX + vineRadius * 0.04, vineTipY - vineRadius * 0.22);
-            ctx.lineTo(vineTipX + vineRadius * 0.3, vineTipY);
-            ctx.lineTo(vineTipX + vineRadius * 0.04, vineTipY + vineRadius * 0.22);
-            ctx.stroke();
           }
         } else if (hazard.kind === 'crawlerSnake') {
           const slither = hazard.traceOffset || 0;
